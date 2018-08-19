@@ -1,0 +1,7 @@
+{
+  "ProviderName": "Frame Grabber Simulator",
+  "ProviderDesc": "Simulates image generation by pushing loaded images to queue",
+  "SourceFolderPath": "c:\\temp",
+  "SourceFilePath": "",
+  "FrameFrequencyInMSec" : 500
+}

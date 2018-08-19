@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="JuneUIWnd">
+    <file>Resources/Template1.png</file>
+    <file>Resources/zoom-in.png</file>
+    <file>Resources/zoom-out.png</file>
+    <file>Resources/start.png</file>
+    <file>Resources/stop.jpg</file>
+  </qresource>
+</RCC>

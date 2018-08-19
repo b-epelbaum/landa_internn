@@ -1,0 +1,69 @@
+#pragma once
+#include "junecore_global.h"
+#include "ICore.h"
+
+#include <QObject>
+#include <QMetaObject>
+
+namespace LandaJune
+{
+	namespace Core
+	{
+		class JUNECORE_EXPORT BaseCore :  public QObject, public ICore
+		{
+			Q_OBJECT
+			Q_PLUGIN_METADATA(IID ICore_iid)
+			Q_INTERFACES(LandaJune::Core::ICore)
+
+			friend class ICore;
+		
+		public:
+
+			BaseCore() = default;
+			BaseCore(const BaseCore &) = delete;
+			BaseCore(BaseCore &&) = delete;
+
+			void loadDefaultConfiguration() override;
+			void loadConfiguration(QIODevice& strJSONFile) override;
+			void loadConfiguration(QString strJSON) override;
+
+			void init() override;
+			void cleanup() override;
+
+			const QList<FrameProviderPtr>& getFrameProviderList() const override;
+			ProcessParameterPtr getProcessParameters() override;
+
+			void selectFrameProvider(FrameProviderPtr provider) override;
+			FrameProviderPtr getSelectedFrameProvider() const override;
+
+			void start() const override;
+			void stop() const override;
+
+			bool isBusy() override;
+
+			void deleteThis() const
+			{
+				delete this;
+			}
+
+		protected :
+			
+			virtual ~BaseCore() = default;
+			const BaseCore & operator = (const BaseCore &) = delete;
+			BaseCore & operator = (BaseCore &&) = delete;
+
+			virtual QString getDefaultConfigurationFileName() const ;
+			virtual void saveConfiguration();
+			
+			void initGlobalParameters();
+			void initFramePool() const;
+			void initProviders();
+			bool _bInited = false;
+
+			QList<FrameProviderPtr> _providerList;
+			FrameProviderPtr	_currentFrameProvider;
+			ProcessParameterPtr	_processParameters;
+		};
+	}
+}
+

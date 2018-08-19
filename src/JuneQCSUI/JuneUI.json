@@ -1,0 +1,62 @@
+{
+	"images_path" : "",
+	"image_parameters": {
+		"HSV": {
+			"COLORS BLACK": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS CYAN": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS MAGENTA": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS YELLOW": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS RED": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS GREEN": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS BLUE": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			},
+			"COLORS ORANGE": {
+				"iH": 0,
+				"iS": 0,
+				"iV": 0
+			}
+		}
+		,
+		"Number of targets" : 0,
+		"Target position" : {
+				"X": 0,
+				"Y": 0
+			},
+		"Edge position" : {
+			"X": 0,
+			"Y": 0
+		},
+		"Triangle position" : {
+			"X": 0,
+			"Y": 0
+		},
+		"Side" : 0
+	}
+}
