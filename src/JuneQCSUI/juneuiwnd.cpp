@@ -87,6 +87,7 @@ void JuneUIWnd::initUI()
 
 void JuneUIWnd::initCore()
 {
+	/*
 	auto core = ICore::get();
 	try
 	{
@@ -96,6 +97,17 @@ void JuneUIWnd::initCore()
 	{
 
 	}
+	*/
+	auto core = CoreEngine::get();
+	try
+	{
+		core->init();
+	}
+	catch (CoreEngineException& e)
+	{
+
+	}
+
 }
 
 void JuneUIWnd::enumerateFrameProviders() const
