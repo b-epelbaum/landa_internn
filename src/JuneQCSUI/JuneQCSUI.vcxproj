@@ -14,7 +14,7 @@
     <ProjectGuid>{B12702AD-ABFB-343A-A199-8E24837244A3}</ProjectGuid>
     <Keyword>Qt4VSv1.0</Keyword>
     <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
-    <ProjectName>JuneQCSUI</ProjectName>
+    <ProjectName>juneQCSUI</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -61,7 +61,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms;$(SolutionDir)src\libs\junecore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -79,7 +79,7 @@
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms;$(SolutionDir)src\libs\junecore;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib;%(AdditionalIncludeDirectories)</IncludePath>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
@@ -104,7 +104,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms;$(SolutionDir)src\libs\junecore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -129,7 +129,7 @@
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms;$(SolutionDir)src\libs\junecore;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib;%(AdditionalIncludeDirectories)</IncludePath>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
@@ -148,12 +148,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="coreengine.cpp" />
     <ClCompile Include="juneuiwnd.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="providerPropItem.cpp" />
     <ClCompile Include="providerPropModel.cpp" />
-    <ClCompile Include="qjsonmodel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h" />
@@ -168,16 +166,6 @@
     <ResourceCompile Include="JuneU.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="qjsonmodel.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="coreengine.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(SolutionDir)\include;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\src\libs\appLog;$(SolutionDir)src\libs\frameProviders\FrameProviderInterface;$(SolutionDir)src\libs\jparams;$(SolutionDir)src\libs\threading;$(SolutionDir)src\libs\functions;$(SolutionDir)src\libs\algorithms</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-    </QtMoc>
-    <ClInclude Include="link_libs.h" />
     <QtMoc Include="providerPropModel.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(SolutionDir)\src\libs\appLog;$(SolutionDir)\include;$(SolutionDir)\src\libs\jutils;$(SolutionDir)\thirdparty\siso\include;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)algo;$(SolutionDir)\src\libs\FrameProviderInterface</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
@@ -188,7 +176,15 @@
     <ClInclude Include="sisohelper.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ClassDiagram.cd" />
+    <ProjectReference Include="..\libs\coreLib\coreLib.vcxproj">
+      <Project>{ffda6cbb-7df5-43d1-9a3b-4f9c3938866d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libs\logLib\appLog.vcxproj">
+      <Project>{f3851e08-5036-4057-81d8-cf94de101cb3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libs\utilLib\utilLib.vcxproj">
+      <Project>{2cd8058e-0ec4-4486-8129-03e874b756da}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

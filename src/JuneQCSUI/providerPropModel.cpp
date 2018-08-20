@@ -221,7 +221,7 @@ bool ProvidePropsModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
-void ProvidePropsModel::setupModelData(IPropertyList propList )
+void ProvidePropsModel::setupModelData(LandaJune::IPropertyList propList )
 {
 	const auto& numRows = _rootItem->childCount();
 	if (numRows)

@@ -1,6 +1,6 @@
 #pragma once
+#include <string>
 #include "june_errors.h"
-#include "june_exceptions.h"
 
 namespace LandaJune
 {
@@ -26,12 +26,12 @@ namespace LandaJune
 	namespace FrameProviders
 	{
 		using ProviderException = BaseException<FRAME_PROVIDER_ERROR>;
-		using FrameRefException = BaseException<FRAME_REF_ERROR>;
 	}
 
 	namespace Core
 	{
 		using CoreEngineException = BaseException<CORE_ENGINE_ERROR>;
+		using FrameRefException = BaseException<FRAME_REF_ERROR>;
 	}
 
 	namespace Algorithms

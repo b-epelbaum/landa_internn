@@ -4,6 +4,7 @@
 #include <QVariant>
 #include <QStyledItemDelegate>
 #include "baseparam.h"
+#include "interfaces/type_usings.h"
 
 class ProviderPropsItem;
 
@@ -28,7 +29,7 @@ public:
 	ProvidePropsModel(QObject *parent = 0);
     ~ProvidePropsModel();
 	
-	void setupModelData(LandaJune::Parameters::IPropertyList);
+	void setupModelData(LandaJune::IPropertyList);
 
     QVariant data(const QModelIndex &index, int role) const override;
     QVariant headerData(int section, Qt::Orientation orientation,

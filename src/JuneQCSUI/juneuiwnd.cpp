@@ -9,15 +9,16 @@
 #include <QDateTime>
 #include <QtGlobal>
 
-#include "common/june_exceptions.h"
-#include "coreengine.h"
+#include "interfaces/ICore.h"
+#include "interfaces/IFrameProvider.h"
 
+#include "ProcessParameter.h"
+
+#include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
 
-#include "link_libs.h"
 
-#include "ICore.h"
 
 using namespace LandaJune::UI;
 using namespace LandaJune::Core;
@@ -87,7 +88,6 @@ void JuneUIWnd::initUI()
 
 void JuneUIWnd::initCore()
 {
-	/*
 	auto core = ICore::get();
 	try
 	{
@@ -97,7 +97,8 @@ void JuneUIWnd::initCore()
 	{
 
 	}
-	*/
+	
+	/*
 	auto core = CoreEngine::get();
 	try
 	{
@@ -107,7 +108,7 @@ void JuneUIWnd::initCore()
 	{
 
 	}
-
+	*/
 }
 
 void JuneUIWnd::enumerateFrameProviders() const
@@ -115,7 +116,7 @@ void JuneUIWnd::enumerateFrameProviders() const
 	ui.frameSourceCombo->clear();
 	try
 	{
-		auto listOfProviders = CoreEngine::get()->getFrameProviderList();
+		auto listOfProviders = ICore::get()->getFrameProviderList();
 		for (auto& provider : listOfProviders)
 		{
 			ui.frameSourceCombo->addItem(provider->getName(), QVariant::fromValue(provider));
@@ -133,7 +134,7 @@ void JuneUIWnd::initBatchParameters() const
 {
 	try
 	{
-		const auto batchParams = CoreEngine::get()->getBatchParameters();
+		const auto batchParams = ICore::get()->getProcessParameters();
 		_batchParamModel->setupModelData(batchParams->getPropertyList());
 	}
 	catch (CoreEngineException& ex)
@@ -153,7 +154,7 @@ void JuneUIWnd::start()
 
 	try
 	{
-		const auto selectedProvider = ui.frameSourceCombo->currentData().value<IFrameProvider::FrameProviderPtr>();
+		const auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
 		if (selectedProvider)
 		{
 			PRINT_DEBUG_DBLINE;
@@ -161,8 +162,8 @@ void JuneUIWnd::start()
 			CLIENT_SCOPED_LOG << "starting processing...";
 			PRINT_DEBUG_DBLINE;
 
-			CoreEngine::get()->selectFrameProvider(selectedProvider);
-			CoreEngine::get()->start();
+			ICore::get()->selectFrameProvider(selectedProvider);
+			ICore::get()->start();
 		}
 	}
 	catch (CoreEngineException& ex)
@@ -326,7 +327,7 @@ void JuneUIWnd::stop()
 	
 	try
 	{
-		CoreEngine::get()->stop();
+		ICore::get()->stop();
 	}
 	catch (CoreEngineException& ex)
 	{
@@ -353,7 +354,7 @@ void JuneUIWnd::onAboutToQuit()
 
 void JuneUIWnd::onFrameProviderComboChanged(int index)
 {
-	const auto selectedProvider = ui.frameSourceCombo->itemData(index).value<IFrameProvider::FrameProviderPtr>();
+	const auto selectedProvider = ui.frameSourceCombo->itemData(index).value<FrameProviderPtr>();
 	if (!selectedProvider)
 	{
 		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected frame provider is invalid. Aborted ";
@@ -370,7 +371,7 @@ void JuneUIWnd::updateStats() const
 
 void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
 {
-	auto selectedProvider = ui.frameSourceCombo->currentData().value<IFrameProvider::FrameProviderPtr>();
+	auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
 	if (selectedProvider)
 		selectedProvider->setProviderProperty(propName, newVal);
 }
@@ -379,7 +380,7 @@ void JuneUIWnd::onBatchPropChanged(QString propName, const QVariant& newVal)
 {
 	try
 	{
-		const auto batchParams = CoreEngine::get()->getBatchParameters();
+		const auto batchParams = ICore::get()->getProcessParameters();
 		batchParams->setParamProperty(propName, newVal);
 	}
 	catch (CoreEngineException& ex)

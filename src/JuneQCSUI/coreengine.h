@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QSharedPointer>
 #include "ProcessParameter.h"
-#include "IFrameProvider.h"
+#include "interfaces/IFrameProvider.h"
 
 namespace LandaJune
 {

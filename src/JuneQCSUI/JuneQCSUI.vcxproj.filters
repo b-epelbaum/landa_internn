@@ -48,16 +48,10 @@
     <ClCompile Include="juneuiwnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="qjsonmodel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="providerPropModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="providerPropItem.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="coreengine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -65,14 +59,8 @@
     <QtMoc Include="juneuiwnd.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="qjsonmodel.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="providerPropModel.h">
       <Filter>Header Files\parameters</Filter>
-    </QtMoc>
-    <QtMoc Include="coreengine.h">
-      <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -92,14 +80,8 @@
     <ClInclude Include="sisohelper.h">
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
-    <ClInclude Include="link_libs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="providerPropItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
