@@ -456,10 +456,7 @@ PARAMS_PAPEREDGE_OUTPUT LandaJune::Algorithms::calculateEdge(const PARAMS_PAPERE
 	retVal._input = input;
 
 	PRINT_INFO7 << "C2C_EDGE [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
-
-	// run_actual_c2c_edge(input, output);
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	detect_edge(input, retVal);
 	return std::move(retVal);
 }
 
@@ -483,11 +480,8 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 {
 	PARAMS_I2S_OUTPUT retVal;
 	retVal._input = input;
-
-	// run_actual_i2s_edge(input, output);
-
 	PRINT_INFO8 << "I2S [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	detect_i2s(input, retVal);
 	return std::move(retVal);
 }
 
@@ -511,9 +505,8 @@ PARAMS_C2C_ROI_OUTPUT LandaJune::Algorithms::calculateC2CRoi(const PARAMS_C2C_RO
 {
 	PARAMS_C2C_ROI_OUTPUT retVal;
 	retVal._input = input;
-
 	PRINT_INFO8 << "C2C_ROI [" << input._roiIndex << "] runs in thread #" << GetCurrentThreadId();
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	detect_c2c_roi(input, retVal);
 	return retVal;
 }
 

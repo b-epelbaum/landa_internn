@@ -5,7 +5,7 @@ using namespace LandaJune::Parameters;
 
 void detect_i2s_init(const INIT_PARAMETER& initParam)
 {
-	
+	int i = 9 ;
 }
 
 void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
