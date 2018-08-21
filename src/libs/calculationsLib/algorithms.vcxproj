@@ -111,7 +111,6 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="algorithm_parameters.cpp" />
     <ClCompile Include="algorithm_wrappers.cpp" />
     <ClCompile Include="algo_c2c_roi_impl.cpp" />
     <ClCompile Include="algo_edge_impl.cpp" />

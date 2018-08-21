@@ -32,13 +32,15 @@ namespace LandaJune
 			ROIRect _roiRect;
 		};
 
+
+
 		//------------------------------------------
 		//		Paper Edge detection parameters
 		//------------------------------------------
 
 		struct ABSTRACT_INPUT
 		{
-			explicit ABSTRACT_INPUT(const Core::FrameRef * frame);
+			explicit ABSTRACT_INPUT(const Core::FrameRef * frame) : _frame(frame) {}
 			const Core::FrameRef * _frame = nullptr;
 
 			// other parameters
@@ -67,6 +69,7 @@ namespace LandaJune
 			OUT_STATUS					_outStatus = ALG_STATUS_FAILED;
 			uint32_t					_exactDistanceFromEdgeX = -1;
 			cv::Mat						_edgeOverlay;
+			bool						_needsOverlay = false;
 
 			///
 			std::optional<PARAMS_PAPEREDGE_INPUT>		_input;
@@ -97,6 +100,7 @@ namespace LandaJune
 			OUT_STATUS					_outStatus = ALG_STATUS_FAILED;
 			APOINT						_triangeCorner {};
 			cv::Mat						_triangleOverlay;
+			bool						_needsOverlay = false;
 
 			//
 			std::optional<PARAMS_I2S_INPUT>		_input;
@@ -136,6 +140,7 @@ namespace LandaJune
 			std::vector<OUT_STATUS>		_colorStatuses;
 			std::vector<APOINT>			_colorCenters;
 			std::vector<cv::Mat>		_colorOverlays;
+			bool						_needsOverlay = false;
 
 			///
 			std::optional<PARAMS_C2C_ROI_INPUT>		_input;
@@ -167,6 +172,7 @@ namespace LandaJune
 			std::vector<std::vector<OUT_STATUS>>	_colorDetectionResults;
 			std::vector<std::vector<APOINT>>		_colorCenters;
 			std::vector<cv::Mat>					_colorOverlays;
+			bool									_needsOverlay = false;
 			///
 			std::optional<PARAMS_WAVE_INPUT>		_input;
 		};

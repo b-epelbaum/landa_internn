@@ -72,8 +72,5 @@
     <ClCompile Include="algo_i2s_impl.cpp">
       <Filter>Source Files\algo_functions</Filter>
     </ClCompile>
-    <ClCompile Include="algorithm_parameters.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

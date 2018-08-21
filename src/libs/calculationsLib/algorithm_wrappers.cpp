@@ -207,6 +207,15 @@ void LandaJune::Algorithms::initAlgorithmsData(std::shared_ptr<ProcessParameter>
 }
 
 
+void LandaJune::Algorithms::fillProcessParameters(const FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input)
+{
+	input._stripInputParamLeft._paperEdgeInput._approxDistanceFromEdgeX = frame->getProcessParams()->EdgeApproximateDistanceX_px();
+	input._stripInputParamLeft._paperEdgeInput._triangeApproximateY = frame->getProcessParams()->I2SOffsetFromPaperEdgeY_mm();
+	input._stripInputParamLeft.setPixel2MM_X(frame->getProcessParams()->Pixel2MM_X());
+	input._stripInputParamLeft.setPixel2MM_Y(frame->getProcessParams()->Pixel2MM_Y());
+
+}
+
 void LandaJune::Algorithms::generateRegions(const FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input)
 {
 	const auto processParameters = frame->getProcessParams();
@@ -313,6 +322,7 @@ void LandaJune::Algorithms::generateRegions(const FrameRef* frame, PARAMS_C2C_SH
 PARAMS_C2C_SHEET_OUTPUT LandaJune::Algorithms::calculateAll(const FrameRef* frame)
 {
 	PARAMS_C2C_SHEET_INPUT input(frame);
+	fillProcessParameters(frame, input);
 	generateRegions(frame, input);
 	return calculateSheet(input);
 }

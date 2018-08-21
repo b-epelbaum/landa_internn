@@ -22,6 +22,7 @@ namespace LandaJune
 		void ALGORITHMS_EXPORT clearAlgorithmsData();
 
 		// todo : move function to functions library
+		void fillProcessParameters(const Core::FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input);
 		void generateRegions(const Core::FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input);
 		PARAMS_C2C_SHEET_OUTPUT calculateSheet(const PARAMS_C2C_SHEET_INPUT& sheetInput);
 		PARAMS_C2C_STRIP_OUTPUT calculateStrip (const PARAMS_C2C_STRIP_INPUT& stripInput, bool detectEdge);
