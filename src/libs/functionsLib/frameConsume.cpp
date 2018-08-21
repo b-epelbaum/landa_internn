@@ -30,8 +30,8 @@ void Functions::frameConsume()
 	// start sheet analysis by calling a root function in the same thread
 	// we can release frame ref object after all calculation
 	// internal analysis functions calls will be parallelized inside the root function recursively
+
 	frameRunAlgorithms(frameRefObj.get());
-			
 	framesPool->release(std::move(frameRefObj));
 }
 

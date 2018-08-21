@@ -1,7 +1,6 @@
 #pragma once
 
 #include <memory>
-#include <QPair>
 #include <QVariant>
 #include <QString>
 
@@ -32,6 +31,6 @@ namespace LandaJune
 	using FrameProviderPtr = std::shared_ptr<FrameProviders::IFrameProvider>;
 	using ProcessParameterPtr = std::shared_ptr<Parameters::ProcessParameter>;
 
-	using IPropertyPair = QPair<QString, QVariant>;
-	using IPropertyList = QVector<IPropertyPair>;
+	using IPropertyTuple = std::tuple<QString, QVariant, bool>;
+	using IPropertyList = QVector<IPropertyTuple>;
 }

@@ -46,7 +46,7 @@ FrameRef::FrameRef(const GLOBAL_FRAME_DATA& frameData)
 	}
 
 	_imgCVFormat = frameData._cvImageFormat;
-	_bitsPerPixel = frameData._params->BitDepth();
+	_bitsPerPixel = frameData._params->ScanBitDepth();
 
 	// TODO : think about padding
 	_processParameters = std::move(frameData._params);

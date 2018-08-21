@@ -6,6 +6,9 @@ using namespace LandaJune::Parameters;
 
 ProcessParameter::ProcessParameter()
 {
+	qRegisterMetaType<PARAM_GROUP_HEADER>("PARAM_GROUP_HEADER");
+	qRegisterMetaType<COLOR_TRIPLET>("COLOR_TRIPLET");
+	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
 	connect(this, &BaseParameter::propertyChanged, this, &ProcessParameter::onPropertyChanged);
 	recalculate();
 }
@@ -19,7 +22,7 @@ void ProcessParameter::onPropertyChanged(QString strPropName)
 void ProcessParameter::recalculate()
 {
 	// cleanup 
-	_HSVARRAY.clear();
+	_ColorArray.clear();
 	_C2CROIArrayLeft.clear();
 	_C2CROIArrayRight.clear();
 
@@ -32,7 +35,7 @@ void ProcessParameter::recalculate()
 	_OffsetBetweenTriangles_px = toPixelsX(_OffsetBetweenTriangles_mm);
 
 	// color depth
-	switch (_BitDepth)
+	switch (_ScanBitDepth)
 	{
 		case 8: _OpenCVImageFormat = CV_8U; break;
 		case 16: _OpenCVImageFormat = CV_16U; break;
@@ -71,22 +74,27 @@ void ProcessParameter::recalculate()
 	_I2SApproximateTriangleRectRight = _I2SApproximateTriangleRectLeft.translated(_OffsetBetweenTriangles_px, 0);
 
 	// ROI colors
-	COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 0, "cyan" };
-	COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 0, "yellow" };
-	COLOR_TRIPLET_SINGLE color3_min = { 110, 170, 0, "magenta" };
-	COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "black" };
+	COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 0 };
+	COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 0 };
+	COLOR_TRIPLET_SINGLE color3_min = { 110, 170, 0 };
+	COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0 };
 
-	COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "cyan" };
-	COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "yellow" };
-	COLOR_TRIPLET_SINGLE color3_max = { 140, 255, 255, "magenta" };
-	COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "black" };
+	COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255 };
+	COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255 };
+	COLOR_TRIPLET_SINGLE color3_max = { 140, 255, 255 };
+	COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128 };
+
+	_TestSingleTriplet = color3_min;
+	_TestTriplet._colorName = "Cyan";
+	_TestTriplet._min = color1_min;
+	_TestTriplet._max = color1_max;
 
 
-	_HSVARRAY 
-		<< COLOR_TRIPLET{color1_min, color1_max}
-		<< COLOR_TRIPLET{ color2_min, color2_max }
-		<< COLOR_TRIPLET{ color3_min, color3_max }
-		<< COLOR_TRIPLET{ color4_min, color4_max };
+	_ColorArray
+		<< COLOR_TRIPLET{ color1_min, color1_max, "cyan" }
+		<< COLOR_TRIPLET{ color2_min, color2_max, "yellow" }
+		<< COLOR_TRIPLET{ color3_min, color3_max, "magenta" }
+		<< COLOR_TRIPLET{ color4_min, color4_max, "black" };
 
 	// C2c ROIs
 	_C2CDistanceBetweenDots_px = toPixelsY(_C2CDistanceBetweenDots_um / 1000);
@@ -98,7 +106,7 @@ void ProcessParameter::recalculate()
 		_I2SApproximateTriangleRectLeft.left(),
 		_I2SApproximateTriangleRectLeft.top() + _C2CDistanceFromTriangle2FirstSet_px,
 		_I2SROIWidth_px,
-		static_cast<int>((ceil(_ColorNumber / 2) - 1) * _C2CDistanceBetweenDots_px) + 2 *_I2SMarginY_px
+		static_cast<int>((ceil(_ColorArray.size() / 2) - 1) * _C2CDistanceBetweenDots_px) + 2 *_I2SMarginY_px
 	};
 
 	_C2CROIArrayLeft << Roi0L;
@@ -111,4 +119,6 @@ void ProcessParameter::recalculate()
 	{
 		_C2CROIArrayRight << _C2CROIArrayLeft[i].translated(_OffsetBetweenTriangles_px, 0);
 	}
+
+	emit upateCalculated();
 }

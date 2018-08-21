@@ -23,23 +23,6 @@
       <Extensions>moc;h;cpp</Extensions>
       <SourceControlFiles>False</SourceControlFiles>
     </Filter>
-    <Filter Include="Header Files\utilities">
-      <UniqueIdentifier>{28e391ce-eee7-4cac-ba4d-2f5fc4016206}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\utilities">
-      <UniqueIdentifier>{52bd66f1-c939-4429-92c4-1015937f010c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\core">
-      <UniqueIdentifier>{e63b675e-0516-4343-9628-47bc7581b2eb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\parameters">
-      <UniqueIdentifier>{5d605aa5-825b-48d2-8df4-333b7a24fbbe}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\Resource Files">
-      <UniqueIdentifier>{D9D6E242-F8AF-46E4-B9FD-80ECBC20BA3E}</UniqueIdentifier>
-      <Extensions>qrc;*</Extensions>
-      <ParseFiles>false</ParseFiles>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,7 +43,7 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="providerPropModel.h">
-      <Filter>Header Files\parameters</Filter>
+      <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
@@ -69,19 +52,18 @@
     </QtUic>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="juneuiwnd.qrc">
-      <Filter>Header Files\Resource Files</Filter>
-    </QtRcc>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="JuneU.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="sisohelper.h">
-      <Filter>Header Files\utilities</Filter>
-    </ClInclude>
     <ClInclude Include="providerPropItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="juneuiwnd.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="JuneU.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

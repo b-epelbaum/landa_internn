@@ -78,12 +78,15 @@ void JuneUIWnd::initUI()
 	ui.providerPropView->setModel(_providerParamModel.get());
 	connect(_providerParamModel.get(), &ProvidePropsModel::propChanged, this, &JuneUIWnd::onProviderPropChanged);
 
-	_batchParamModel = std::make_unique<ProvidePropsModel>(this);
-	ui.batchParamView->setModel(_batchParamModel.get());
-	connect(_batchParamModel.get(), &ProvidePropsModel::propChanged, this, &JuneUIWnd::onBatchPropChanged);
-	
-	//ComboBoxItemDelegate* cbid = new ComboBoxItemDelegate(ui.providerPropView);
-	//ui.providerPropView->setItemDelegate(cbid);
+	ui.providerPropView->header()->resizeSection(0, 280);
+	ui.providerPropView->header()->resizeSection(1, 140);
+
+	_processParamModelEditable = std::make_unique<ProvidePropsModel>(this);
+	ui.batchParamView->setModel(_processParamModelEditable.get());
+	connect(_processParamModelEditable.get(), &ProvidePropsModel::propChanged, this, &JuneUIWnd::onBatchPropChanged);
+
+	_processParamModelCalculated = std::make_unique<ProvidePropsModel>(this);
+	ui.processParamViewCalculated->setModel(_processParamModelCalculated.get());
 }
 
 void JuneUIWnd::initCore()
@@ -97,18 +100,6 @@ void JuneUIWnd::initCore()
 	{
 
 	}
-	
-	/*
-	auto core = CoreEngine::get();
-	try
-	{
-		core->init();
-	}
-	catch (CoreEngineException& e)
-	{
-
-	}
-	*/
 }
 
 void JuneUIWnd::enumerateFrameProviders() const
@@ -135,7 +126,12 @@ void JuneUIWnd::initBatchParameters() const
 	try
 	{
 		const auto batchParams = ICore::get()->getProcessParameters();
-		_batchParamModel->setupModelData(batchParams->getPropertyList());
+		connect(batchParams.get(), &ProcessParameter::upateCalculated, this, &JuneUIWnd::onUpdateCalculatedParams);
+		_processParamModelEditable->setupModelData(batchParams->getPropertyList(), false);
+		_processParamModelCalculated->setupModelData(batchParams->getPropertyList(), true);
+
+		ui.batchParamView->expandToDepth(1);
+		ui.processParamViewCalculated->expandToDepth(1);
 	}
 	catch (CoreEngineException& ex)
 	{
@@ -360,7 +356,7 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected frame provider is invalid. Aborted ";
 		return;
 	}
-	_providerParamModel->setupModelData(selectedProvider->getProviderProperties());
+	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), true);
 }
 
 void JuneUIWnd::updateStats() const
@@ -389,6 +385,11 @@ void JuneUIWnd::onBatchPropChanged(QString propName, const QVariant& newVal)
 
 }
 
+void JuneUIWnd::onUpdateCalculatedParams()
+{
+	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getPropertyList(), true);
+	ui.processParamViewCalculated->expandToDepth(1);
+}
 
 
 ///////////////////////////////////////////////////////////////////////

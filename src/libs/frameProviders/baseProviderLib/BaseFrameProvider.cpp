@@ -81,7 +81,7 @@ IPropertyList BaseFrameProvider::getProviderProperties() const
 		auto metaproperty = metaobject->property(i);
 		const auto& name = metaproperty.name();
 		if ( strcmp(name, "objectName") != 0)
-			retVal.push_back(IPropertyPair(name, property(name)));
+			retVal.push_back(IPropertyTuple(name, property(name), metaproperty.isUser()));
 	}
 	return retVal;
 }

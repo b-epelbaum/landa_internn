@@ -6,7 +6,7 @@
 #include "interfaces/type_usings.h"
 
 
-#define DECLARE_PARAM_PROPERTY(x,type,initval, isPermanent) Q_PROPERTY(type x MEMBER _##x READ x WRITE set##x ) private: type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; if (isPermanent) emit propertyChanged(#x); }
+#define DECLARE_PARAM_PROPERTY(x,type,initval,editable) Q_PROPERTY(type x MEMBER _##x READ x WRITE set##x USER editable) private: type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; if (editable) emit propertyChanged(#x); }
 
 namespace LandaJune
 {
@@ -37,3 +37,5 @@ namespace LandaJune
 		};
 	}
 }
+
+Q_DECLARE_METATYPE(LandaJune::IPropertyTuple)

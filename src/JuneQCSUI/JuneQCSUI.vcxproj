@@ -173,7 +173,6 @@
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
     </QtMoc>
     <ClInclude Include="providerPropItem.h" />
-    <ClInclude Include="sisohelper.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libs\coreLib\coreLib.vcxproj">
@@ -181,6 +180,9 @@
     </ProjectReference>
     <ProjectReference Include="..\libs\logLib\appLog.vcxproj">
       <Project>{f3851e08-5036-4057-81d8-cf94de101cb3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\libs\paramLib\paramLib.vcxproj">
+      <Project>{aee565b3-8822-46e6-8e39-eb574b3bc447}</Project>
     </ProjectReference>
     <ProjectReference Include="..\libs\utilLib\utilLib.vcxproj">
       <Project>{2cd8058e-0ec4-4486-8129-03e874b756da}</Project>

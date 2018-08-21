@@ -13,7 +13,7 @@ ProviderPropsItem::~ProviderPropsItem()
     qDeleteAll(childItems);
 }
 
-ProviderPropsItem *ProviderPropsItem::child(int number)
+ProviderPropsItem *ProviderPropsItem::child(int number) const
 {
     return childItems.value(number);
 }
@@ -69,7 +69,7 @@ bool ProviderPropsItem::insertColumns(int position, int columns)
     return true;
 }
 
-ProviderPropsItem *ProviderPropsItem::parent()
+ProviderPropsItem *ProviderPropsItem::parent() const
 {
     return parentItem;
 }
@@ -106,4 +106,9 @@ bool ProviderPropsItem::setData(int column, const QVariant &value)
 
     itemData[column] = value;
     return true;
+}
+
+void ProviderPropsItem::setUserData(const QVariant &value)
+{
+	_userData = value;
 }

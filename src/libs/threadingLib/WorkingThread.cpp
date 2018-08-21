@@ -60,14 +60,15 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 	while (pThis->getState() == THREAD_STATE::BUSY)
 	{
 		std::this_thread::sleep_for(timeout);
+		auto taskbg = pThis->getThreadFunction();
+		auto & taskbg_ptr = taskbg.get();
 		try 
 		{
-			auto taskbg = pThis->getThreadFunction();
-			auto & taskbg_ptr = taskbg.get();
 			if (taskbg_ptr.valid()) 
 			{
 				taskbg_ptr();
-				taskbg_ptr.reset();
+				auto fut = taskbg_ptr.get_future();
+				fut.get();
 			}
 		} 
 		catch (std::exception & e) 
@@ -76,6 +77,7 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 			const auto handler = wrapper.get(); 
 			handler(e);
 		}
+		taskbg_ptr.reset();
 	}
 }
 

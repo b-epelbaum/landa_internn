@@ -38,6 +38,7 @@ namespace LandaJune
 
 			void onProviderPropChanged(QString propName, const QVariant& newVal);
 			void onBatchPropChanged(QString propName, const QVariant& newVal);
+			void onUpdateCalculatedParams();
 
 		signals :
 
@@ -60,7 +61,8 @@ namespace LandaJune
 
 			//std::unique_ptr<QJsonModel> _jsonModel;
 			std::unique_ptr<ProvidePropsModel> _providerParamModel;
-			std::unique_ptr<ProvidePropsModel> _batchParamModel;
+			std::unique_ptr<ProvidePropsModel> _processParamModelEditable;
+			std::unique_ptr<ProvidePropsModel> _processParamModelCalculated;
 
 			QAction *zoomInAct{};
 			QAction *zoomOutAct{};

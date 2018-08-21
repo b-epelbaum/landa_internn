@@ -155,7 +155,7 @@ struct COPY_REGION
 
 	static void makeCopy(COPY_REGION& rgn)
 	{
-		(*rgn._imgContainer)(rgn._srcNorlmalizedRect).copyTo(rgn._targetMat);
+		rgn._targetMat = std::move((*rgn._imgContainer)(rgn._srcNorlmalizedRect));  // .copyTo(rgn._targetMat);
 		if (rgn._bNeedSaving && !rgn._savingPath.empty() )
 		{
 #if ALGO_PAR == 1
@@ -257,9 +257,9 @@ void LandaJune::Algorithms::generateRegions(const FrameRef* frame, PARAMS_C2C_SH
 
 		std::vector<HSV> hsv;
 
-		for (auto i = 0; i < processParameters->HSVARRAY().size(); i++)
+		for (auto i = 0; i < processParameters->ColorArray().size(); i++)
 		{
-			hsv.emplace_back(HSV{ processParameters->HSVARRAY()[i] });
+			hsv.emplace_back(HSV{ processParameters->ColorArray()[i] });
 		}
 
 		for (auto i = 0; i < processParameters->C2CROISetsCount(); i++)
