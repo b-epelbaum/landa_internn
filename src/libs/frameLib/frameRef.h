@@ -20,6 +20,7 @@ namespace LandaJune
 {
 	namespace Core
 	{
+		//template<typename I>
 		class FrameRef
 		{
 			friend class FrameRefPool;
@@ -57,6 +58,11 @@ namespace LandaJune
 
 		private:
 			int32_t _index = -1;
+
+			// TODO : think about template parameter of image provider, 
+			// TODO : to get rid of openCV for frame - need more abstract level for image
+			// 
+			//std::shared_ptr<I> _imgContainer;
 			std::shared_ptr<cv::Mat> _imgContainer;
 				
 			int32_t _frameWidth = -1;

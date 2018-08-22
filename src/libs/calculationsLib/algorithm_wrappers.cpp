@@ -36,10 +36,26 @@ using namespace LandaJune::Algorithms;
 using namespace LandaJune::Core;
 
 namespace fs = std::filesystem;
+const std::string DEFAULT_OUT_FOLDER = "c:\\temp\\june_out";
 
 static std::mutex _createDirmutex;
 
-static void dumpROI(cv::Mat image, std::string pathName)
+std::string getSavePath (const FrameRef* frame, const std::string& itemName )
+{
+	auto rootPath = frame->getProcessParams()->RootOutputFolder().toStdString();
+	if (rootPath.empty())
+	{
+		rootPath = DEFAULT_OUT_FOLDER;
+	}
+	return fmt::format("{0}\\{1}\\frame_#{2}\\{3}.bmp"
+		, rootPath
+		, frame->getProcessParams()->JobID()
+		, frame->getIndex()
+		, itemName
+	);
+}
+
+static void saveImage(cv::Mat image, std::string pathName)
 {
 	fs::path p{ pathName };
 	auto const parentPath = p.parent_path();
@@ -55,7 +71,6 @@ static void dumpROI(cv::Mat image, std::string pathName)
 			
 		}
 	}
-
 	try
 	{
 		auto bSaved = cv::imwrite(pathName.c_str(), image);
@@ -132,18 +147,7 @@ struct COPY_REGION
 			} 
 
 			//generate saving path
-			auto rootPath = frame->getProcessParams()->RootOutputFolder();
-			if ( rootPath.isEmpty() )
-			{
-				rootPath = "c:\\temp\\june_out";
-			}
-			_savingPath = fmt::format("{0}\\{1}\\frame_#{2}\\{3}.bmp"
-					, rootPath.toStdString()
-					, frame->getProcessParams()->JobID()
-					, frame->getIndex()
-					, ROIName.value()
-			);
-			
+			_savingPath = getSavePath(frame, ROIName.value());
 		}
 	}
 
@@ -159,9 +163,9 @@ struct COPY_REGION
 		if (rgn._bNeedSaving && !rgn._savingPath.empty() )
 		{
 #if ALGO_PAR == 1
-			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), dumpROI, rgn._targetMat.clone(), rgn._savingPath);
+			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, rgn._targetMat.clone(), rgn._savingPath);
 #else
-			dumpROI (rgn._targetMat.clone(), rgn._savingPath);
+			saveImage (rgn._targetMat.clone(), rgn._savingPath);
 #endif
 		}
 	}
@@ -486,6 +490,15 @@ PARAMS_PAPEREDGE_OUTPUT LandaJune::Algorithms::calculateEdge(const PARAMS_PAPERE
 		retVal._outStatus = ALG_STATUS_FAILED;
 	}
 	
+	if ( input.GenerateOverlay() )
+	{
+		auto savePath = getSavePath(input._frame, fmt::format("edge_overlay_{0}.bmp", input._side));
+#if ALGO_PAR == 1
+		TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, retVal._edgeOverlay.clone(), savePath);
+#else
+		saveImage(retVal._edgeOverlay.clone(), savePath);
+#endif
+	}
 	return std::move(retVal);
 }
 
@@ -523,6 +536,7 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 {
 	PARAMS_I2S_OUTPUT retVal;
 	retVal._input = input;
+	retVal._triangleOverlay = input._triangleImageSource.clone();
 
 	try
 	{
@@ -532,6 +546,16 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 	{
 		ALGO_SCOPED_ERROR << "Function detect_i2s has thrown exception";
 		retVal._outStatus = ALG_STATUS_FAILED;
+	}
+
+	if (input.GenerateOverlay())
+	{
+		auto savePath = getSavePath(input._frame, fmt::format("i2s_overlay_{0}.bmp", input._side));
+#if ALGO_PAR == 1
+		TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, retVal._triangleOverlay.clone(), savePath);
+#else
+		saveImage(retVal._triangleOverlay.clone(), savePath);
+#endif
 	}
 
 	PRINT_INFO8 << "I2S [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
@@ -583,6 +607,23 @@ PARAMS_C2C_ROI_OUTPUT LandaJune::Algorithms::calculateC2CRoi(const PARAMS_C2C_RO
 	{
 		ALGO_SCOPED_ERROR << "Function detect_c2c_roi has thrown exception";
 		retVal._outStatus = ALG_STATUS_FAILED;
+	}
+
+	if (input.GenerateOverlay())
+	{
+		int iIndex = 0;
+		std::for_each(retVal._colorOverlays.begin(), retVal._colorOverlays.end()
+			, [&input, &iIndex](auto overlay)
+		{
+			auto savePath = getSavePath(input._frame, fmt::format("c2c_overlay_{0}.bmp", iIndex));
+#if ALGO_PAR == 1
+			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, retVal.overlay.clone(), savePath);
+#else
+			saveImage(overlay.clone(), savePath);
+#endif
+			++iIndex;
+		}
+		);
 	}
 	return retVal;
 }

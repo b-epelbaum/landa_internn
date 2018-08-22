@@ -16,6 +16,7 @@ static OPENCV_COLOR_MAP __colorMap =
 	, {CV_32S, 32}
 };
 
+
 FrameRef::FrameRef(std::shared_ptr<ProcessParameter> processParams, int openCVImgFormat)
 	: _imgCVFormat(openCVImgFormat)
 	, _processParameters (processParams)
