@@ -1,6 +1,6 @@
 {
   "ProviderName": "Offline Reader",
   "ProviderDesc": "Performs QCS analysis in offline mode",
-  "SourceFolderPath": "c:\\temp",
+  "SourceFolderPath": "c:\\temp\\offline",
   "ImageMaxCount" : 500
 }

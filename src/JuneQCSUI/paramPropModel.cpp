@@ -74,7 +74,8 @@ ParamPropModel::ParamPropModel(QObject *parent)
 	_iconRect = QIcon(":/JuneUIWnd/Resources/rect.png");
 	_iconBoolean = QIcon(":/JuneUIWnd/Resources/boolean.png");
 	_iconLiteral = QIcon(":/JuneUIWnd/Resources/literal.png");
-	_iconData = QIcon(":/JuneUIWnd/Resources/data.png");;
+	_iconData = QIcon(":/JuneUIWnd/Resources/data.png");
+	_iconColors = QIcon(":/JuneUIWnd/Resources/colors.png");
 }
 
 ParamPropModel::~ParamPropModel()
@@ -111,7 +112,7 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if (tName == GROUP_CLASS_NAME)
 		{
-			return QColor(160, 160, 160);
+			return QColor(190, 190, 190);
 		}
 	}
 
@@ -119,7 +120,7 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if (tName == GROUP_CLASS_NAME)
 		{
-			return QColor(0, 255, 0);
+			return QColor(55, 72, 55);
 		}
 
 		if (index.column() == 0 )
@@ -153,6 +154,10 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 		if (tName == "QRect")
 		{
 			return _iconRect;
+		}
+		if (tName == "LandaJune::Parameters::COLOR_TRIPLET_SINGLE" || tName == "LandaJune::Parameters::COLOR_TRIPLET")
+		{
+			return _iconColors;
 		}
 		return _iconData;
 	}

@@ -78,7 +78,7 @@ private:
 	ParamPropItem *_rootItem;
 	ParamPropItem * _currentRoot;
 
-	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData;
+	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData, _iconColors;
 
 	bool _readOnlyView = true;
 

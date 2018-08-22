@@ -20,9 +20,10 @@ static const QString OFFREADER_PROVIDER_DESC = "Performs QCS analysis in offline
 #define OFFREADER_PROVIDER__SCOPED_ERROR PRINT_ERROR << "[OfflineReader] : "
 #define OFFREADER_PROVIDER__SCOPED_WARNING PRINT_WARNING << "[OfflineReader] : "
 
-using namespace LandaJune::Core;
-using namespace LandaJune::FrameProviders;
-using namespace LandaJune::Helpers;
+using namespace LandaJune;
+using namespace Core;
+using namespace FrameProviders;
+using namespace Helpers;
 
 OfflineReader::OfflineReader()
 {
@@ -50,22 +51,22 @@ bool OfflineReader::canContinue(FRAME_PROVIDER_ERROR lastError)
 
 FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
 {
+	_currentImage.release();
 	if (_imagePaths.empty())
 	{
 		OFFREADER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 	
-	// read image to QIMage object
+	// read image to cv::Mat object
 	const auto srcFullPath = QString("%1/%2").arg(_SourceFolderPath).arg(_imagePaths.first());
-	OFFREADER_PROVIDER_SCOPED_LOG << "found BMP image : " << srcFullPath << "; loading...";
+	OFFREADER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
 	_imagePaths.pop_front();
 	
-	QImageReader imgReader(srcFullPath);
-	imgReader.read(&_currentImage);
-	if (_currentImage.isNull() )
+	_currentImage = cv::imread(srcFullPath.toStdString());
+	if (!_currentImage.data)                              // Check for invalid input
 	{
-		OFFREADER_PROVIDER_SCOPED_LOG << "Cannot load image " << srcFullPath << "; error : " << imgReader.errorString();
+		OFFREADER_PROVIDER__SCOPED_WARNING << "Cannot load image " << srcFullPath;
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
@@ -75,12 +76,16 @@ FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
 
 FRAME_PROVIDER_ERROR OfflineReader::dataAccess(FrameRef* frameRef)
 {
-	if (_currentImage.isNull() )
+	if (!_currentImage.data )
 	{
 		OFFREADER_PROVIDER_SCOPED_LOG << "Currently loaded image is not valid";
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
-	frameRef->setBits(++_lastAcquiredImage, _currentImage.width(), _currentImage.height(), _currentImage.sizeInBytes(),_currentImage.bits());
+	const auto w = _currentImage.cols;
+	const auto h = _currentImage.rows;
+	const auto s = _currentImage.step[0] * _currentImage.rows;
+
+	frameRef->setBits(++_lastAcquiredImage, w, h, s,_currentImage.data);
 
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
@@ -101,16 +106,22 @@ FRAME_PROVIDER_ERROR OfflineReader::init()
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
 	}
 
-	const auto paths = QDir(imageFolder).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
+	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
 
-	_imagePaths = paths.toVector();
+	while (it.hasNext()) {
+		_imagePaths.push_back(it.next());
+	}
+
+	//const auto paths = QDir(imageFolder).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
+
+	//_imagePaths = paths.toVector();
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
 FRAME_PROVIDER_ERROR OfflineReader::clean()
 {
 	_imagePaths.clear();
-	_currentImage = QImage{};
+	_currentImage.release();
 	OFFREADER_PROVIDER_SCOPED_LOG << "cleaned up";
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }

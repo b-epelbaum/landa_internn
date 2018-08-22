@@ -3,7 +3,7 @@
 #include "offlineCalcProvLib_global.h"
 #include "BaseFrameProvider.h"
 
-#include <QImageReader>
+#include <opencv2/imgcodecs.hpp>
 
 
 namespace LandaJune
@@ -49,7 +49,7 @@ namespace LandaJune
 		private :
 
 			QVector<QString>	_imagePaths;
-			QImage				_currentImage;
+			cv::Mat				_currentImage;
 		};
 	}
 }

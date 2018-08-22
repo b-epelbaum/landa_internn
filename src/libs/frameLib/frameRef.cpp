@@ -42,7 +42,8 @@ FrameRef::FrameRef(std::shared_ptr<ProcessParameter> processParams, int openCVIm
 void FrameRef::reset()
 {
 	_index = -1;
-	_imgContainer->release();
+	if (_imgContainer)
+		_imgContainer->release();
 }
 
 const uint8_t* FrameRef::getBits() const

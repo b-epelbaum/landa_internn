@@ -10,7 +10,7 @@ BaseParameter::BaseParameter()
 	qRegisterMetaType<COLOR_TRIPLET>("COLOR_TRIPLET");
 	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
 	qRegisterMetaType<QVector<QRect>>("QVector<QRect>");
-	qRegisterMetaType<QVector<COLOR_TRIPLET>>("QVector<COLOR_TRIPLET");
+	qRegisterMetaType<QVector<COLOR_TRIPLET>>("QVector<COLOR_TRIPLET>");
 }
 
 IPropertyList BaseParameter::getPropertyList() const

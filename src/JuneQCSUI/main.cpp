@@ -16,13 +16,13 @@ int main(int argc, char *argv[])
 	splash.show();
 	a.processEvents();
 
-	FramelessWindow framelessWindow;
-	framelessWindow.setWindowIcon(a.style()->standardIcon(QStyle::SP_DesktopIcon));
+	//FramelessWindow framelessWindow;
+	//framelessWindow.setWindowIcon(a.style()->standardIcon(QStyle::SP_DesktopIcon));
 	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd;
-	framelessWindow.setContent(w);
-	framelessWindow.show();
-	splash.finish(&framelessWindow);
+	//framelessWindow.setContent(w);
+	//framelessWindow.show();
+	splash.finish(w);
 
-	//w.show();
+	w->show();
 	return a.exec();
 }
