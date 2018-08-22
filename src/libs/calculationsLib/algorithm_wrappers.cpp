@@ -536,7 +536,6 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 {
 	PARAMS_I2S_OUTPUT retVal;
 	retVal._input = input;
-	retVal._triangleOverlay = input._triangleImageSource.clone();
 
 	try
 	{
