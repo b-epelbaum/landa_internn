@@ -94,7 +94,7 @@ namespace LandaJune
 		struct HSV_SINGLE
 		{
 			HSV_SINGLE() = default;
-			HSV_SINGLE(const ProcessParameter::COLOR_TRIPLET_SINGLE& colTripletSingle) : HSV_SINGLE(colTripletSingle._iH, colTripletSingle._iS, colTripletSingle._iV ){}
+			HSV_SINGLE(const COLOR_TRIPLET_SINGLE& colTripletSingle) : HSV_SINGLE(colTripletSingle._iH, colTripletSingle._iS, colTripletSingle._iV ){}
 			HSV_SINGLE(const int32_t iH, const int32_t iS, const int32_t iV)
 				: _iH(iH)
 				, _iS(iS)
@@ -111,7 +111,7 @@ namespace LandaJune
 		struct HSV
 		{
 			HSV() = default;
-			HSV(const ProcessParameter::COLOR_TRIPLET& colTriplet) : HSV(colTriplet._min, colTriplet._max) {}
+			HSV(const COLOR_TRIPLET& colTriplet) : HSV(colTriplet._min, colTriplet._max) {}
 			HSV(HSV_SINGLE hsvMin, HSV_SINGLE hsvMax )
 				: _min(hsvMin)
 				, _max(hsvMax)

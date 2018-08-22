@@ -31,10 +31,10 @@
     <ClCompile Include="juneuiwnd.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="providerPropModel.cpp">
+    <ClCompile Include="paramPropItem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="providerPropItem.cpp">
+    <ClCompile Include="paramPropModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,7 +42,7 @@
     <QtMoc Include="juneuiwnd.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="providerPropModel.h">
+    <QtMoc Include="paramPropModel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
@@ -50,11 +50,6 @@
     <QtUic Include="juneuiwnd.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="providerPropItem.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="juneuiwnd.qrc">
@@ -65,5 +60,10 @@
     <ResourceCompile Include="JuneU.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="paramPropItem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -167,7 +167,6 @@ void BaseCore::stop() const
 		return;
 	}
 
-
 	CORE_SCOPED_LOG << "Stopping Frame producer thread...";
 	frameProducerThread().stop();
 	CORE_SCOPED_LOG << "Stopping Frame consumer thread...";
@@ -181,6 +180,8 @@ void BaseCore::stop() const
 	_currentFrameProvider->clean();
 	FrameRefPool::frameRefPool()->clear();
 	clearAlgorithmsData();
+
+
 }
 
 bool BaseCore::isBusy()
@@ -209,11 +210,9 @@ void BaseCore::initGlobalParameters()
 
 void BaseCore::initFramePool() const
 {
-	const FrameRef::GLOBAL_FRAME_DATA frameData{ _processParameters };
-	
 	try
 	{
-		FrameRefPool::frameRefPool()->init(_currentFrameProvider->getRecommendedFramePoolSize(), frameData);
+		FrameRefPool::frameRefPool()->init(_currentFrameProvider->getRecommendedFramePoolSize(), _processParameters, _processParameters->OpenCVImageFormat());
 	}
 	catch (FrameRefException& e)
 	{

@@ -1,8 +1,10 @@
 #include <QtWidgets>
 #include <QComboBox>
 
-#include "providerPropItem.h"
-#include "providerPropModel.h"
+#include "paramPropItem.h"
+#include "paramPropModel.h"
+
+const QString GROUP_CLASS_NAME = "LandaJune::Parameters::PARAM_GROUP_HEADER";
 
 using namespace LandaJune::Parameters;
 
@@ -59,13 +61,13 @@ void ComboBoxItemDelegate::setModelData(QWidget* editor, QAbstractItemModel* mod
 }
 
 
-ProvidePropsModel::ProvidePropsModel(QObject *parent)
+ParamPropModel::ParamPropModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
     QVector<QVariant> rootData;
 	rootData << "Property" << "Value";
 
-	_rootItem = new ProviderPropsItem(rootData);
+	_rootItem = new ParamPropItem(rootData);
 
 	_iconInt = QIcon(":/JuneUIWnd/Resources/integer.png");
 	_iconFloat = QIcon(":/JuneUIWnd/Resources/float.png");
@@ -75,29 +77,29 @@ ProvidePropsModel::ProvidePropsModel(QObject *parent)
 	_iconData = QIcon(":/JuneUIWnd/Resources/data.png");;
 }
 
-ProvidePropsModel::~ProvidePropsModel()
+ParamPropModel::~ParamPropModel()
 {
     delete _rootItem;
 }
 
 
-int ProvidePropsModel::columnCount(const QModelIndex & /* parent */) const
+int ParamPropModel::columnCount(const QModelIndex & /* parent */) const
 {
     return _rootItem->columnCount();
 }
 
-QVariant ProvidePropsModel::data(const QModelIndex &index, int role) const
+QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
         return QVariant();
 	
-	const auto item = static_cast<ProviderPropsItem*>(index.internalPointer());
+	const auto item = static_cast<ParamPropItem*>(index.internalPointer());
 	auto var = item->data(1);
 	const auto tName = QString(var.typeName());
 	
 	if (role == Qt::FontRole)
 	{
-		if (tName == "LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER")
+		if (tName == GROUP_CLASS_NAME)
 		{
 			QFont font;
 			font.setBold(true);
@@ -107,7 +109,7 @@ QVariant ProvidePropsModel::data(const QModelIndex &index, int role) const
 
 	if (role == Qt::BackgroundColorRole)
 	{
-		if (tName == "LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER")
+		if (tName == GROUP_CLASS_NAME)
 		{
 			return QColor(160, 160, 160);
 		}
@@ -115,7 +117,7 @@ QVariant ProvidePropsModel::data(const QModelIndex &index, int role) const
 
 	if (role == Qt::TextColorRole)
 	{
-		if (tName == "LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER")
+		if (tName == GROUP_CLASS_NAME)
 		{
 			return QColor(255, 255, 255);
 		}
@@ -123,7 +125,7 @@ QVariant ProvidePropsModel::data(const QModelIndex &index, int role) const
 
 	if (role == Qt::DecorationRole && index.column() == 0 )
 	{
-		if ( tName == "LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER")
+		if ( tName == GROUP_CLASS_NAME)
 		{
 			return QVariant();
 		}
@@ -157,7 +159,7 @@ QVariant ProvidePropsModel::data(const QModelIndex &index, int role) const
     return pItem->data(index.column());
 }
 
-Qt::ItemFlags ProvidePropsModel::flags(const QModelIndex &index) const
+Qt::ItemFlags ParamPropModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid() || index.column() == 0)
         return QAbstractItemModel::flags(index);
@@ -165,11 +167,11 @@ Qt::ItemFlags ProvidePropsModel::flags(const QModelIndex &index) const
 	if ( _readOnlyView )
 		return QAbstractItemModel::flags(index);
 
-	const auto item = static_cast<ProviderPropsItem*>(index.internalPointer());
+	const auto item = static_cast<ParamPropItem*>(index.internalPointer());
 	auto var = item->data(1);
 	const auto tName = QString(var.typeName());
 
-	if (tName == "LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER")
+	if (tName == GROUP_CLASS_NAME)
 	{
 		return QAbstractItemModel::flags(index);
 	}
@@ -178,18 +180,18 @@ Qt::ItemFlags ProvidePropsModel::flags(const QModelIndex &index) const
 }
 
 
-ProviderPropsItem *ProvidePropsModel::getItem(const QModelIndex &index) const
+ParamPropItem *ParamPropModel::getItem(const QModelIndex &index) const
 {
     if (index.isValid()) 
 	{
-		const auto item = static_cast<ProviderPropsItem*>(index.internalPointer());
+		const auto item = static_cast<ParamPropItem*>(index.internalPointer());
         if (item)
             return item;
     }
     return _rootItem;
 }
 
-QVariant ProvidePropsModel::headerData(int section, Qt::Orientation orientation,
+QVariant ParamPropModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
@@ -198,7 +200,7 @@ QVariant ProvidePropsModel::headerData(int section, Qt::Orientation orientation,
     return QVariant();
 }
 
-QModelIndex ProvidePropsModel::index(int row, int column, const QModelIndex &parent) const
+QModelIndex ParamPropModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
@@ -210,7 +212,7 @@ QModelIndex ProvidePropsModel::index(int row, int column, const QModelIndex &par
     return QModelIndex();
 }
 
-bool ProvidePropsModel::insertColumns(int position, int columns, const QModelIndex &parent)
+bool ParamPropModel::insertColumns(int position, int columns, const QModelIndex &parent)
 {
 	beginInsertColumns(parent, position, position + columns - 1);
 	const auto success = _rootItem->insertColumns(position, columns);
@@ -219,7 +221,7 @@ bool ProvidePropsModel::insertColumns(int position, int columns, const QModelInd
     return success;
 }
 
-bool ProvidePropsModel::insertRows(int position, int rows, const QModelIndex &parent)
+bool ParamPropModel::insertRows(int position, int rows, const QModelIndex &parent)
 {
 	auto parentItem = getItem(parent);
 	beginInsertRows(parent, position, position + rows - 1);
@@ -228,7 +230,7 @@ bool ProvidePropsModel::insertRows(int position, int rows, const QModelIndex &pa
     return success;
 }
 
-QModelIndex ProvidePropsModel::parent(const QModelIndex &index) const
+QModelIndex ParamPropModel::parent(const QModelIndex &index) const
 {
     if (!index.isValid())
         return QModelIndex();
@@ -242,7 +244,7 @@ QModelIndex ProvidePropsModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->childNumber(), 0, parentItem);
 }
 
-bool ProvidePropsModel::removeColumns(int position, int columns, const QModelIndex &parent)
+bool ParamPropModel::removeColumns(int position, int columns, const QModelIndex &parent)
 {
 	beginRemoveColumns(parent, position, position + columns - 1);
 	const auto success = _rootItem->removeColumns(position, columns);
@@ -254,9 +256,9 @@ bool ProvidePropsModel::removeColumns(int position, int columns, const QModelInd
     return success;
 }
 
-bool ProvidePropsModel::removeRows(int position, int rows, const QModelIndex &parent)
+bool ParamPropModel::removeRows(int position, int rows, const QModelIndex &parent)
 {
-    ProviderPropsItem *parentItem = getItem(parent);
+	ParamPropItem *parentItem = getItem(parent);
 
 	beginRemoveRows(parent, position, position + rows - 1);
 	const auto success = parentItem->removeChildren(position, rows);
@@ -265,12 +267,12 @@ bool ProvidePropsModel::removeRows(int position, int rows, const QModelIndex &pa
     return success;
 }
 
-int ProvidePropsModel::rowCount(const QModelIndex &parent) const
+int ParamPropModel::rowCount(const QModelIndex &parent) const
 {
     return getItem(parent)->childCount();
 }
 
-bool ProvidePropsModel::setData(const QModelIndex &index, const QVariant &value, int role)
+bool ParamPropModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {
     if (role != Qt::EditRole)
         return false;
@@ -291,7 +293,7 @@ bool ProvidePropsModel::setData(const QModelIndex &index, const QVariant &value,
     return true;
 }
 
-bool ProvidePropsModel::setHeaderData(int section, Qt::Orientation orientation,
+bool ParamPropModel::setHeaderData(int section, Qt::Orientation orientation,
                               const QVariant &value, int role)
 {
     if (role != Qt::EditRole || orientation != Qt::Horizontal)
@@ -305,7 +307,7 @@ bool ProvidePropsModel::setHeaderData(int section, Qt::Orientation orientation,
     return result;
 }
 
-void ProvidePropsModel::setupModelData(LandaJune::IPropertyList propList, bool readOnly)
+void ParamPropModel::setupModelData(LandaJune::IPropertyList propList, bool readOnly)
 {
 	_readOnlyView = readOnly;
 	const auto& numRows = _rootItem->childCount();
@@ -349,7 +351,7 @@ void ProvidePropsModel::setupModelData(LandaJune::IPropertyList propList, bool r
 	}
 }
 
-LandaJune::IPropertyTuple ProvidePropsModel::propertyValue(const ProviderPropsItem *child) const noexcept
+LandaJune::IPropertyTuple ParamPropModel::propertyValue(const ParamPropItem *child) const noexcept
 {
 	if (child->parent()->parent() == _rootItem) 
 	{
@@ -379,14 +381,14 @@ LandaJune::IPropertyTuple ProvidePropsModel::propertyValue(const ProviderPropsIt
 	return { topPropertyItem->data(0).toString(), value, _readOnlyView };
 }
 
-COLOR_TRIPLET ProvidePropsModel::createColorTriplet(const ProviderPropsItem *item) const noexcept
+COLOR_TRIPLET ParamPropModel::createColorTriplet(const ParamPropItem *item) const noexcept
 {
 	const auto min = createColorTripletSingle(item->child(0));
 	const auto max = createColorTripletSingle(item->child(1));
 	return { min, max, item->data(0).toString().toStdString() };
 }
 
-COLOR_TRIPLET_SINGLE ProvidePropsModel::createColorTripletSingle(const ProviderPropsItem *item) const noexcept
+COLOR_TRIPLET_SINGLE ParamPropModel::createColorTripletSingle(const ParamPropItem *item) const noexcept
 {
 	const auto color = item->child(0)->data(1).toString();
 	const auto h = item->child(1)->data(1).toInt();
@@ -397,7 +399,7 @@ COLOR_TRIPLET_SINGLE ProvidePropsModel::createColorTripletSingle(const ProviderP
 }
 
 
-ProviderPropsItem *ProvidePropsModel::insertChild(ProviderPropsItem *parent, const QString &name, const QVariant &value) noexcept
+ParamPropItem *ParamPropModel::insertChild(ParamPropItem *parent, const QString &name, const QVariant &value) noexcept
 {
 	const int count = parent->childCount();
 	parent->insertChildren(count, 1, parent->columnCount());
@@ -409,7 +411,7 @@ ProviderPropsItem *ProvidePropsModel::insertChild(ProviderPropsItem *parent, con
 	return child;
 }
 
-ProviderPropsItem * ProvidePropsModel::setupGroupHeader(ProviderPropsItem* parent, const LandaJune::IPropertyTuple &prop) noexcept
+ParamPropItem * ParamPropModel::setupGroupHeader(ParamPropItem* parent, const LandaJune::IPropertyTuple &prop) noexcept
 {
 	auto&[name, var, editable] = prop;
 	const auto groupName = var.value<PARAM_GROUP_HEADER>();
@@ -417,7 +419,7 @@ ProviderPropsItem * ProvidePropsModel::setupGroupHeader(ProviderPropsItem* paren
 }
 
 
-void ProvidePropsModel::setupColorTripletSingle(ProviderPropsItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
+void ParamPropModel::setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
 {
 	auto&[name, _colorVar, editable] = prop;
 
@@ -429,7 +431,7 @@ void ProvidePropsModel::setupColorTripletSingle(ProviderPropsItem *parent, const
 	insertChild(child, "V", color._iV);
 }
 
-void ProvidePropsModel::setupColorTriplet(ProviderPropsItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
+void ParamPropModel::setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
 {
 	auto&[name, _colorVar, editable] = prop;
 

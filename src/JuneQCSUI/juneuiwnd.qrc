@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="JuneUIWnd">
+    <file>Resources/file_save.png</file>
+    <file>Resources/file_open.png</file>
     <file>Resources/float.png</file>
     <file>Resources/rect.png</file>
     <file>Resources/boolean.png</file>
@@ -10,6 +12,6 @@
     <file>Resources/zoom-in.png</file>
     <file>Resources/zoom-out.png</file>
     <file>Resources/start.png</file>
-    <file>Resources/stop.jpg</file>
+    <file>Resources/stop.png</file>
   </qresource>
 </RCC>

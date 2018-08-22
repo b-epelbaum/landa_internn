@@ -25,17 +25,6 @@ namespace LandaJune
 			friend class FrameRefPool;
 		
 		public :
-			struct GLOBAL_FRAME_DATA
-			{
-				explicit GLOBAL_FRAME_DATA(std::shared_ptr<Parameters::ProcessParameter> globalParams);
-
-				bool operator == (const GLOBAL_FRAME_DATA& other) const;
-				bool isValid(FRAME_REF_ERROR& err) const;
-
-				int _cvImageFormat = 0;
-				std::shared_ptr<Parameters::ProcessParameter> _params;
-			};
-
 			FrameRef(const FrameRef &) = delete;
 			FrameRef(FrameRef &&) = delete;
 			~FrameRef() = default;
@@ -43,7 +32,8 @@ namespace LandaJune
 			const FrameRef & operator = (const FrameRef &) = delete;
 			FrameRef & operator = (FrameRef &&) = delete;
 	
-			explicit FrameRef(const GLOBAL_FRAME_DATA& frameData);
+			// pass colorBitDepth explicitely to avoid dependency of ProcessParameter class.
+			explicit FrameRef(std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat);
 			void reset();
 
 			void setBits(const int32_t imageIdx

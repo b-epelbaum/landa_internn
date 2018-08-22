@@ -219,7 +219,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>24</height>
+               <height>26</height>
               </size>
              </property>
              <property name="text">
@@ -228,17 +228,55 @@
             </widget>
            </item>
            <item>
-            <widget class="QLabel" name="label_4">
+            <widget class="QToolButton" name="toolButton_2">
              <property name="minimumSize">
               <size>
-               <width>0</width>
-               <height>24</height>
+               <width>26</width>
+               <height>26</height>
               </size>
              </property>
              <property name="text">
-              <string>Calculated Parameters</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="juneuiwnd.qrc">
+               <normaloff>:/JuneUIWnd/Resources/file_open.png</normaloff>:/JuneUIWnd/Resources/file_open.png</iconset>
              </property>
             </widget>
+           </item>
+           <item>
+            <widget class="QToolButton" name="toolButton">
+             <property name="minimumSize">
+              <size>
+               <width>26</width>
+               <height>26</height>
+              </size>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="juneuiwnd.qrc">
+               <normaloff>:/JuneUIWnd/Resources/file_save.png</normaloff>:/JuneUIWnd/Resources/file_save.png</iconset>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_7">
+             <item>
+              <widget class="QLabel" name="label_4">
+               <property name="minimumSize">
+                <size>
+                 <width>420</width>
+                 <height>26</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>Calculated Parameters</string>
+               </property>
+              </widget>
+             </item>
+            </layout>
            </item>
           </layout>
          </item>
@@ -271,7 +309,7 @@
               <bool>true</bool>
              </property>
              <property name="selectionMode">
-              <enum>QAbstractItemView::ExtendedSelection</enum>
+              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <attribute name="headerDefaultSectionSize">
               <number>200</number>
@@ -308,7 +346,7 @@
               <bool>true</bool>
              </property>
              <property name="selectionMode">
-              <enum>QAbstractItemView::ExtendedSelection</enum>
+              <enum>QAbstractItemView::SingleSelection</enum>
              </property>
              <attribute name="headerDefaultSectionSize">
               <number>200</number>

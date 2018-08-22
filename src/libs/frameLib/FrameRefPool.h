@@ -22,8 +22,8 @@ namespace LandaJune
 				const FrameRefPool & operator = (const FrameRefPool &) = delete;
 				FrameRefPool & operator = (FrameRefPool &&) = delete;
 
-				void init(const uint64_t size, const FrameRef::GLOBAL_FRAME_DATA& globalFrameRefData);
-				void reset(const uint64_t qlen, const FrameRef::GLOBAL_FRAME_DATA& globalFrameRefData);
+				void init(const uint64_t size, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat);
+				void reset(const uint64_t qlen, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat);
 				void clear();
 				uint64_t size();
 

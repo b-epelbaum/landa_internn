@@ -1,7 +1,8 @@
 #include "FrameRefPool.h"
 #include "frameRef.h"
 
-using namespace LandaJune::Core;
+using namespace LandaJune;
+using namespace Core;
 
 
 std::shared_ptr<FrameRefPool> FrameRefPool::frameRefPool()
@@ -14,20 +15,20 @@ std::shared_ptr<FrameRefPool> FrameRefPool::frameRefPool()
 }
 
 
-void FrameRefPool::init(const uint64_t size, const FrameRef::GLOBAL_FRAME_DATA& globalFrameRefData)
+void FrameRefPool::init(const uint64_t size, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat)
 {
 	autolock lock(_mutex);
 	for (uint64_t i = 0; i < size; ++i)
 	{
-		_framesFree.push_back(std::make_unique<FrameRef>(globalFrameRefData));
+		_framesFree.push_back(std::make_unique<FrameRef>(processParams, openCVImgFormat));
 	}
 	_size = size;
 }
 
-void FrameRefPool::reset(const uint64_t qlen, const FrameRef::GLOBAL_FRAME_DATA& globalFrameRefData)
+void FrameRefPool::reset(const uint64_t qlen, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat)
 {
 	clear();
-	init(qlen, globalFrameRefData);
+	init(qlen, processParams, openCVImgFormat);
 }
 
 void FrameRefPool::clear()

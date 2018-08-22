@@ -1,61 +1,61 @@
 #include <QStringList>
-#include "providerPropItem.h"
+#include "paramPropItem.h"
 
-ProviderPropsItem::ProviderPropsItem(const QVector<QVariant> &data, ProviderPropsItem *parent)
+ParamPropItem::ParamPropItem(const QVector<QVariant> &data, ParamPropItem *parent)
 {
     parentItem = parent;
     itemData = data;
 }
 
 
-ProviderPropsItem::~ProviderPropsItem()
+ParamPropItem::~ParamPropItem()
 {
     qDeleteAll(childItems);
 }
 
-ProviderPropsItem *ProviderPropsItem::child(int number) const
+ParamPropItem *ParamPropItem::child(int number) const
 {
     return childItems.value(number);
 }
 
-int ProviderPropsItem::childCount() const
+int ParamPropItem::childCount() const
 {
     return childItems.count();
 }
 
-int ProviderPropsItem::childNumber() const
+int ParamPropItem::childNumber() const
 {
     if (parentItem)
-        return parentItem->childItems.indexOf(const_cast<ProviderPropsItem*>(this));
+        return parentItem->childItems.indexOf(const_cast<ParamPropItem*>(this));
 
     return 0;
 }
 
-int ProviderPropsItem::columnCount() const
+int ParamPropItem::columnCount() const
 {
     return itemData.count();
 }
 
-QVariant ProviderPropsItem::data(int column) const
+QVariant ParamPropItem::data(int column) const
 {
     return itemData.value(column);
 }
 
-bool ProviderPropsItem::insertChildren(int position, int count, int columns)
+bool ParamPropItem::insertChildren(int position, int count, int columns)
 {
     if (position < 0 || position > childItems.size())
         return false;
 
     for (int row = 0; row < count; ++row) {
         QVector<QVariant> data(columns);
-        ProviderPropsItem *item = new ProviderPropsItem(data, this);
+        ParamPropItem *item = new ParamPropItem(data, this);
         childItems.insert(position, item);
     }
 
     return true;
 }
 
-bool ProviderPropsItem::insertColumns(int position, int columns)
+bool ParamPropItem::insertColumns(int position, int columns)
 {
     if (position < 0 || position > itemData.size())
         return false;
@@ -63,18 +63,18 @@ bool ProviderPropsItem::insertColumns(int position, int columns)
     for (int column = 0; column < columns; ++column)
         itemData.insert(position, QVariant());
 
-    foreach (ProviderPropsItem *child, childItems)
+    foreach (ParamPropItem *child, childItems)
         child->insertColumns(position, columns);
 
     return true;
 }
 
-ProviderPropsItem *ProviderPropsItem::parent() const
+ParamPropItem *ParamPropItem::parent() const
 {
     return parentItem;
 }
 
-bool ProviderPropsItem::removeChildren(int position, int count)
+bool ParamPropItem::removeChildren(int position, int count)
 {
     if (position < 0 || position + count > childItems.size())
         return false;
@@ -85,7 +85,7 @@ bool ProviderPropsItem::removeChildren(int position, int count)
     return true;
 }
 
-bool ProviderPropsItem::removeColumns(int position, int columns)
+bool ParamPropItem::removeColumns(int position, int columns)
 {
     if (position < 0 || position + columns > itemData.size())
         return false;
@@ -93,13 +93,13 @@ bool ProviderPropsItem::removeColumns(int position, int columns)
     for (int column = 0; column < columns; ++column)
         itemData.remove(position);
 
-    foreach (ProviderPropsItem *child, childItems)
+    foreach (ParamPropItem *child, childItems)
         child->removeColumns(position, columns);
 
     return true;
 }
 
-bool ProviderPropsItem::setData(int column, const QVariant &value)
+bool ParamPropItem::setData(int column, const QVariant &value)
 {
     if (column < 0 || column >= itemData.size())
         return false;
@@ -108,7 +108,7 @@ bool ProviderPropsItem::setData(int column, const QVariant &value)
     return true;
 }
 
-void ProviderPropsItem::setUserData(const QVariant &value)
+void ParamPropItem::setUserData(const QVariant &value)
 {
 	_userData = value;
 }

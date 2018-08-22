@@ -12,36 +12,6 @@ namespace LandaJune
 		{
 			Q_OBJECT
 
-		public:
-				struct PARAM_GROUP_HEADER
-				{
-					PARAM_GROUP_HEADER() = default;
-					PARAM_GROUP_HEADER(const PARAM_GROUP_HEADER& other) = default;
-					~PARAM_GROUP_HEADER() = default;
-
-					QString _groupName;
-				};
-
-				struct COLOR_TRIPLET_SINGLE
-				{
-					COLOR_TRIPLET_SINGLE() = default;
-					COLOR_TRIPLET_SINGLE(const COLOR_TRIPLET_SINGLE& other) = default;
-					~COLOR_TRIPLET_SINGLE() = default;
-					qint32	_iH = 0;
-					qint32	_iS = 0;
-					qint32	_iV = 0;
-
-				};
-
-				struct COLOR_TRIPLET
-				{
-					COLOR_TRIPLET() = default;
-					COLOR_TRIPLET(const COLOR_TRIPLET& other) = default;
-					~COLOR_TRIPLET() = default;
-					COLOR_TRIPLET_SINGLE _min;
-					COLOR_TRIPLET_SINGLE _max;
-					std::string _colorName;
-				};
 
 		public:
 			ProcessParameter();
@@ -52,6 +22,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(SheetID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
 			DECLARE_PARAM_PROPERTY(CalculateBothSides, bool, false, true)
+			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, false, true)
 
 			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate"}, true)
 			DECLARE_PARAM_PROPERTY(SubstrateWidth_mm, int, 1000, true)
@@ -85,33 +56,34 @@ namespace LandaJune
 
 			// HSV
 			DECLARE_PARAM_PROPERTY(Colors, PARAM_GROUP_HEADER, { "Color Parameters" }, true)
-			DECLARE_PARAM_PROPERTY(ColorArray, QVector<LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET>, {}, true)
-			DECLARE_PARAM_PROPERTY(TestTriplet, LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET, {}, true)
-			DECLARE_PARAM_PROPERTY(TestSingleTriplet, LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET_SINGLE, {}, true)
+			DECLARE_PARAM_PROPERTY(ColorArray, QVector<COLOR_TRIPLET>, {}, true)
+			DECLARE_PARAM_PROPERTY(TestTriplet, COLOR_TRIPLET, {}, true)
+			DECLARE_PARAM_PROPERTY(TestSingleTriplet, COLOR_TRIPLET_SINGLE, {}, true)
 
 
+			//-------------------------------------------------------
 			// calculated values
-			// commomn properties
-
 			
+			// Substrate values
 			DECLARE_PARAM_PROPERTY(GeneralParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" }, false)
 			DECLARE_PARAM_PROPERTY(SubstrateWidth_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(SubstrateHeight_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(OpenCVImageFormat, int, 0, false)
 
+			// Strip values
 			DECLARE_PARAM_PROPERTY(StripParamsCalc, PARAM_GROUP_HEADER, { "Strip values" }, false)
 			DECLARE_PARAM_PROPERTY(LeftStripRect, QRect, {}, false)
 			DECLARE_PARAM_PROPERTY(RightStripRect, QRect, {}, false)
 
 
-			// edge
+			// edge values
 			DECLARE_PARAM_PROPERTY(OffsetParamsCalc, PARAM_GROUP_HEADER, { "Offset values" }, false)
 			DECLARE_PARAM_PROPERTY(OffsetBetweenTriangles_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(EdgeApproximateDistanceX_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(EdgeTriangleApproximateY_px, int, 0, false)
 
 						
-			// I2S
+			// I2S values
 			DECLARE_PARAM_PROPERTY(I2SParamsCalc, PARAM_GROUP_HEADER, { "I2S values" }, false)
 			DECLARE_PARAM_PROPERTY(I2SApproximateTriangleRectLeft, QRect, {}, false)
 			DECLARE_PARAM_PROPERTY(I2SApproximateTriangleRectRight, QRect, {}, false)
@@ -121,7 +93,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(I2SROIWidth_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(I2SROIHeight_px, int, 0, false)
 			
-			// ROIs
+			// C2C ROIs values
 			DECLARE_PARAM_PROPERTY(C2CROIParamsCalc, PARAM_GROUP_HEADER, { "C2C ROI values" }, false)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenDots_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_px, int, 0, false)
@@ -146,10 +118,5 @@ namespace LandaJune
 		};
 	}
 }
-Q_DECLARE_METATYPE(LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER)
-Q_DECLARE_METATYPE(QVector<QRect>)
-Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Parameters::ProcessParameter>)
-Q_DECLARE_METATYPE(LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET_SINGLE)
-Q_DECLARE_METATYPE(LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET)
-Q_DECLARE_METATYPE(QVector<LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET>)
+
 

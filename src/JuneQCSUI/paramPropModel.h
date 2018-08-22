@@ -3,21 +3,17 @@
 #include <QAbstractItemModel>
 #include <QVariant>
 #include <QStyledItemDelegate>
-#include "ProcessParameter.h"
+#include "baseparam.h"
 
 #include "interfaces/type_usings.h"
 
-using COLOR_TRIPLET = LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET;
-using COLOR_TRIPLET_SINGLE = LandaJune::Parameters::ProcessParameter::COLOR_TRIPLET_SINGLE;
-using PARAM_GROUP_HEADER = LandaJune::Parameters::ProcessParameter::PARAM_GROUP_HEADER;
-
-class ProviderPropsItem;
+class ParamPropItem;
 
 class ComboBoxItemDelegate : public QStyledItemDelegate
 {
 	Q_OBJECT
 public:
-	ComboBoxItemDelegate(QObject* parent = 0);
+	ComboBoxItemDelegate(QObject* parent = nullptr);
 	~ComboBoxItemDelegate();
 
 	virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
@@ -25,13 +21,13 @@ public:
 	virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 };
 
-class ProvidePropsModel : public QAbstractItemModel
+class ParamPropModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-	ProvidePropsModel(QObject *parent = 0);
-    ~ProvidePropsModel();
+	ParamPropModel(QObject *parent = nullptr);
+    ~ParamPropModel();
 	
 	void setupModelData(LandaJune::IPropertyList, bool readOnly );
 
@@ -66,24 +62,26 @@ signals:
 	void propChanged(QString propName, const QVariant& newVal);
 
 private:
-	LandaJune::IPropertyTuple propertyValue(const ProviderPropsItem *child) const noexcept;
-	
-	COLOR_TRIPLET createColorTriplet(const ProviderPropsItem *item) const noexcept;
-	COLOR_TRIPLET_SINGLE createColorTripletSingle(const ProviderPropsItem *item) const noexcept;
+	LandaJune::IPropertyTuple propertyValue(const ParamPropItem *child) const noexcept;
+
+	LandaJune::Parameters::COLOR_TRIPLET createColorTriplet(const ParamPropItem *item) const noexcept;
+	LandaJune::Parameters::COLOR_TRIPLET_SINGLE createColorTripletSingle(const ParamPropItem *item) const noexcept;
 		
-	ProviderPropsItem *insertChild(ProviderPropsItem *parent, const QString &name, const QVariant &value) noexcept;
+	ParamPropItem *insertChild(ParamPropItem *parent, const QString &name, const QVariant &value) noexcept;
 	
 	// Setup custom type
-	void setupColorTripletSingle(ProviderPropsItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
-	void setupColorTriplet(ProviderPropsItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
-	ProviderPropsItem * setupGroupHeader(ProviderPropsItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	ParamPropItem * setupGroupHeader(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 
-	ProviderPropsItem *getItem(const QModelIndex &index) const;
-	ProviderPropsItem *_rootItem;
-	ProviderPropsItem * _currentRoot;
+	ParamPropItem *getItem(const QModelIndex &index) const;
+	ParamPropItem *_rootItem;
+	ParamPropItem * _currentRoot;
 
 	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData;
 
 	bool _readOnlyView = true;
 
 };
+
+Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Parameters::ProcessParameter>)

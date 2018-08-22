@@ -1,8 +1,7 @@
 #pragma once
 
 #include "ui_juneuiwnd.h"
-#include "providerPropModel.h"
-#include "ProcessParameter.h"
+#include "paramPropModel.h"
 
 namespace LandaJune
 {
@@ -60,9 +59,9 @@ namespace LandaJune
 			QString createRunTargetFolder(const QString& commonTargetFolder);
 
 			//std::unique_ptr<QJsonModel> _jsonModel;
-			std::unique_ptr<ProvidePropsModel> _providerParamModel;
-			std::unique_ptr<ProvidePropsModel> _processParamModelEditable;
-			std::unique_ptr<ProvidePropsModel> _processParamModelCalculated;
+			std::unique_ptr<ParamPropModel> _providerParamModel;
+			std::unique_ptr<ParamPropModel> _processParamModelEditable;
+			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
 
 			QAction *zoomInAct{};
 			QAction *zoomOutAct{};

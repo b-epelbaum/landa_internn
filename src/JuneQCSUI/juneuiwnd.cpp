@@ -74,18 +74,18 @@ void JuneUIWnd::initUI()
 	_updateStatsTimer = new QTimer(this);
 	connect(_updateStatsTimer, SIGNAL(timeout()), this, SLOT(updateStats()));
 
-	_providerParamModel = std::make_unique<ProvidePropsModel>(this);
+	_providerParamModel = std::make_unique<ParamPropModel>(this);
 	ui.providerPropView->setModel(_providerParamModel.get());
-	connect(_providerParamModel.get(), &ProvidePropsModel::propChanged, this, &JuneUIWnd::onProviderPropChanged);
+	connect(_providerParamModel.get(), &ParamPropModel::propChanged, this, &JuneUIWnd::onProviderPropChanged);
 
 	ui.providerPropView->header()->resizeSection(0, 280);
 	ui.providerPropView->header()->resizeSection(1, 140);
 
-	_processParamModelEditable = std::make_unique<ProvidePropsModel>(this);
+	_processParamModelEditable = std::make_unique<ParamPropModel>(this);
 	ui.batchParamView->setModel(_processParamModelEditable.get());
-	connect(_processParamModelEditable.get(), &ProvidePropsModel::propChanged, this, &JuneUIWnd::onBatchPropChanged);
+	connect(_processParamModelEditable.get(), &ParamPropModel::propChanged, this, &JuneUIWnd::onBatchPropChanged);
 
-	_processParamModelCalculated = std::make_unique<ProvidePropsModel>(this);
+	_processParamModelCalculated = std::make_unique<ParamPropModel>(this);
 	ui.processParamViewCalculated->setModel(_processParamModelCalculated.get());
 }
 
@@ -208,7 +208,7 @@ void JuneUIWnd::createActions()
 void JuneUIWnd::createStatusBar()
 {
 	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start"), this);
-	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.jpg"), tr("&Stop"), this);
+	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop"), this);
 
 	stopAct->setEnabled(false);
 
@@ -216,6 +216,7 @@ void JuneUIWnd::createStatusBar()
 	connect(stopAct, &QAction::triggered, this, &JuneUIWnd::stop);
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
+	ui.mainToolBar->setIconSize(QSize(48, 48));
 }
 
 /*

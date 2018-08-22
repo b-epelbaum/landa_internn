@@ -3,19 +3,19 @@
 #include <QVariant>
 #include <QVector>
 
-class ProviderPropsItem
+class ParamPropItem
 {
 public:
-    explicit ProviderPropsItem(const QVector<QVariant> &data, ProviderPropsItem *parent = 0);
-    ~ProviderPropsItem();
+    explicit ParamPropItem(const QVector<QVariant> &data, ParamPropItem *parent = 0);
+    ~ParamPropItem();
 
-	ProviderPropsItem *child(int number) const;
+	ParamPropItem *child(int number) const;
     int childCount() const;
     int columnCount() const;
     QVariant data(int column) const;
     bool insertChildren(int position, int count, int columns);
     bool insertColumns(int position, int columns);
-	ProviderPropsItem *parent() const;
+	ParamPropItem *parent() const;
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
     int childNumber() const;
@@ -24,9 +24,9 @@ public:
 	QVariant userData() const { return _userData; }
 
 private:
-    QList<ProviderPropsItem*> childItems;
+    QList<ParamPropItem*> childItems;
     QVector<QVariant> itemData;
-	ProviderPropsItem *parentItem;
+	ParamPropItem *parentItem;
 	QVariant _userData;
 };
 

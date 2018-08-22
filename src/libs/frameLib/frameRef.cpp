@@ -1,55 +1,41 @@
 #include "frameRef.h"
 #include <chrono>
-
-#include "ProcessParameter.h"
+#include <map>
 #include <opencv2/imgcodecs.hpp>
 
 using namespace LandaJune::Parameters;
 using namespace LandaJune::Core;
 
+using OPENCV_COLOR_MAP = std::map<int, int>;
 
-FrameRef::GLOBAL_FRAME_DATA::GLOBAL_FRAME_DATA(std::shared_ptr<ProcessParameter> globalParams)
-	: _cvImageFormat(globalParams->OpenCVImageFormat())
-	, _params(globalParams)
+static OPENCV_COLOR_MAP __colorMap = 
 {
-}
+	  {CV_8U, 8}
+	, {CV_16U, 16}
+	, {CV_8UC3, 24}
+	, {CV_32S, 32}
+};
 
-bool FrameRef::GLOBAL_FRAME_DATA::operator == (const GLOBAL_FRAME_DATA& other) const
+FrameRef::FrameRef(std::shared_ptr<ProcessParameter> processParams, int openCVImgFormat)
+	: _imgCVFormat(openCVImgFormat)
+	, _processParameters (processParams)
+	
 {
-	return (
-		_cvImageFormat == other._cvImageFormat
-		&& _params == other._params);
-}
-
-bool FrameRef::GLOBAL_FRAME_DATA::isValid(FRAME_REF_ERROR& err) const
-{
-	err = FRAME_REF_ERROR::ERR_NO_ERROR;
 	const auto allOk = (
-		_params
+		processParams
 		);
-	if (allOk)
-		return true;
-	err = (!_params) ? FRAME_REF_ERROR::ERR_FRAME_INVALID_BATCH_PARAMS
-		: FRAME_REF_ERROR::ERR_FRAME_INVALID_INIT_DATA;
 
-	return false;
-}
-
-
-
-FrameRef::FrameRef(const GLOBAL_FRAME_DATA& frameData)
-{
-	FRAME_REF_ERROR err;
-	if (!frameData.isValid(err))
+	if (!allOk)
 	{
-		throw FrameRefException(err, "Cannot initialize FrameRef object");
+		throw FrameRefException(FRAME_REF_ERROR::ERR_FRAME_INVALID_INIT_DATA, "Cannot initialize FrameRef object : ProcessParameter value is invalid");
 	}
 
-	_imgCVFormat = frameData._cvImageFormat;
-	_bitsPerPixel = frameData._params->ScanBitDepth();
+	if ( const auto bitsPerPixel = __colorMap.find(openCVImgFormat); bitsPerPixel != __colorMap.end() )
+	{
+		_bitsPerPixel = bitsPerPixel->second;
+	}
 
-	// TODO : think about padding
-	_processParameters = std::move(frameData._params);
+	_processParameters = processParams;
 	_bInited = true;
 }
 

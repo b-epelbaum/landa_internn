@@ -209,6 +209,7 @@ void LandaJune::Algorithms::initAlgorithmsData(std::shared_ptr<ProcessParameter>
 
 void LandaJune::Algorithms::fillProcessParameters(const FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input)
 {
+	input.setGenerateOverlay(frame->getProcessParams()->GenerateOverlays());
 	input._stripInputParamLeft._paperEdgeInput._approxDistanceFromEdgeX = frame->getProcessParams()->EdgeApproximateDistanceX_px();
 	input._stripInputParamLeft._paperEdgeInput._triangeApproximateY = frame->getProcessParams()->I2SOffsetFromPaperEdgeY_mm();
 	input._stripInputParamLeft.setPixel2MM_X(frame->getProcessParams()->Pixel2MM_X());
@@ -459,26 +460,46 @@ PARAMS_C2C_STRIP_OUTPUT LandaJune::Algorithms::calculateStrip(const PARAMS_C2C_S
 
 void LandaJune::Algorithms::initEdge(const INIT_PARAMETER& initParam)
 {
-	detect_edge_init(initParam);
+	try
+	{
+		detect_edge_init(initParam);
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_edge_init has thrown exception";
+	}
 }
 
 PARAMS_PAPEREDGE_OUTPUT LandaJune::Algorithms::calculateEdge(const PARAMS_PAPEREDGE_INPUT& input)
 {
 	PARAMS_PAPEREDGE_OUTPUT retVal;
 	retVal._input = input;
-
 	PRINT_INFO7 << "C2C_EDGE [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 
-	// run_actual_c2c_edge(input, output);
-
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	try
+	{
+		detect_edge(input, retVal);
+	}
+	catch(...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_edge has thrown exception";
+		retVal._outStatus = ALG_STATUS_FAILED;
+	}
+	
 	return std::move(retVal);
 }
 
 
 void LandaJune::Algorithms::shutdownEdge()
 {
-	detect_edge_shutdown();
+	try
+	{
+		detect_edge_shutdown();
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_edge_shutdown has thrown exception";
+	}
 }
 
 
@@ -488,7 +509,14 @@ void LandaJune::Algorithms::shutdownEdge()
 
 void LandaJune::Algorithms::initI2S(const INIT_PARAMETER& initParam)
 {
-	detect_i2s_init(initParam);
+	try
+	{
+		detect_i2s_init(initParam);
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_i2s_init has thrown exception";
+	}
 }
 
 PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& input)
@@ -496,7 +524,15 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 	PARAMS_I2S_OUTPUT retVal;
 	retVal._input = input;
 
-	// run_actual_i2s_edge(input, output);
+	try
+	{
+		detect_i2s(input, retVal);
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_i2s has thrown exception";
+		retVal._outStatus = ALG_STATUS_FAILED;
+	}
 
 	PRINT_INFO8 << "I2S [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 	std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -506,7 +542,14 @@ PARAMS_I2S_OUTPUT LandaJune::Algorithms::calculateI2S(const PARAMS_I2S_INPUT& in
 
 void LandaJune::Algorithms::shutdownI2S()
 {
-	detect_i2s_shutdown();
+	try
+	{
+		detect_i2s_shutdown();
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_i2s_shutdown has thrown exception";
+	}
 }
 
 
@@ -516,7 +559,14 @@ void LandaJune::Algorithms::shutdownI2S()
 
 void LandaJune::Algorithms::initC2CRoi(const INIT_PARAMETER& initParam)
 {
-	detect_c2c_roi_init(initParam);
+	try
+	{
+		detect_c2c_roi_init(initParam);
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_c2c_roi_init has thrown exception";
+	}
 }
 
 PARAMS_C2C_ROI_OUTPUT LandaJune::Algorithms::calculateC2CRoi(const PARAMS_C2C_ROI_INPUT& input)
@@ -525,14 +575,29 @@ PARAMS_C2C_ROI_OUTPUT LandaJune::Algorithms::calculateC2CRoi(const PARAMS_C2C_RO
 	retVal._input = input;
 
 	PRINT_INFO8 << "C2C_ROI [" << input._roiIndex << "] runs in thread #" << GetCurrentThreadId();
-	std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	try
+	{
+		detect_c2c_roi(input, retVal);
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_c2c_roi has thrown exception";
+		retVal._outStatus = ALG_STATUS_FAILED;
+	}
 	return retVal;
 }
 
 
 void LandaJune::Algorithms::shutdownC2CRoi()
 {
-	detect_c2c_roi_shutdown();
+	try
+	{
+		detect_c2c_roi_shutdown();
+	}
+	catch (...)
+	{
+		ALGO_SCOPED_ERROR << "Function detect_c2c_roi_shutdown has thrown exception";
+	}
 }
 
 ///////////////////////////////////////////////////
