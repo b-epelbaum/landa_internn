@@ -5,6 +5,8 @@
 
 #include <QImageReader>
 
+#include <opencv2/imgcodecs.hpp>
+
 namespace LandaJune
 {
 	namespace FrameProviders
@@ -48,7 +50,7 @@ namespace LandaJune
 			}
 		private :
 
-			std::vector<QImage> _images;
+			std::vector<cv::Mat> _images;
 			uint64_t _next = 0ULL;
 		};
 	}

@@ -119,7 +119,12 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if (tName == GROUP_CLASS_NAME)
 		{
-			return QColor(255, 255, 255);
+			return QColor(0, 255, 0);
+		}
+
+		if (index.column() == 0 )
+		{
+			return QColor(180, 180, 180);
 		}
 	}
 

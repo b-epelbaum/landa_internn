@@ -60,15 +60,14 @@ FRAME_PROVIDER_ERROR FGSimulator::dataAccess(FrameRef* frameRef)
 		return FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
 	}
 
-
-
+	
 	auto & img = _images.at(_next);
 
-	auto w = img.width();
-	auto h = img.height();
-	auto s = img.sizeInBytes();
+	auto w = img.cols;
+	auto h = img.rows;
+	auto s = img.step[0] * img.rows;
 
-	frameRef->setBits(++_lastAcquiredImage, img.width(), img.height(), img.sizeInBytes(), img.bits());
+	frameRef->setBits(++_lastAcquiredImage, w, h, s, img.data);
 	FGSIMULATOR_PROVIDER_SCOPED_LOG << "Received frame #" << _lastAcquiredImage;
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
@@ -85,27 +84,18 @@ FRAME_PROVIDER_ERROR FGSimulator::init()
 	const auto imageFolder = _SourceFolderPath;
 	auto images = QDir(imageFolder).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
 
+	if ( images.empty() )
+	{
+		FGSIMULATOR_PROVIDER__SCOPED_WARNING << "No valid BMP files found in folder " << imageFolder;
+		return FRAME_PROVIDER_ERROR::ERR_FGSIMULATOR_NO_FILE_FOUND;
+	}
+
 	for (auto const& imPath : images)
 	{
 		const auto t1 = Utility::now_in_millisecond();
 		const auto pathName = QString("%1/%2").arg(imageFolder).arg(imPath);
 		FGSIMULATOR_PROVIDER_SCOPED_LOG << "found BMP image : " << pathName << "; loading...";
-
-		QImageReader imgReader(pathName);
-
-		// read image to QIMage object
-		auto img = imgReader.read();
-
-		// ensure that image has pixels alignment in multiples of 4 ( bitmap requirement )
-		// if not, pad pixels to the right
-
-		auto const newWIdth = (img.width() + 3) & ~0x03;
-
-		// make a copy of the image with proper padding 
-		auto copy = img.copy(0, 0, newWIdth, img.height()).convertToFormat(QImage::Format_RGB888).rgbSwapped();
-
-		// add copy to array
-		_images.push_back(std::move(copy));
+		_images.emplace_back(cv::imread(pathName.toStdString()));
 		FGSIMULATOR_PROVIDER_SCOPED_LOG << "finished loading file " << imPath << " in " << Utility::now_in_millisecond() - t1 << " msec";
 	}
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;

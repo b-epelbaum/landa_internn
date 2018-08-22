@@ -48,7 +48,7 @@ namespace LandaJune
 		
 		public:
 			
-			BaseParameter() = default;
+			BaseParameter();
 			virtual ~BaseParameter() = default;
 
 			virtual QString	GetMetaClassFullName() const { return "AbstractParameter"; }
@@ -64,11 +64,12 @@ namespace LandaJune
 		signals:
 
 			void propertyChanged(QString strPropName);
+			void bulkChanged();
 		};
 	}
 }
-Q_DECLARE_METATYPE(LandaJune::Parameters::PARAM_GROUP_HEADER)
 Q_DECLARE_METATYPE(QVector<QRect>)
+Q_DECLARE_METATYPE(LandaJune::Parameters::PARAM_GROUP_HEADER)
 Q_DECLARE_METATYPE(LandaJune::Parameters::COLOR_TRIPLET_SINGLE)
 Q_DECLARE_METATYPE(LandaJune::Parameters::COLOR_TRIPLET)
 Q_DECLARE_METATYPE(QVector<LandaJune::Parameters::COLOR_TRIPLET>)

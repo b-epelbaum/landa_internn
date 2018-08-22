@@ -37,6 +37,15 @@
     <ClCompile Include="paramPropModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DarkStyle.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="framelesswindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windowdragger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h">
@@ -45,14 +54,32 @@
     <QtMoc Include="paramPropModel.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="DarkStyle.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="framelesswindow.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="windowdragger.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="juneuiwnd.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="framelesswindow.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="juneuiwnd.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtRcc Include="darkstyle.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
+    <QtRcc Include="framelesswindow.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
   </ItemGroup>
@@ -65,5 +92,93 @@
     <ClInclude Include="paramPropItem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\darkstyle\darkstyle.qss">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\darkstyle\icon_branch_closed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_branch_end.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_branch_more.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_branch_open.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_checked.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_checked_disabled.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_checked_pressed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_indeterminate.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_indeterminate_disabled.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_indeterminate_pressed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_unchecked.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_unchecked_disabled.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_checkbox_unchecked_pressed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_close.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_checked.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_checked_disabled.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_checked_pressed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_unchecked.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_unchecked_disabled.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_radiobutton_unchecked_pressed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_restore.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_undock.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\darkstyle\icon_vline.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\images\icon_window_close.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\images\icon_window_maximize.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\images\icon_window_minimize.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Resources\images\icon_window_restore.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

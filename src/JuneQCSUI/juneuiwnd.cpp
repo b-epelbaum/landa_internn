@@ -11,9 +11,7 @@
 
 #include "interfaces/ICore.h"
 #include "interfaces/IFrameProvider.h"
-
 #include "ProcessParameter.h"
-
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
@@ -46,6 +44,7 @@ JuneUIWnd::JuneUIWnd(QWidget *parent)
 void JuneUIWnd::init()
 {
 	initUI();
+	setWindowState(Qt::WindowMaximized);
 	initCore();
 	enumerateFrameProviders();
 	initBatchParameters();
@@ -78,8 +77,6 @@ void JuneUIWnd::initUI()
 	ui.providerPropView->setModel(_providerParamModel.get());
 	connect(_providerParamModel.get(), &ParamPropModel::propChanged, this, &JuneUIWnd::onProviderPropChanged);
 
-	ui.providerPropView->header()->resizeSection(0, 280);
-	ui.providerPropView->header()->resizeSection(1, 140);
 
 	_processParamModelEditable = std::make_unique<ParamPropModel>(this);
 	ui.batchParamView->setModel(_processParamModelEditable.get());
@@ -126,9 +123,14 @@ void JuneUIWnd::initBatchParameters() const
 	try
 	{
 		const auto batchParams = ICore::get()->getProcessParameters();
-		connect(batchParams.get(), &ProcessParameter::upateCalculated, this, &JuneUIWnd::onUpdateCalculatedParams);
+
+		connect(batchParams.get(), &BaseParameter::bulkChanged, this, &JuneUIWnd::onUpdateCalculatedParams);
 		_processParamModelEditable->setupModelData(batchParams->getPropertyList(), false);
 		_processParamModelCalculated->setupModelData(batchParams->getPropertyList(), true);
+
+		ui.batchParamView->header()->resizeSection(0, 280);
+		ui.providerPropView->header()->resizeSection(0, 280);
+		ui.processParamViewCalculated->header()->resizeSection(0, 280);
 
 		ui.batchParamView->expandToDepth(1);
 		ui.processParamViewCalculated->expandToDepth(1);
@@ -362,8 +364,8 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 
 void JuneUIWnd::updateStats() const
 {
-	ui.plainTextEdit->clear(); // unless you know the editor is empty
-	ui.plainTextEdit->appendPlainText(QString::fromStdString(Helpers::RealTimeStats::rtStats()->to_string()));
+	ui.statView->clear(); // unless you know the editor is empty
+	ui.statView->appendPlainText(QString::fromStdString(Helpers::RealTimeStats::rtStats()->to_string()));
 }
 
 void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
@@ -401,6 +403,6 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 {
 	startAct->setEnabled(bEnable);
 	stopAct->setEnabled(!bEnable);
-	ui.groupBox_4->setEnabled(bEnable);
+	ui.dockWidgetContents->setEnabled(bEnable);
 }
 

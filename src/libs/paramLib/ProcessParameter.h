@@ -101,10 +101,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROIArrayLeft, QVector<QRect>, {}, false)
 			DECLARE_PARAM_PROPERTY(C2CROIArrayRight, QVector<QRect>, {}, false)
 			
-		signals:
-
-			void upateCalculated();
-		
+	
 		private slots:
 
 			void onPropertyChanged(QString strPropName);

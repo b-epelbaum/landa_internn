@@ -1,3 +1,5 @@
+#include "DarkStyle.h"
+#include "framelesswindow.h"
 #include "juneuiwnd.h"
 #include <QtWidgets/QApplication>
 
@@ -7,7 +9,20 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	QApplication a(argc, argv);
-	LandaJune::UI::JuneUIWnd w;
-	w.show();
+	a.setStyle(new DarkStyle);
+
+	QPixmap pixmap(":/JuneUIWnd/Resources/landa_logo");
+	QSplashScreen splash(pixmap);
+	splash.show();
+	a.processEvents();
+
+	FramelessWindow framelessWindow;
+	framelessWindow.setWindowIcon(a.style()->standardIcon(QStyle::SP_DesktopIcon));
+	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd;
+	framelessWindow.setContent(w);
+	framelessWindow.show();
+	splash.finish(&framelessWindow);
+
+	//w.show();
 	return a.exec();
 }

@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="JuneUIWnd">
+    <file>Resources/landa_logo</file>
     <file>Resources/file_save.png</file>
     <file>Resources/file_open.png</file>
     <file>Resources/float.png</file>

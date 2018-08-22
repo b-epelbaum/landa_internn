@@ -6,9 +6,6 @@ using namespace LandaJune::Parameters;
 
 ProcessParameter::ProcessParameter()
 {
-	qRegisterMetaType<PARAM_GROUP_HEADER>("PARAM_GROUP_HEADER");
-	qRegisterMetaType<COLOR_TRIPLET>("COLOR_TRIPLET");
-	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
 	connect(this, &BaseParameter::propertyChanged, this, &ProcessParameter::onPropertyChanged);
 	recalculate();
 }
@@ -120,5 +117,5 @@ void ProcessParameter::recalculate()
 		_C2CROIArrayRight << _C2CROIArrayLeft[i].translated(_OffsetBetweenTriangles_px, 0);
 	}
 
-	emit upateCalculated();
+	emit bulkChanged();
 }
