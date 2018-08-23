@@ -6,6 +6,8 @@
 using namespace cv;
 using namespace LandaJune::Parameters;
 
+#define TEMPLATE_PATH "d:\\Template1.tif"
+
 #ifndef byte
 typedef unsigned char byte;
 #endif
@@ -168,7 +170,7 @@ void detect_c2c_roi_init(const LandaJune::Parameters::INIT_PARAMETER& tInit_Para
 {
 	detect_c2c_roi_shutdown();
 
-	Mat imTemplate = imread ("d:\\Template1.tif ", CV_LOAD_IMAGE_GRAYSCALE) ;
+	Mat imTemplate = imread (TEMPLATE_PATH, CV_LOAD_IMAGE_GRAYSCALE) ;
 	blur(imTemplate, g_imTemplate_Smooth, Size(1, 1));	// actually no blur
 }
 
