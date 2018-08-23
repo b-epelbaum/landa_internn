@@ -19,12 +19,14 @@
 #include <opencv/cv.h> 
 #include <opencv2/imgcodecs.hpp>
 #include <QDirIterator>
+
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
 #else
 #pragma comment(lib, "opencv_world342.lib")
 #endif
 
+// TODO : check run times on empty functions.
 
 ///////////////////////////////////////
 /// change ALGO_PAR to 0 to switch to sequential calculations instead of parallel
@@ -223,85 +225,140 @@ void LandaJune::Algorithms::fillProcessParameters(const FrameRef* frame, PARAMS_
 
 void LandaJune::Algorithms::generateRegions(const FrameRef* frame, PARAMS_C2C_SHEET_INPUT& input)
 {
+	// function creates a copy of ROIs of every type
+	// and saves them, if needed
+
 	const auto processParameters = frame->getProcessParams();
 	COPY_REGION_LIST _regionsToCopy;
 
-	// left strip
+	// add region of left strip
 	_regionsToCopy.emplace_back(
 		COPY_REGION
-		{ frame, processParameters->LeftStripRect(), input._stripInputParamLeft._paperEdgeInput._stripImageSource, "strip_[LEFT]", true }
+		{   frame
+		  , processParameters->LeftStripRect()
+		  , input._stripInputParamLeft._paperEdgeInput._stripImageSource
+		  , "strip_[LEFT]"
+		  , processParameters->DumpLeftStrip() 
+		}
 	);
 
-	// right strip
-	_regionsToCopy.emplace_back(
-		COPY_REGION
-		{ frame, processParameters->RightStripRect(), input._stripInputParamRight._paperEdgeInput._stripImageSource, "strip_[RIGHT]", true }
-	);
+	if (processParameters->CalculateBothSides())
+	{
+		// add region of right strip
+		_regionsToCopy.emplace_back(
+			COPY_REGION
+			{ 
+				frame
+			  , processParameters->RightStripRect()
+			  , input._stripInputParamRight._paperEdgeInput._stripImageSource
+			  , "strip_[RIGHT]"
+			  , processParameters->DumpRightStrip()  
+			}
+		);
+	}
 
 
 	// I2S
 	input._stripInputParamLeft._i2sInput._approxTriangeROI = processParameters->I2SApproximateTriangleRectLeft();
 	input._stripInputParamRight._i2sInput._approxTriangeROI = processParameters->I2SApproximateTriangleRectRight();
 
-	// I2S Left
+	// add region of I2S Left
 	_regionsToCopy.emplace_back(
 		COPY_REGION
-		{ frame,processParameters->I2SApproximateTriangleRectLeft(), input._stripInputParamLeft._i2sInput._triangleImageSource, "I2S_[LEFT]",  true }
+		{ 
+			frame
+		  , processParameters->I2SApproximateTriangleRectLeft()
+		  , input._stripInputParamLeft._i2sInput._triangleImageSource
+		  , "I2S_[LEFT]"
+		  , processParameters->DumpI2S()  
+		}
 	);
 
-	// I2S Right
-	_regionsToCopy.emplace_back(
-		COPY_REGION
-		{ frame,processParameters->I2SApproximateTriangleRectRight(), input._stripInputParamRight._i2sInput._triangleImageSource, "I2S_[RIGHT]", true }
-	);
+	// add region of I2S Right if needed
+	if (processParameters->CalculateBothSides())
+	{
+		_regionsToCopy.emplace_back(
+			COPY_REGION
+			{ 
+				frame
+			  , processParameters->I2SApproximateTriangleRectRight()
+			  , input._stripInputParamRight._i2sInput._triangleImageSource
+			  , "I2S_[RIGHT]"
+			  , processParameters->DumpI2S()  
+			}
+		);
+	}
 
 	// ROIs
 	if (processParameters->C2CROISetsCount() != 0)
 	{
-		// TODO : translate colors from batch parameters to real HSVs
-
 		std::vector<HSV> hsv;
-
 		for (auto i = 0; i < processParameters->ColorArray().size(); i++)
 		{
 			hsv.emplace_back(HSV{ processParameters->ColorArray()[i] });
 		}
 
+		// crate array of PARAMS_C2C_ROI_INPUT objects accordingly to C2C ROIs number
 		for (auto i = 0; i < processParameters->C2CROISetsCount(); i++)
 		{
 			input._stripInputParamLeft._c2cROIInputs.emplace_back(
-					PARAMS_C2C_ROI_INPUT
-						{ frame, LEFT, hsv , ROIRect(processParameters->C2CROIArrayLeft()[i]), i }
+				PARAMS_C2C_ROI_INPUT
+				{ 
+					frame
+				  , LEFT
+				  , hsv 
+				  , ROIRect(processParameters->C2CROIArrayLeft()[i])
+				  , i 
+				}
 			);
 
-			input._stripInputParamRight._c2cROIInputs.emplace_back(
-				PARAMS_C2C_ROI_INPUT
-				{ frame, RIGHT, hsv , ROIRect(processParameters->C2CROIArrayRight()[i]), i }
-			);
+			if (processParameters->CalculateBothSides())
+			{
+				input._stripInputParamRight._c2cROIInputs.emplace_back(
+					PARAMS_C2C_ROI_INPUT
+					{ 
+						frame
+					  , RIGHT
+					  , hsv 
+					  , ROIRect(processParameters->C2CROIArrayRight()[i])
+					  , i 
+					}
+				);
+			}
 		}
 
+		// and create regions for every ROI set
 		for ( auto i = 0; i < processParameters->C2CROISetsCount(); i++)
 		{
+			// array of LEFT C2C ROIs
 			auto& leftROI = input._stripInputParamLeft._c2cROIInputs[i];
-			auto& RightROI = input._stripInputParamRight._c2cROIInputs[i];
-
+		
 			_regionsToCopy.emplace_back(
 				COPY_REGION
-				{ frame
+				{ 
+					frame
 				  , static_cast<QRect>(leftROI._ROI)
 				  , leftROI._ROIImageSource
 				  , fmt::format("C2C_[LEFT]_#{0}", i)
-				  , true }
+				  , processParameters->DumpC2CROIs() 
+				}
 			);
 
-			_regionsToCopy.emplace_back(
-				COPY_REGION
-				{ frame
-				  , static_cast<QRect>(RightROI._ROI)
-				  , RightROI._ROIImageSource
-				  , fmt::format("C2C_[RIGHT]_#{0}", i)
-				  , true }
-			);
+			// array of RIGHT C2C ROIs
+			if (processParameters->CalculateBothSides())
+			{
+				auto& RightROI = input._stripInputParamRight._c2cROIInputs[i];
+				_regionsToCopy.emplace_back(
+					COPY_REGION
+					{ 
+						frame
+					  , static_cast<QRect>(RightROI._ROI)
+					  , RightROI._ROIImageSource
+					  , fmt::format("C2C_[RIGHT]_#{0}", i)
+					  , processParameters->DumpC2CROIs() 
+					}
+				);
+			}
 		}
 	}
 #if ALGO_PAR == 1
@@ -391,17 +448,19 @@ PARAMS_C2C_STRIP_OUTPUT LandaJune::Algorithms::calculateStrip(const PARAMS_C2C_S
 	/// calculate I2S and C2C regions in parallel
 	// get algorithm tasks pool
 
+	FUTURE_VECTOR<PARAMS_PAPEREDGE_OUTPUT> _futureStripList;
 	// post edge detection function to the thread pool
 	if (detectEdge)
 	{
-		auto& edgeFuture = TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), calculateEdge, std::ref(stripInput._paperEdgeInput));
+		_futureStripList.emplace_back( TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), calculateEdge, std::ref(stripInput._paperEdgeInput)));
 	}
 
 	/// calculate I2S directly
 	retVal._i2sOutput = calculateI2S(stripInput._i2sInput);
 
 	// get output from pooled function
-	retVal._paperEdgeOutput = edgeFuture.get();
+	if (!_futureStripList.empty())
+		retVal._paperEdgeOutput = _futureStripList.front().get();
 #else
 	if (detectEdge)
 	{
@@ -616,7 +675,7 @@ PARAMS_C2C_ROI_OUTPUT LandaJune::Algorithms::calculateC2CRoi(const PARAMS_C2C_RO
 		{
 			auto savePath = getSavePath(input._frame, fmt::format("c2c_overlay_{0}.bmp", iIndex));
 #if ALGO_PAR == 1
-			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, retVal.overlay.clone(), savePath);
+			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), saveImage, overlay.clone(), savePath);
 #else
 			saveImage(overlay.clone(), savePath);
 #endif

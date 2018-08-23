@@ -7,7 +7,7 @@ namespace LandaJune
 {
 	namespace Parameters
 	{
-		enum SHEET_SIDE { LEFT = 0, RIGHT };
+		enum SHEET_SIDE { LEFT = 0, RIGHT, NUM_SIDES };
 		enum GRABBER_SIDE { FRONT = 0, BACK };
 
 		enum OUT_STATUS

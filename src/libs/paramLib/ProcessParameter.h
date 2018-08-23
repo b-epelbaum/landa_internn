@@ -12,7 +12,6 @@ namespace LandaJune
 		{
 			Q_OBJECT
 
-
 		public:
 			ProcessParameter();
 			virtual ~ProcessParameter() = default;
@@ -21,8 +20,13 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(JobID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(SheetID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
-			DECLARE_PARAM_PROPERTY(CalculateBothSides, bool, false, true)
-			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, false, true)
+			
+			DECLARE_PARAM_PROPERTY(CalculateBothSides, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
+			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
 
 			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate"}, true)
 			DECLARE_PARAM_PROPERTY(SubstrateWidth_mm, int, 1000, true)

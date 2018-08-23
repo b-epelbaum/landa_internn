@@ -1,7 +1,7 @@
 #include "DarkStyle.h"
-#include "framelesswindow.h"
 #include "juneuiwnd.h"
 #include <QtWidgets/QApplication>
+#include <QSplashScreen>
 
 int main(int argc, char *argv[])
 {
@@ -13,14 +13,11 @@ int main(int argc, char *argv[])
 
 	QPixmap pixmap(":/JuneUIWnd/Resources/landa_logo");
 	QSplashScreen splash(pixmap);
+	splash.setGeometry(200, 200, 800, 260);
 	splash.show();
 	a.processEvents();
 
-	//FramelessWindow framelessWindow;
-	//framelessWindow.setWindowIcon(a.style()->standardIcon(QStyle::SP_DesktopIcon));
 	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd;
-	//framelessWindow.setContent(w);
-	//framelessWindow.show();
 	splash.finish(w);
 
 	w->show();

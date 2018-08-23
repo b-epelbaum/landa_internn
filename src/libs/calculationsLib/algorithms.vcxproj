@@ -84,7 +84,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;ALGORITHMS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\formatLib\include;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat />
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -115,6 +115,7 @@
     <ClCompile Include="algo_c2c_roi_impl.cpp" />
     <ClCompile Include="algo_edge_impl.cpp" />
     <ClCompile Include="algo_i2s_impl.cpp" />
+    <ClCompile Include="Functions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="algorithm_wrappers.h" />

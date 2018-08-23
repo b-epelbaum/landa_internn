@@ -107,9 +107,14 @@
   <ItemGroup>
     <QtMoc Include="ProcessParameter.h" />
     <QtMoc Include="baseparam.h" />
+    <QtMoc Include="abstractserializeableparameter.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)thirdparty\opencv\include</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)thirdparty\opencv\include</IncludePath>
+    </QtMoc>
     <ClInclude Include="paramlib_global.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="abstractserializeableparameter.cpp" />
     <ClCompile Include="baseparam.cpp" />
     <ClCompile Include="ProcessParameter.cpp" />
   </ItemGroup>

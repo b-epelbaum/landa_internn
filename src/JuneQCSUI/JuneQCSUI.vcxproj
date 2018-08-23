@@ -149,35 +149,25 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DarkStyle.cpp" />
-    <ClCompile Include="framelesswindow.cpp" />
     <ClCompile Include="juneuiwnd.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="paramPropItem.cpp" />
     <ClCompile Include="paramPropModel.cpp" />
-    <ClCompile Include="windowdragger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h" />
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="framelesswindow.ui" />
     <QtUic Include="juneuiwnd.ui" />
   </ItemGroup>
   <ItemGroup>
     <QtRcc Include="darkstyle.qrc" />
-    <QtRcc Include="framelesswindow.qrc" />
     <QtRcc Include="juneuiwnd.qrc" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="JuneU.rc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="windowdragger.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-    </QtMoc>
     <QtMoc Include="paramPropModel.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
@@ -185,12 +175,6 @@
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
     </QtMoc>
     <QtMoc Include="DarkStyle.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
-    </QtMoc>
-    <QtMoc Include="framelesswindow.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>

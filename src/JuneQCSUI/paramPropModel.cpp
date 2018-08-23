@@ -425,7 +425,7 @@ ParamPropItem * ParamPropModel::setupGroupHeader(ParamPropItem* parent, const La
 {
 	auto&[name, var, editable] = prop;
 	const auto groupName = var.value<PARAM_GROUP_HEADER>();
-	return insertChild(parent, groupName._groupName, var);
+	return insertChild(parent, groupName.GroupName(), var);
 }
 
 

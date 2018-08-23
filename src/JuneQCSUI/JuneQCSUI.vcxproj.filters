@@ -40,12 +40,6 @@
     <ClCompile Include="DarkStyle.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="framelesswindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="windowdragger.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h">
@@ -57,18 +51,9 @@
     <QtMoc Include="DarkStyle.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="framelesswindow.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="windowdragger.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="juneuiwnd.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
-    <QtUic Include="framelesswindow.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
@@ -77,9 +62,6 @@
       <Filter>Resource Files</Filter>
     </QtRcc>
     <QtRcc Include="darkstyle.qrc">
-      <Filter>Resource Files</Filter>
-    </QtRcc>
-    <QtRcc Include="framelesswindow.qrc">
       <Filter>Resource Files</Filter>
     </QtRcc>
   </ItemGroup>

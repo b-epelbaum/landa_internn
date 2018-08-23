@@ -48,7 +48,7 @@ namespace LandaJune
 			// other parameters
 			DECLARE_INPUT_PARAMETER (Pixel2MM_X, double, 0.0)
 			DECLARE_INPUT_PARAMETER (Pixel2MM_Y, double, 0.0)
-			DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, false)
+			DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, true)
 		};
 
 
