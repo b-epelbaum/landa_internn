@@ -47,7 +47,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 	fTriangle_X = fTriangle_Y = 0;
 
 	// create and clear overlay
-	if (input._GenerateOverlay) {
+	if (input.GenerateOverlay()) {
 		output._triangleOverlay.create(input._triangleImageSource.rows, input._triangleImageSource.cols, CV_8UC3);
 		output._triangleOverlay.setTo(0);
 	}
@@ -96,7 +96,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 
 		// estimate line for edge-pixels
 		Find_Line_Data(g_afTriangle_Edges[input._side], iEdges_Len, fAx, fBx);
-		if (input._GenerateOverlay)
+		if (input.GenerateOverlay())
 			for (fCntY = 0; fCntY < iEdges_Len; fCntY += 1) {
 				float fPos_X = fAx * fCntY + fBx;
 				Draw_Point(output._triangleOverlay, fPos_X, fCntY + iYS + 5, 0, 255, 0, 1);
@@ -115,7 +115,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 
 		// estimate line for edge-pixels
 		Find_Line_Data(g_afTriangle_Edges[input._side], iEdges_Len, fAy, fBy);
-		if (input._GenerateOverlay)
+		if (input.GenerateOverlay())
 			for (fCntX = 0; fCntX < iEdges_Len; fCntX += 1) {
 				float fPos_Y = fAy * fCntX + fBy;
 				Draw_Point(output._triangleOverlay, fCntX + iXS + 5, fPos_Y, 0, 255, 0, 1);
@@ -138,7 +138,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		fTriangle_Y = fV0y * fT0 + fY0;
 
 		// overlay
-		if (input._GenerateOverlay)
+		if (input.GenerateOverlay())
 			Draw_Point(output._triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
 
 		// set output data
@@ -146,8 +146,8 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y());
 		output._result = ALG_STATUS_SUCCESS;
 
-		if (input._GenerateOverlay)
-			imwrite("e:\\temp\\res2.tif", output._triangleOverlay);	// ***
+		//if (input.GenerateOverlay())
+		//	imwrite("e:\\temp\\res2.tif", output._triangleOverlay);	// ***
 	}
 	else {
 		// set output data for failure

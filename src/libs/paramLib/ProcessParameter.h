@@ -21,12 +21,12 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
 
 			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
-			DECLARE_PARAM_PROPERTY(CalculateBothSides, bool, true, true)
-			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, true, true)
-			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, true, true)
-			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
-			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
-			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
+			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpI2S, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, false, true)
+			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, false, true)
 			DECLARE_PARAM_PROPERTY(ParalellizeCalculations, bool, false, true)
 			DECLARE_PARAM_PROPERTY(CircleTemplateBuffer, QByteArray, {}, true)
 

@@ -307,7 +307,18 @@ void fullPageHandler::fillProcessParameters(const FrameRef* frame, PARAMS_C2C_SH
 {
 	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
-	input.setGenerateOverlay(_processParameters->GenerateOverlays());
+
+	// TODO : think about more effective way of common paramateres propagatio. Remove inheritance ?
+	const auto& bGenerateOverlays = _processParameters->GenerateOverlays();
+
+	input.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamLeft.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamRight.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamLeft._i2sInput.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamRight._i2sInput.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamLeft._paperEdgeInput.setGenerateOverlay(bGenerateOverlays);
+	input._stripInputParamRight._paperEdgeInput.setGenerateOverlay(bGenerateOverlays);
+
 	input._stripInputParamLeft._paperEdgeInput._approxDistanceFromEdgeX = _processParameters->EdgeApproximateDistanceX_px();
 	input._stripInputParamLeft._paperEdgeInput._triangeApproximateY = _processParameters->I2SOffsetFromPaperEdgeY_mm();
 	input._stripInputParamLeft.setPixel2MM_X(_processParameters->Pixel2MM_X());
@@ -322,7 +333,7 @@ void fullPageHandler::process(const FrameRef * frame)
 	PARAMS_C2C_SHEET_INPUT input(_frame);
 	fillProcessParameters(_frame, input);
 	generateRegions(input);
-//	auto output = processSheet(input);
+	auto output = processSheet(input);
 }
 
 
@@ -340,12 +351,12 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 		  , qrect2cvrect(_processParameters->LeftStripRect())
 		  , _frameIndex
 		  , "strip_[LEFT]"
-		  , true 
+		  , _processParameters->DumpLeftStrip()
 		)
 	);
 
 	
-	if (_processParameters->CalculateBothSides())
+	if (_processParameters->ProcessRightSide())
 	{
 		// add region of right strip
 		_regionsToCopy.emplace_back(
@@ -357,7 +368,7 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 			  , qrect2cvrect(_processParameters->RightStripRect())
 			  , _frameIndex
 			  , "strip_[RIGHT]"
-			  , true
+			  , _processParameters->DumpRightStrip()
 			)
 		);
 	}
@@ -368,9 +379,7 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 	input._stripInputParamRight._i2sInput._approxTriangeROI = toROIRect(_processParameters->I2SApproximateTriangleRectRight());
 
 	// add region of I2S Right if needed
-	if (_processParameters->CalculateBothSides())
-	{
-		_regionsToCopy.emplace_back(
+	_regionsToCopy.emplace_back(
 			CV_COPY_REGION
 			(
 				*_frameContainer
@@ -379,24 +388,25 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 			  , qrect2cvrect(_processParameters->I2SApproximateTriangleRectLeft())
 			  , _frameIndex
 			  , "I2S_[LEFT]"
-			  , true
+			  , _processParameters->DumpI2S()
+			)
+		);
+
+	if (_processParameters->ProcessRightSide())
+	{
+		_regionsToCopy.emplace_back(
+			CV_COPY_REGION
+			(
+				*_frameContainer
+				, input._stripInputParamRight._i2sInput._triangleImageSource
+				, _processParameters
+				, qrect2cvrect(_processParameters->I2SApproximateTriangleRectRight())
+				, _frameIndex
+				, "I2S_[RIGHT]"
+				, _processParameters->DumpI2S()
 			)
 		);
 	}
-
-	// I2S Right
-	_regionsToCopy.emplace_back(
-		CV_COPY_REGION
-		(
-			*_frameContainer
-		  , input._stripInputParamRight._i2sInput._triangleImageSource
-		  , _processParameters
-		  , qrect2cvrect(_processParameters->I2SApproximateTriangleRectRight())
-		  , _frameIndex
-		  , "I2S_[RIGHT]"
-		  , true
-		)
-	);
 
 	// ROIs
 	if (_processParameters->C2CROISetsCount() != 0)
@@ -421,7 +431,7 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 				)
 			);
 
-			if (_processParameters->CalculateBothSides())
+			if (_processParameters->ProcessRightSide())
 			{
 				input._stripInputParamRight._c2cROIInputs.emplace_back(
 					PARAMS_C2C_ROI_INPUT
@@ -441,7 +451,7 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 		{
 			// array of LEFT C2C ROIs
 			auto& leftROI = input._stripInputParamLeft._c2cROIInputs[i];
-
+			leftROI.setGenerateOverlay(input.GenerateOverlay());
 			_regionsToCopy.emplace_back(
 				CV_COPY_REGION
 				(
@@ -451,12 +461,12 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 					, roirect2cvrect(leftROI._ROI)
 					, _frameIndex
 					, fmt::format("C2C_[LEFT]_#{0}", i)
-					, true
+					, _processParameters->DumpC2CROIs()
 				)
 			);
 
 			// array of RIGHT C2C ROIs
-			if (_processParameters->CalculateBothSides())
+			if (_processParameters->ProcessRightSide())
 			{
 				auto& rightROI = input._stripInputParamRight._c2cROIInputs[i];
 				_regionsToCopy.emplace_back(
@@ -468,7 +478,7 @@ void fullPageHandler::generateRegions(PARAMS_C2C_SHEET_INPUT& input)
 						, roirect2cvrect(rightROI._ROI)
 						, _frameIndex
 						, fmt::format("C2C_[RIGHT]_#{0}", i)
-						, true
+						, _processParameters->DumpC2CROIs()
 					)
 				);
 			}
@@ -515,18 +525,19 @@ PARAMS_C2C_SHEET_OUTPUT fullPageHandler::processSheet(const PARAMS_C2C_SHEET_INP
 	{
 		/////////////////////////////////////
 		/// calculate strip regioons in parallel
-
-		// get algorithm tasks pool
-		auto& pool = TaskThreadPools::algorithmsThreadPool();
-
-		// post right strip function to the thread pool
-		auto& rightStripFuture = TaskThreadPools::postJob(pool, &fullPageHandler::processStrip, this, std::ref(sheetInput._stripInputParamRight), false);
+		FUTURE_VECTOR<PARAMS_C2C_STRIP_OUTPUT> _futureStripOutputList;
+		if (_processParameters->ProcessRightSide())
+		{
+			// post right strip function to the thread pool
+			_futureStripOutputList.emplace_back(TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullPageHandler::processStrip, this, std::ref(sheetInput._stripInputParamRight), false));
+		}
 
 		// run left strip calculations directly in current thread and get outputs
 		retVal._stripOutputParameterLeft = processStrip(sheetInput._stripInputParamLeft, true);
 
 		// get outputs from futures
-		retVal._stripOutputParameterRight = rightStripFuture.get();
+		if (!_futureStripOutputList.empty())
+			retVal._stripOutputParameterRight = _futureStripOutputList[0].get();
 	}
 	else
 	{
@@ -534,7 +545,8 @@ PARAMS_C2C_SHEET_OUTPUT fullPageHandler::processSheet(const PARAMS_C2C_SHEET_INP
 		/// calculate strip regioons sequentially
 
 		retVal._stripOutputParameterLeft = processStrip(sheetInput._stripInputParamLeft, true);
-		retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
+		if (_processParameters->ProcessRightSide())
+			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
 	return retVal;
 }

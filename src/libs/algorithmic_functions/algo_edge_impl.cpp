@@ -39,7 +39,7 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	cvtColor(input._stripImageSource, g_imPaperEdge_Input_GL, CV_RGB2GRAY);
 
 	// define and clear overlay image
-	if (input._GenerateOverlay) {
+	if (input.GenerateOverlay()) {
 		output._edgeOverlay.create(input._stripImageSource.rows, input._stripImageSource.cols, CV_8UC3);
 		output._edgeOverlay.setTo(0);
 	}
@@ -57,7 +57,7 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	Find_Line_Data(g_afPaperEdge_Edges, iEdges_Len, fAx, fBx);
 
 	// draw overlay
-	if (input._GenerateOverlay)
+	if (input.GenerateOverlay())
 		for (iY = 0; iY < g_imPaperEdge_Input_GL.rows; iY++) {
 			float fPos_X = fAx * float(iY - 100) / 50 + fBx;
 			Draw_Point(output._edgeOverlay, fPos_X, (float)iY, 0, 255, 0);
@@ -70,8 +70,8 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	output._exactDistanceFromEdgeX = round((fPaper_A * input._triangeApproximateY + fPaper_B) * input.Pixel2MM_X());
 	output._result = ALG_STATUS_SUCCESS;
 
-	if (input._GenerateOverlay)
-		imwrite("e:\\temp\\res1.tif", output._edgeOverlay);
+	//if (input.GenerateOverlay())
+	//	imwrite("e:\\temp\\res1.tif", output._edgeOverlay);
 }
 
 
