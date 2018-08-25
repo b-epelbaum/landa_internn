@@ -4,7 +4,7 @@
 #include <opencv2/highgui/highgui.hpp> 
 
 using namespace cv;
-using namespace LandaJune::Parameters;
+using namespace LandaJune::Algorithms;
 
 #ifndef byte
 typedef unsigned char byte;
@@ -22,7 +22,7 @@ void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, f
 
 
 
-void detect_edge_init(const LandaJune::Parameters::INIT_PARAMETER& initParam)
+void detect_edge_init(const INIT_PARAMETER& initParam)
 {
 	detect_edge_shutdown();
 	g_afPaperEdge_Edges = new float[1000];
@@ -30,7 +30,7 @@ void detect_edge_init(const LandaJune::Parameters::INIT_PARAMETER& initParam)
 
 
 
-void detect_edge(const LandaJune::Parameters::PARAMS_PAPEREDGE_INPUT& input, LandaJune::Parameters::PARAMS_PAPEREDGE_OUTPUT& output)
+void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& output)
 {
 	int		iY;				// counter
 	float	fAx, fBx;		// Line equation (y=Ax+b) for paper edge
@@ -68,7 +68,7 @@ void detect_edge(const LandaJune::Parameters::PARAMS_PAPEREDGE_INPUT& input, Lan
 	float fPaper_B = fBx - 2;
 
 	output._exactDistanceFromEdgeX = round((fPaper_A * input._triangeApproximateY + fPaper_B) * input.Pixel2MM_X());
-	output._outStatus = ALG_STATUS_SUCCESS;
+	output._result = ALG_STATUS_SUCCESS;
 
 	if (input._GenerateOverlay)
 		imwrite("e:\\temp\\res1.tif", output._edgeOverlay);

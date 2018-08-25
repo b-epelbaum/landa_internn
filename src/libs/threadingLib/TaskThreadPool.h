@@ -258,6 +258,10 @@ namespace LandaJune
 			}
 		}
 
+		template <class T>
+		using FUTURE_VECTOR = std::vector<TaskThreadPool::JobFuture<T>>;
+		
+		#define WAIT_ALL(list) std::for_each(list.begin(), list.end(), [](auto &f) { f.wait(); });
 	}
 }
 

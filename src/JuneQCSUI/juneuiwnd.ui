@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1303</width>
+    <width>1006</width>
     <height>973</height>
    </rect>
   </property>
@@ -47,8 +47,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>864</width>
-         <height>451</height>
+         <width>562</width>
+         <height>446</height>
         </rect>
        </property>
       </widget>
@@ -61,8 +61,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1303</width>
-     <height>20</height>
+     <width>1006</width>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -114,7 +114,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>2</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_provider">
         <property name="geometry">
@@ -122,11 +122,11 @@
           <x>0</x>
           <y>0</y>
           <width>416</width>
-          <height>604</height>
+          <height>583</height>
          </rect>
         </property>
         <attribute name="label">
-         <string>Frame provider</string>
+         <string>Frame provider &amp;&amp; algorithm handler</string>
         </attribute>
         <layout class="QVBoxLayout" name="verticalLayout_2">
          <property name="leftMargin">
@@ -143,16 +143,55 @@
          </property>
          <item>
           <widget class="QLabel" name="label_8">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
-            <string>Selected provider</string>
+            <string>Selected frame provider</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QComboBox" name="frameSourceCombo"/>
+          <widget class="QComboBox" name="frameSourceCombo">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="frameProvideDesc">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="Line" name="line_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QLabel" name="label_9">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
            <property name="text">
             <string>Provider parameters</string>
            </property>
@@ -190,6 +229,49 @@
           </widget>
          </item>
          <item>
+          <widget class="Line" name="line">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_10">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>Selected algorithm handler</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="algoHandlerCombo">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="algoHandlerDesc">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>24</height>
+            </size>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+         <item>
           <spacer name="verticalSpacer">
            <property name="orientation">
             <enum>Qt::Vertical</enum>
@@ -210,7 +292,7 @@
           <x>0</x>
           <y>0</y>
           <width>416</width>
-          <height>604</height>
+          <height>583</height>
          </rect>
         </property>
         <attribute name="label">
@@ -321,10 +403,16 @@
             <bool>false</bool>
            </property>
            <property name="alternatingRowColors">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
            <property name="selectionMode">
             <enum>QAbstractItemView::SingleSelection</enum>
+           </property>
+           <property name="animated">
+            <bool>true</bool>
+           </property>
+           <property name="allColumnsShowFocus">
+            <bool>false</bool>
            </property>
            <attribute name="headerDefaultSectionSize">
             <number>200</number>
@@ -348,7 +436,7 @@
           <x>0</x>
           <y>0</y>
           <width>416</width>
-          <height>604</height>
+          <height>583</height>
          </rect>
         </property>
         <attribute name="label">
@@ -436,7 +524,6 @@
  <resources>
   <include location="juneuiwnd.qrc"/>
   <include location="darkstyle.qrc"/>
-  <include location="framelesswindow.qrc"/>
  </resources>
  <connections/>
 </ui>

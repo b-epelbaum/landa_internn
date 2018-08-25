@@ -98,6 +98,11 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	auto var = item->data(1);
 	const auto tName = QString(var.typeName());
 	
+	if (role == Qt::SizeHintRole)
+	{
+		return QSize(100, 24);
+	}
+
 	if (role == Qt::FontRole)
 	{
 		if (tName == GROUP_CLASS_NAME)

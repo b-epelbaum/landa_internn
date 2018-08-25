@@ -11,12 +11,10 @@ namespace LandaJune
 {
 	namespace FrameProviders
 	{
-		static const QString FG_SIMULATOR_CONFIG_FILE = "FGSimulator.json";
-
 		class FGSIMULATOR_EXPORT FGSimulator : public BaseFrameProvider
 		{
 			Q_OBJECT
-			Q_PLUGIN_METADATA(IID IFrameProvider_iid FILE "FGSimulator.json")
+			Q_PLUGIN_METADATA(IID IFrameProvider_iid)
 			Q_INTERFACES(LandaJune::FrameProviders::IFrameProvider)
 
 		public:
@@ -36,8 +34,10 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
 			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;
 
+			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+
 			FRAME_PROVIDER_ERROR init() override;
-			FRAME_PROVIDER_ERROR clean() override;
+			FRAME_PROVIDER_ERROR cleanup() override;
 
 			DECLARE_PROVIDER_PROPERTY(SourceFolderPath, QString, "")
 			DECLARE_PROVIDER_PROPERTY(SourceFilePath, QString, "")
@@ -45,10 +45,10 @@ namespace LandaJune
 
 		protected:
 
-			QString getDefaultConfigurationFileName() const override {
-				return FG_SIMULATOR_CONFIG_FILE;
-			}
+			void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+
 		private :
+
 
 			std::vector<cv::Mat> _images;
 			uint64_t _next = 0ULL;

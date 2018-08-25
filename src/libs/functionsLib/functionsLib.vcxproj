@@ -56,13 +56,13 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;FUNCTIONS_LIB;BUILD_STATIC;QT_GUI_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\frameProviders;$(SolutionDir)src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -73,7 +73,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;FUNCTIONS_LIB;BUILD_STATIC;QT_GUI_LIB;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\frameProviders;$(SolutionDir)src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</IncludePath>
     </QtMoc>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -83,7 +83,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;FUNCTIONS_LIB;BUILD_STATIC;QT_GUI_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\frameProviders;$(SolutionDir)src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -104,20 +104,31 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;FUNCTIONS_LIB;BUILD_STATIC;QT_GUI_LIB;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\frameProviders;$(SolutionDir)src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</IncludePath>
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="functions.h" />
-    <ClInclude Include="functionsLib_global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="frameConsume.cpp" />
-    <ClCompile Include="frameCreateRegions.cpp" />
-    <ClCompile Include="frameGenerate.cpp" />
-    <ClCompile Include="frameProcessOutput.cpp" />
-    <ClCompile Include="frameRunAlgorithms.cpp" />
-    <ClCompile Include="frameSaveImage.cpp" />
+    <ClCompile Include="frameConsume.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="frameCreateRegions.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="frameGenerate.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="frameProcessOutput.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="frameRunAlgorithms.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="frameSaveImage.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

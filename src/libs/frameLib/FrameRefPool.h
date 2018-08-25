@@ -15,16 +15,16 @@ namespace LandaJune
 
 				FrameRefPool(const FrameRefPool &) = delete;
 				FrameRefPool(FrameRefPool &&) = delete;
-				~FrameRefPool() { clear(); }
+				~FrameRefPool() { cleanup(); }
 
 				static std::shared_ptr<FrameRefPool> frameRefPool();
 
 				const FrameRefPool & operator = (const FrameRefPool &) = delete;
 				FrameRefPool & operator = (FrameRefPool &&) = delete;
 
-				void init(const uint64_t size, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat);
-				void reset(const uint64_t qlen, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat);
-				void clear();
+				void init(const uint64_t size);
+				void reset(const uint64_t qlen);
+				void cleanup();
 				uint64_t size();
 
 				std::unique_ptr<FrameRef> pullFirstFree();

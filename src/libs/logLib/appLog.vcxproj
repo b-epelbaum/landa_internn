@@ -62,7 +62,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -115,9 +115,15 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="applog.cpp" />
-    <ClCompile Include="consolelog.cpp" />
-    <ClCompile Include="winconsole.cpp" />
+    <ClCompile Include="applog.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="consolelog.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
+    <ClCompile Include="winconsole.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="winconsole.h" />

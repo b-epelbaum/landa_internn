@@ -1,8 +1,10 @@
 #include "fgsimulator.h"
 #include <QDirIterator>
-#include "util.h"
 #include <thread>
+
+#include "util.h"
 #include "frameRef.h"
+#include "ProcessParameter.h"
 
 
 #ifdef _DEBUG
@@ -11,7 +13,11 @@
 #pragma comment(lib, "opencv_world342.lib")
 #endif
 
-using namespace LandaJune::Core;
+using namespace LandaJune;
+using namespace FrameProviders;
+using namespace Helpers;
+using namespace Core;
+using namespace Parameters;
 
 static const QString FG_SIM_PROVIDER_NAME = "Frame Grabber Simulator";
 static const QString FG_SIM_PROVIDER_DESC = "Frame Grabber Simulator loads one or more images and pushes them to queue in specified timeout";
@@ -20,9 +26,6 @@ static const QString FG_SIM_PROVIDER_DESC = "Frame Grabber Simulator loads one o
 #define FGSIMULATOR_PROVIDER_SCOPED_LOG PRINT_INFO2 << "[FGSimulator] : "
 #define FGSIMULATOR_PROVIDER__SCOPED_ERROR PRINT_ERROR << "[FGSimulator] : "
 #define FGSIMULATOR_PROVIDER__SCOPED_WARNING PRINT_WARNING << "[FGSimulator] : "
-
-using namespace LandaJune::FrameProviders;
-using namespace LandaJune::Helpers;
 
 FGSimulator::FGSimulator()
 {
@@ -77,23 +80,29 @@ FRAME_PROVIDER_ERROR FGSimulator::dataPostProcess(FrameRef* frameRef)
 	return ERR_NOT_IMPLEMENTED;
 }
 
+void FGSimulator::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	validateParameters(parameters);
+	_providerParameters = parameters;
+}
+
 FRAME_PROVIDER_ERROR FGSimulator::init()
 {
 	_lastAcquiredImage = -1;
 	_images.clear();
-	const auto imageFolder = _SourceFolderPath;
-	auto images = QDir(imageFolder).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
+
+	auto images = QDir(_SourceFolderPath).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
 
 	if ( images.empty() )
 	{
-		FGSIMULATOR_PROVIDER__SCOPED_WARNING << "No valid BMP files found in folder " << imageFolder;
+		FGSIMULATOR_PROVIDER__SCOPED_WARNING << "No valid BMP files found in folder " << _SourceFolderPath;
 		return FRAME_PROVIDER_ERROR::ERR_FGSIMULATOR_NO_FILE_FOUND;
 	}
 
 	for (auto const& imPath : images)
 	{
 		const auto t1 = Utility::now_in_millisecond();
-		const auto pathName = QString("%1/%2").arg(imageFolder).arg(imPath);
+		const auto pathName = QString("%1/%2").arg(_SourceFolderPath).arg(imPath);
 		FGSIMULATOR_PROVIDER_SCOPED_LOG << "found BMP image : " << pathName << "; loading...";
 		_images.emplace_back(cv::imread(pathName.toStdString()));
 		FGSIMULATOR_PROVIDER_SCOPED_LOG << "finished loading file " << imPath << " in " << Utility::now_in_millisecond() - t1 << " msec";
@@ -101,7 +110,18 @@ FRAME_PROVIDER_ERROR FGSimulator::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR FGSimulator::clean()
+void FGSimulator::validateParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	// TODO : query BaseParameter for named parameters
+	// currently hardcoded
+	
+	auto _processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameter>(parameters);
+	_SourceFolderPath = _processParameters->FGS_SourceFolderPath();
+	_SourceFilePath = _processParameters->FGS_SourceFilePath();
+	_FrameFrequencyInMSec = _processParameters->FGS_FrameFrequencyInMSec();
+}
+
+FRAME_PROVIDER_ERROR FGSimulator::cleanup()
 {
 	_images.clear();
 	_next = 0;

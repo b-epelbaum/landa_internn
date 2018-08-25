@@ -64,7 +64,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,10 +80,12 @@
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
     <PostBuildEvent>
-      <Command>copy $(ProjectDir)OffReader.json $(TargetDir)</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copying default configuration file...</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -122,20 +124,21 @@
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
     <PostBuildEvent>
-      <Command>copy $(ProjectDir)OffReader.json $(TargetDir)</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PostBuildEvent>
-      <Message>Copying default configuration file...</Message>
+      <Message>
+      </Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="offreader.cpp" />
+    <ClCompile Include="offreader.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="offreader.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="OffReader.json" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="offlineCalcProvLib_global.h" />

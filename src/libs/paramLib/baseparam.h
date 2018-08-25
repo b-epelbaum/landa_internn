@@ -3,7 +3,7 @@
 #include "paramlib_global.h"
 #include <QVector>
 #include <QRect>
-#include "interfaces/type_usings.h"
+#include "common/type_usings.h"
 
 #include <QJsonObject>
 #include <utility>

@@ -17,7 +17,9 @@
     <ClInclude Include="TaskThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WorkingThread.cpp" />
+    <ClCompile Include="WorkingThread.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{66DC99B7-E24C-4541-943D-90C7B25AE197}</ProjectGuid>
@@ -71,7 +73,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

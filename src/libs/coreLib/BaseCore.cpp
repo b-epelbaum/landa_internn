@@ -3,9 +3,11 @@
 
 #include "common/june_exceptions.h"
 #include "interfaces/IFrameProvider.h"
+#include "interfaces/IAlgorithmHandler.h"
 
 
-#include "algorithm_wrappers.h"
+//#include "algorithm_wrappers.h"
+
 #include "TaskThreadPool.h"
 #include "BackgroundThreadPool.h"
 #include "functions.h"
@@ -73,6 +75,8 @@ void BaseCore::init()
 
 	// scan and init frame providers
 	initProviders();
+	initAlgorithmHandlers();
+
 	_bInited = true;
 	CORE_SCOPED_LOG << " Core Initialization finished...";
 }
@@ -86,6 +90,12 @@ const std::list<FrameProviderPtr>& BaseCore::getFrameProviderList() const
 {
 	CHECK_IF_INITED
 	return _providerList;
+}
+
+const std::list<AlgorithmHandlerPtr>& BaseCore::getAlgorithmHandlerList() const
+{
+	CHECK_IF_INITED
+	return _algorithmHandlerList;
 }
 
 ProcessParameterPtr BaseCore::getProcessParameters()
@@ -108,15 +118,33 @@ void BaseCore::selectFrameProvider(FrameProviderPtr provider)
 			throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY, "");
 		}
 
-		_currentFrameProvider->clean();
+		_currentFrameProvider->cleanup();
 	}
+
 	_currentFrameProvider = std::move(provider);
+	_currentFrameProvider->setProviderParameters(_processParameters);
 }
 
 FrameProviderPtr BaseCore::getSelectedFrameProvider() const
 {
 	CHECK_IF_INITED
 	return _currentFrameProvider;
+}
+
+void BaseCore::selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler)
+{
+	CHECK_IF_INITED
+
+	if (_currentAlgorithmHandler == algoHandler)
+		return;
+
+	_currentAlgorithmHandler = std::move(algoHandler);
+}
+
+AlgorithmHandlerPtr BaseCore::getSelectedAlgorithmHandler() const
+{
+	CHECK_IF_INITED
+	return _currentAlgorithmHandler;
 }
 
 void BaseCore::start() const
@@ -127,14 +155,19 @@ void BaseCore::start() const
 		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED, "");
 	}
 
+	if (!_currentAlgorithmHandler)
+	{
+		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_HANDLER_SELECTED, "");
+	}
+
 	if (_currentFrameProvider->isBusy())
 	{
 		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY, "");
 	}
 
 	// call algorithms initialization functions
-	initAlgorithmsData(_processParameters);
-
+	
+	_currentAlgorithmHandler->init(_processParameters);
 	initFramePool();
 	_currentFrameProvider->init();
 
@@ -145,18 +178,21 @@ void BaseCore::start() const
 	// and another one for saving bitmaps or any other files
 	(void)TaskThreadPools::diskDumperThreadPool();
 
+	
 
-	// start one and only frame consunimg thread
+	// start one and only frame consuming thread
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
 	// see "frameConsume" implementation
-	frameConsumerThread().setThreadFunction(frameConsume);
+	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmHandler );
 	frameConsumerThread().start();
 
+	
 	// start one and only frame producing/generation/capture thread
 	// the entry point of this thread is the "frameGenerate" static function, which invokes the data generation functions of IAbstractImageProvider object
 	// see "frameGenerate" implementation
 	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider);
 	frameProducerThread().start();
+	
 }
 
 void BaseCore::stop() const
@@ -177,9 +213,10 @@ void BaseCore::stop() const
 	frameConsumerThread().join();
 	CORE_SCOPED_LOG << "Frame handler thread finished";
 
-	_currentFrameProvider->clean();
-	FrameRefPool::frameRefPool()->clear();
-	clearAlgorithmsData();
+	_currentFrameProvider->cleanup();
+	FrameRefPool::frameRefPool()->cleanup();
+	if ( _currentAlgorithmHandler)
+		_currentAlgorithmHandler->cleanup();
 
 
 }
@@ -212,7 +249,7 @@ void BaseCore::initFramePool() const
 {
 	try
 	{
-		FrameRefPool::frameRefPool()->init(_currentFrameProvider->getRecommendedFramePoolSize(), _processParameters, _processParameters->OpenCVImageFormat());
+		FrameRefPool::frameRefPool()->init(_currentFrameProvider->getRecommendedFramePoolSize());
 	}
 	catch (FrameRefException& e)
 	{
@@ -223,4 +260,9 @@ void BaseCore::initFramePool() const
 void BaseCore::initProviders()
 {
 	_providerList = IFrameProvider::enumerateImageProviders();
+}
+
+void BaseCore::initAlgorithmHandlers()
+{
+	_algorithmHandlerList = IAlgorithmHandler::enumerateAlgorithmSets();
 }

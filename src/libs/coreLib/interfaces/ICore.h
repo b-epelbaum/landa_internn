@@ -3,8 +3,8 @@
 #include <QPluginLoader>
 #include <QCoreApplication>
 
-#include "type_usings.h"
-#include "IQBase.h"
+#include "common/type_usings.h"
+#include "interfaces/IQBase.h"
 
 #define DLL_NAME "corelib.dll"
 
@@ -42,11 +42,15 @@ namespace LandaJune
 			virtual void cleanup() = 0;
 
 			virtual const std::list<FrameProviderPtr>& getFrameProviderList() const = 0;
+			virtual const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const = 0;
 					
 			virtual ProcessParameterPtr getProcessParameters() = 0;
 
 			virtual void selectFrameProvider(FrameProviderPtr provider) = 0;
 			virtual FrameProviderPtr getSelectedFrameProvider() const = 0;
+
+			virtual void selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler) = 0;
+			virtual AlgorithmHandlerPtr getSelectedAlgorithmHandler() const = 0;
 
 			virtual void start() const = 0;
 			virtual void stop() const = 0;

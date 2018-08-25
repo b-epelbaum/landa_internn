@@ -33,6 +33,7 @@ namespace LandaJune
 			void onAboutToQuit();
 
 			void onFrameProviderComboChanged(int index);
+			void onAlgoHandlerComboChanged(int index);
 			void updateStats() const;
 
 			void onProviderPropChanged(QString propName, const QVariant& newVal);
@@ -52,13 +53,11 @@ namespace LandaJune
 			void createStatusBar();
 
 			void enumerateFrameProviders() const;
+			void enumerateAlgoHandlers() const;
 			void enableUIForProcessing(bool bEnable);
 
 			void initBatchParameters() const;
 
-			QString createRunTargetFolder(const QString& commonTargetFolder);
-
-			//std::unique_ptr<QJsonModel> _jsonModel;
 			std::unique_ptr<ParamPropModel> _providerParamModel;
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;

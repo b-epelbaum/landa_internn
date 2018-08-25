@@ -1,9 +1,10 @@
 #pragma once
 
 #include "algorithm_basic_types.h"
-#include "ProcessParameter.h"
-
 #include <optional>
+#include <vector>
+
+#include "common/june_errors.h"
 #include "opencv/cv.h"
 
 #define DECLARE_INPUT_PARAMETER(x,type,initval) type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; }
@@ -16,7 +17,7 @@ namespace LandaJune {
 
 namespace LandaJune
 {
-	namespace Parameters
+	namespace Algorithms
 	{
 
 		//////////////////////////////////////////////////
@@ -30,6 +31,13 @@ namespace LandaJune
 		struct INIT_PARAMETER
 		{
 			ROIRect _roiRect;
+		};
+
+		struct C2C_ROI_INIT_PARAMETER : INIT_PARAMETER
+		{
+			C2C_ROI_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
+
+			cv::Mat	_templateImage;
 		};
 
 
@@ -48,7 +56,7 @@ namespace LandaJune
 			// other parameters
 			DECLARE_INPUT_PARAMETER (Pixel2MM_X, double, 0.0)
 			DECLARE_INPUT_PARAMETER (Pixel2MM_Y, double, 0.0)
-			DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, true)
+			DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, false)
 		};
 
 
@@ -69,7 +77,7 @@ namespace LandaJune
 		// output
 		struct PARAMS_PAPEREDGE_OUTPUT
 		{
-			OUT_STATUS					_outStatus = ALG_STATUS_FAILED;
+			OUT_STATUS					_result = ALG_STATUS_FAILED;
 			uint32_t					_exactDistanceFromEdgeX = -1;
 			cv::Mat						_edgeOverlay;
 
@@ -99,7 +107,7 @@ namespace LandaJune
 		// output
 		struct PARAMS_I2S_OUTPUT
 		{
-			OUT_STATUS					_outStatus = ALG_STATUS_FAILED;
+			OUT_STATUS		_result = ALG_STATUS_FAILED;
 			APOINT						_triangeCorner {};
 			cv::Mat						_triangleOverlay;
 
@@ -137,7 +145,7 @@ namespace LandaJune
 		// Output
 		struct PARAMS_C2C_ROI_OUTPUT
 		{
-			OUT_STATUS					_outStatus = ALG_STATUS_FAILED;
+			OUT_STATUS					_result = ALG_STATUS_FAILED;
 			std::vector<OUT_STATUS>		_colorStatuses;
 			std::vector<APOINT>			_colorCenters;
 			std::vector<cv::Mat>		_colorOverlays;
@@ -241,9 +249,9 @@ namespace LandaJune
 		// Output
 		struct PARAMS_C2C_SHEET_OUTPUT
 		{
-			OUT_STATUS _result = ALG_STATUS_FAILED;
-			PARAMS_C2C_STRIP_OUTPUT _stripOutputParameterLeft;
-			PARAMS_C2C_STRIP_OUTPUT _stripOutputParameterRight;
+			OUT_STATUS					_result = ALG_STATUS_FAILED;
+			PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterLeft;
+			PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterRight;
 			///
 			std::optional<PARAMS_C2C_SHEET_INPUT>		_input;
 		};

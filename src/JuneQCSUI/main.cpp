@@ -1,7 +1,7 @@
 #include "DarkStyle.h"
+#include "QSplashScreen.h"
 #include "juneuiwnd.h"
 #include <QtWidgets/QApplication>
-#include <QSplashScreen>
 
 int main(int argc, char *argv[])
 {
@@ -11,15 +11,13 @@ int main(int argc, char *argv[])
 	QApplication a(argc, argv);
 	a.setStyle(new DarkStyle);
 
-	QPixmap pixmap(":/JuneUIWnd/Resources/landa_logo");
+	QPixmap pixmap(":/JuneUIWnd/Resources/landa_logo.png");
 	QSplashScreen splash(pixmap);
-	splash.setGeometry(200, 200, 800, 260);
 	splash.show();
 	a.processEvents();
 
 	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd;
 	splash.finish(w);
-
 	w->show();
 	return a.exec();
 }

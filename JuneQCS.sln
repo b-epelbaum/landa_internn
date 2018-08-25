@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ImageTests", "ImageTests", 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WICViewerGDIPlus", "tests\wicviewergdiplus\WicViewerGdiPlus.vcxproj", "{A34D48F0-8EEC-421D-93CC-10A4B02A0D62}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frame provider", "frame provider", "{F92EC16E-998D-4FFC-8F8B-DF89B6E3FA66}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{2DB22514-9621-41BA-9C12-AD7F0933B0D1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utilities", "utilities", "{44288810-C0AF-458A-BBF2-9D7D93026E91}"
@@ -23,14 +21,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{21C947
 	ProjectSection(SolutionItems) = preProject
 		include\common\june_errors.h = include\common\june_errors.h
 		include\common\june_exceptions.h = include\common\june_exceptions.h
+		include\common\type_usings.h = include\common\type_usings.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "interfaces", "interfaces", "{BD1D1E98-78BD-433B-BA4A-813ECF9B84CF}"
 	ProjectSection(SolutionItems) = preProject
-		include\interfaces\ICore.h = include\interfaces\ICore.h
-		include\interfaces\IFrameProvider.h = include\interfaces\IFrameProvider.h
+		src\libs\algorithm_handlers\interfaces\IAlgorithmHandler.h = src\libs\algorithm_handlers\interfaces\IAlgorithmHandler.h
+		src\libs\coreLib\interfaces\ICore.h = src\libs\coreLib\interfaces\ICore.h
+		src\libs\frameProviders\interfaces\IFrameProvider.h = src\libs\frameProviders\interfaces\IFrameProvider.h
 		include\interfaces\IQBAse.h = include\interfaces\IQBAse.h
-		include\interfaces\type_usings.h = include\interfaces\type_usings.h
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "core", "core", "{16FE1ADE-AA38-4844-A48A-90D6DDE4F21E}"
@@ -69,7 +68,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "util", "util", "{0B813AFE-0
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "logLib", "src\libs\logLib\appLog.vcxproj", "{F3851E08-5036-4057-81D8-CF94DE101CB3}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calclulationLib", "src\libs\calculationsLib\algorithms.vcxproj", "{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calculationLib", "src\libs\calculationsLib\algorithms.vcxproj", "{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "algorithm handlers", "algorithm handlers", "{20844454-356C-4BE4-BBF8-24F36BEF98D5}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fullPageHandler", "src\libs\algorithm_handlers\fullPageHandler\fullPageHandler.vcxproj", "{79EC106F-D1CC-4A66-8FC5-549E2202CF78}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "algorithmic_functions", "src\libs\algorithmic_functions\algorithmic_functions.vcxproj", "{74E573FA-04D1-4592-9BAC-6443784A562D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -138,9 +143,16 @@ Global
 		{F3851E08-5036-4057-81D8-CF94DE101CB3}.Release|x64.ActiveCfg = Release|x64
 		{F3851E08-5036-4057-81D8-CF94DE101CB3}.Release|x64.Build.0 = Release|x64
 		{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}.Debug|x64.ActiveCfg = Debug|x64
-		{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}.Debug|x64.Build.0 = Debug|x64
 		{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}.Release|x64.ActiveCfg = Release|x64
 		{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70}.Release|x64.Build.0 = Release|x64
+		{79EC106F-D1CC-4A66-8FC5-549E2202CF78}.Debug|x64.ActiveCfg = Debug|x64
+		{79EC106F-D1CC-4A66-8FC5-549E2202CF78}.Debug|x64.Build.0 = Debug|x64
+		{79EC106F-D1CC-4A66-8FC5-549E2202CF78}.Release|x64.ActiveCfg = Release|x64
+		{79EC106F-D1CC-4A66-8FC5-549E2202CF78}.Release|x64.Build.0 = Release|x64
+		{74E573FA-04D1-4592-9BAC-6443784A562D}.Debug|x64.ActiveCfg = Debug|x64
+		{74E573FA-04D1-4592-9BAC-6443784A562D}.Debug|x64.Build.0 = Debug|x64
+		{74E573FA-04D1-4592-9BAC-6443784A562D}.Release|x64.ActiveCfg = Release|x64
+		{74E573FA-04D1-4592-9BAC-6443784A562D}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -149,7 +161,6 @@ Global
 		{B12702AD-ABFB-343A-A199-8E24837244A3} = {7F17C5A6-D255-4B03-A9A0-75B99A8A6C50}
 		{A78C81DA-8956-47E5-8F4E-9F74B06479B4} = {169DFF4E-B538-4882-A087-F2CCCEEDBE27}
 		{A34D48F0-8EEC-421D-93CC-10A4B02A0D62} = {169DFF4E-B538-4882-A087-F2CCCEEDBE27}
-		{F92EC16E-998D-4FFC-8F8B-DF89B6E3FA66} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 		{44288810-C0AF-458A-BBF2-9D7D93026E91} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 		{21C94792-2C86-4071-8048-669CC52A97BC} = {2DB22514-9621-41BA-9C12-AD7F0933B0D1}
 		{BD1D1E98-78BD-433B-BA4A-813ECF9B84CF} = {2DB22514-9621-41BA-9C12-AD7F0933B0D1}
@@ -158,7 +169,7 @@ Global
 		{37FC1823-7D7E-4A33-9BB7-3A2F89A671EB} = {16FE1ADE-AA38-4844-A48A-90D6DDE4F21E}
 		{E9E81B25-5F86-474E-897C-F82FE686915E} = {44288810-C0AF-458A-BBF2-9D7D93026E91}
 		{2CD8058E-0EC4-4486-8129-03E874B756DA} = {44288810-C0AF-458A-BBF2-9D7D93026E91}
-		{8ECD097D-3A0F-4F3F-A352-BA4517608965} = {F92EC16E-998D-4FFC-8F8B-DF89B6E3FA66}
+		{8ECD097D-3A0F-4F3F-A352-BA4517608965} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 		{945DAB25-6F68-41F3-861F-7A1CA4BFAED0} = {36E52539-AA35-4051-8784-8B1E4AFAEEF9}
 		{A45EE1ED-B790-4060-AFB2-D5B923D93DEF} = {945DAB25-6F68-41F3-861F-7A1CA4BFAED0}
 		{4948C8E8-AD29-4E38-A793-2BC1688286B0} = {945DAB25-6F68-41F3-861F-7A1CA4BFAED0}
@@ -171,6 +182,9 @@ Global
 		{0B813AFE-0610-4F47-8739-4DB25DA0D0C2} = {36E52539-AA35-4051-8784-8B1E4AFAEEF9}
 		{F3851E08-5036-4057-81D8-CF94DE101CB3} = {0B813AFE-0610-4F47-8739-4DB25DA0D0C2}
 		{E334BEC0-90BB-4D82-9C59-9F6AC5CC2D70} = {DA225C77-1F19-4F41-B61D-D284B1764356}
+		{20844454-356C-4BE4-BBF8-24F36BEF98D5} = {36E52539-AA35-4051-8784-8B1E4AFAEEF9}
+		{79EC106F-D1CC-4A66-8FC5-549E2202CF78} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
+		{74E573FA-04D1-4592-9BAC-6443784A562D} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {86760CC3-BF26-4AE0-B27D-24F54426E658}

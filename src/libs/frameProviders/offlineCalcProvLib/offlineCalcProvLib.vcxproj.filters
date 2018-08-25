@@ -26,11 +26,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OffReader.json">
-      <Filter>Source Files</Filter>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="offreader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

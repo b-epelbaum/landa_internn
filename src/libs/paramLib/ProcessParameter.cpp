@@ -2,6 +2,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include <thread>
 
+#include <QFile>
+
 using namespace LandaJune::Parameters;
 
 ProcessParameter::ProcessParameter()
@@ -24,7 +26,6 @@ void ProcessParameter::recalculate()
 	_C2CROIArrayRight.clear();
 
 	// general parameters
-	
 
 	// sheet dimensions
 	_SubstrateWidth_px = toPixelsX(_SubstrateWidth_mm + _OffsetFromLeftEdge_mm * 2 );

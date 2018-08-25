@@ -1,5 +1,5 @@
 #pragma once
-#include "interfaces/IFrameProvider.h"
+#include "../interfaces/IFrameProvider.h"
 
 #include <QObject>
 #include <QMetaObject>
@@ -26,11 +26,9 @@ namespace LandaJune
 			BaseFrameProvider & operator = (BaseFrameProvider &&) = delete;
 
 			QString getName() const override { return _name;  }
-			QString getDescription() const override { return _description; };
-						
-			void loadDefaultConfiguration() override;
-			void loadConfiguration(QIODevice& strJSONFile) override;
-			void loadConfiguration(QString strJSON) override;
+			QString getDescription() const override { return _description; }
+
+			std::shared_ptr<Parameters::BaseParameter>  getProviderParameters() const override { return _providerParameters;  }
 
 			int32_t getFrameDropDelayTimeout() const override {
 				return _DropFrameWaitTimeout;
@@ -40,6 +38,7 @@ namespace LandaJune
 
 			IPropertyList getProviderProperties() const override;
 			bool setProviderProperties(const IPropertyList& vals) override;
+
 			QVariant getProviderProperty(const QString& strValName) const override;
 			bool setProviderProperty(const QString& strValName, const QVariant& val) override;
 
@@ -55,12 +54,11 @@ namespace LandaJune
 				return _lastAcquiredImage;
 			}
 
-			virtual QString getDefaultConfigurationFileName() const = 0;
-			virtual void saveConfiguration();
-
+			virtual void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
+			
 			bool _busy = false;
 			int64_t _lastAcquiredImage = 0;
-			std::shared_ptr<Parameters::ProcessParameter> _commonBatchParameters;
+			std::shared_ptr<Parameters::BaseParameter> _providerParameters;
 
 			QString _name;
 			QString _description;

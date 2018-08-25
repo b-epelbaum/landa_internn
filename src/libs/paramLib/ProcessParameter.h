@@ -2,7 +2,6 @@
 #include "baseparam.h"
 
 #include <QRect>
-#include <thread>
 
 namespace LandaJune
 {
@@ -16,19 +15,38 @@ namespace LandaJune
 			ProcessParameter();
 			virtual ~ProcessParameter() = default;
 
-			DECLARE_PARAM_PROPERTY(GeneralParams, PARAM_GROUP_HEADER, {"General"}, true)
+			DECLARE_PARAM_PROPERTY(GeneralParams, PARAM_GROUP_HEADER, {"General parameters"}, true)
 			DECLARE_PARAM_PROPERTY(JobID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(SheetID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
-			
+
+			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
 			DECLARE_PARAM_PROPERTY(CalculateBothSides, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
 			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
+			DECLARE_PARAM_PROPERTY(ParalellizeCalculations, bool, false, true)
+			DECLARE_PARAM_PROPERTY(CircleTemplateBuffer, QByteArray, {}, true)
 
-			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate"}, true)
+			DECLARE_PARAM_PROPERTY(FGSimulator, PARAM_GROUP_HEADER, { "Frame Grabber Simulator parameters" }, true)
+			DECLARE_PARAM_PROPERTY(FGS_SourceFolderPath, QString, "c:\\temp", true)
+			DECLARE_PARAM_PROPERTY(FGS_SourceFilePath, QString, "", true)
+			DECLARE_PARAM_PROPERTY(FGS_FrameFrequencyInMSec, int, 500, true)
+
+			DECLARE_PARAM_PROPERTY(OfflineProvider, PARAM_GROUP_HEADER, { "Offline Handler parameters" }, true)
+			DECLARE_PARAM_PROPERTY(Off_SourceFolderPath, QString, "c:\\temp\\offline", true)
+			DECLARE_PARAM_PROPERTY(Off_ImageMaxCount, int, 1000, true)
+
+			DECLARE_PARAM_PROPERTY(SisoProvider, PARAM_GROUP_HEADER, { "Silicon Software Frame grabber parameters" }, true)
+			DECLARE_PARAM_PROPERTY(SISO_AppletFilePath, QString, "", true)
+			DECLARE_PARAM_PROPERTY(SISO_ConfigurationFilePath, QString, "", true)
+			DECLARE_PARAM_PROPERTY(SISO_OutputImageFormat, QString, "", true)
+			DECLARE_PARAM_PROPERTY(SISO_BoardList, QStringList, {}, true)
+			DECLARE_PARAM_PROPERTY(SISO_BoardIndex, int, 0, true)
+
+			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate paramaters"}, true)
 			DECLARE_PARAM_PROPERTY(SubstrateWidth_mm, int, 1000, true)
 			DECLARE_PARAM_PROPERTY(SubstrateHeight_mm, int, 700, true)
 			DECLARE_PARAM_PROPERTY(Pixel2MM_X, double, 0.08660258, true)

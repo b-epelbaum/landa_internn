@@ -17,6 +17,12 @@ namespace LandaJune {
 }
 
 namespace LandaJune {
+	namespace Algorithms {
+		class IAlgorithmHandler;
+	}
+}
+
+namespace LandaJune {
 	namespace Parameters {
 		class ProcessParameter;
 	}
@@ -29,6 +35,7 @@ namespace cv {
 namespace LandaJune
 {
 	using FrameProviderPtr = std::shared_ptr<FrameProviders::IFrameProvider>;
+	using AlgorithmHandlerPtr = std::shared_ptr<Algorithms::IAlgorithmHandler>;
 	using ProcessParameterPtr = std::shared_ptr<Parameters::ProcessParameter>;
 
 	using IPropertyTuple = std::tuple<QString, QVariant, bool>;

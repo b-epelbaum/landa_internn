@@ -55,7 +55,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;CORELIB_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -71,7 +71,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;CORELIB_LIB;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
@@ -80,7 +80,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;CORELIB_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -101,7 +101,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;CORELIB_LIB;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)\include;$(SolutionDir)\src\libs\logLib;$(SolutionDir)\src\libs\calculationsLib;$(SolutionDir)\src\libs\threadingLib;$(SolutionDir)\src\libs\functionsLib;$(SolutionDir)\src\libs\utilLib;$(SolutionDir)\src\libs\frameLib;$(SolutionDir)\src\libs\paramLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_handlers;%(AdditionalIncludeDirectories)</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
@@ -116,9 +116,6 @@
     <ClInclude Include="coreLib_global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\calculationsLib\algorithms.vcxproj">
-      <Project>{e334bec0-90bb-4d82-9c59-9f6ac5cc2d70}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\formatLib\formatLib.vcxproj">
       <Project>{e9e81b25-5f86-474e-897c-f82fe686915e}</Project>
     </ProjectReference>

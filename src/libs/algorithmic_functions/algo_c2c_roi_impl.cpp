@@ -4,9 +4,9 @@
 #include <opencv2/highgui/highgui.hpp> 
 
 using namespace cv;
-using namespace LandaJune::Parameters;
+using namespace LandaJune::Algorithms;
 
-#define TEMPLATE_PATH "d:\\Template1.tif"
+//#define TEMPLATE_PATH "d:\\Template1.tif"
 
 #ifndef byte
 typedef unsigned char byte;
@@ -166,17 +166,17 @@ void Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, int iTemp
 
 
 
-void detect_c2c_roi_init(const LandaJune::Parameters::INIT_PARAMETER& tInit_Params)
+void detect_c2c_roi_init(const C2C_ROI_INIT_PARAMETER& initParam)
 {
 	detect_c2c_roi_shutdown();
 
-	Mat imTemplate = imread (TEMPLATE_PATH, CV_LOAD_IMAGE_GRAYSCALE) ;
-	blur(imTemplate, g_imTemplate_Smooth, Size(1, 1));	// actually no blur
+	//Mat imTemplate = imread (TEMPLATE_PATH, CV_LOAD_IMAGE_GRAYSCALE) ;
+	blur(initParam._templateImage, g_imTemplate_Smooth, Size(1, 1));	// actually no blur
 }
 
 
 
-void detect_c2c_roi(const LandaJune::Parameters::PARAMS_C2C_ROI_INPUT& input, LandaJune::Parameters::PARAMS_C2C_ROI_OUTPUT& output)
+void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& output)
 {
 	int		iCnt;
 	int		iLabels;
@@ -269,15 +269,17 @@ void detect_c2c_roi(const LandaJune::Parameters::PARAMS_C2C_ROI_INPUT& input, La
 
 	// loop on circles
 	for (iCnt = 0; iCnt < 4; iCnt++) {
-		Mat* imUsed;
-		switch (iCnt) {
-		case 0:	imUsed = &g_imCyan;		break;
-		case 1:	imUsed = &g_imBlack;	break;
-		case 2:	imUsed = &g_imYellow;	break;
-		case 3:	imUsed = &g_imMagenta;	break;
+		Mat* imUsed = nullptr;
+		switch (iCnt) 
+		{
+			case 0:	imUsed = &g_imCyan;		break;
+			case 1:	imUsed = &g_imBlack;	break;
+			case 2:	imUsed = &g_imYellow;	break;
+			case 3:	imUsed = &g_imMagenta;	break;
 		}
 
-		erode(*imUsed, g_imUsed_Proc, Mat::ones(9, 9, CV_8U));
+		if (imUsed)
+			erode(*imUsed, g_imUsed_Proc, Mat::ones(9, 9, CV_8U));
 		dilate(g_imUsed_Proc, g_imUsed_Proc, Mat::ones(9, 9, CV_8U));
 
 		// imwrite ("e:\\temp\\a2.tif", g_imUsed_Proc) ;
@@ -299,12 +301,12 @@ void detect_c2c_roi(const LandaJune::Parameters::PARAMS_C2C_ROI_INPUT& input, La
 
 			output._colorCenters[iCnt]._x = (int)round(afX[iCnt] * input.Pixel2MM_X() * 1000);
 			output._colorCenters[iCnt]._y = (int)round(afX[iCnt] * input.Pixel2MM_Y() * 1000);
-			output._outStatus = ALG_STATUS_SUCCESS ;
+			output._result = ALG_STATUS_SUCCESS ;
 		}
 		else {
 			output._colorCenters[iCnt]._x = (int)round((afX[iCnt] + (float)input._ROI.left()) *	input.Pixel2MM_X() * 1000);
 			output._colorCenters[iCnt]._y = (int)round((afY[iCnt] + (float)input._ROI.top()) *	input.Pixel2MM_Y() * 1000);
-			output._outStatus = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
+			output._result = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
 
 			iFail++;
 			iFail_Circles = 1;

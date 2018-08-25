@@ -1,6 +1,7 @@
 #include "FrameRefPool.h"
 #include "util.h"
 #include "TaskThreadPool.h"
+#include "interfaces/IAlgorithmHandler.h"
 
 #include "functions.h"
 
@@ -12,7 +13,7 @@ using namespace Algorithms;
 #define FRAMECONSUME_SCOPED_ERROR PRINT_ERROR << "[frameConsume func] : "
 #define FRAMECONSUME_SCOPED_WARNING PRINT_WARNING << "[frameConsume func] : "
 
-void Functions::frameConsume()
+void Functions::frameConsume(std::shared_ptr<IAlgorithmHandler> algorithmHandler)
 {
 	// get frame reference object pool
 	auto framesPool = Core::FrameRefPool::frameRefPool();
@@ -31,7 +32,9 @@ void Functions::frameConsume()
 	// we can release frame ref object after all calculation
 	// internal analysis functions calls will be parallelized inside the root function recursively
 
-	frameRunAlgorithms(frameRefObj.get());
+	// we should supply a new Algorith Handler for every frame
+	frameRunAlgorithms(frameRefObj.get(), std::move(algorithmHandler->clone()));
+	std::this_thread::sleep_for(std::chrono::milliseconds (100));
 	framesPool->release(std::move(frameRefObj));
 }
 

@@ -15,23 +15,23 @@ std::shared_ptr<FrameRefPool> FrameRefPool::frameRefPool()
 }
 
 
-void FrameRefPool::init(const uint64_t size, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat)
+void FrameRefPool::init(const uint64_t size)
 {
 	autolock lock(_mutex);
 	for (uint64_t i = 0; i < size; ++i)
 	{
-		_framesFree.push_back(std::make_unique<FrameRef>(processParams, openCVImgFormat));
+		_framesFree.push_back(std::make_unique<FrameRef>());
 	}
 	_size = size;
 }
 
-void FrameRefPool::reset(const uint64_t qlen, std::shared_ptr<Parameters::ProcessParameter> processParams, int openCVImgFormat)
+void FrameRefPool::reset(const uint64_t qlen)
 {
-	clear();
-	init(qlen, processParams, openCVImgFormat);
+	cleanup();
+	init(qlen);
 }
 
-void FrameRefPool::clear()
+void FrameRefPool::cleanup()
 {
 	autolock lock(_mutex);
 	_framesFree.clear();

@@ -1,12 +1,11 @@
 #include "sisoprovider.h"
-
 #include "util.h"
 #include "frameRef.h"
+#include "ProcessParameter.h"
 
 #include <QDirIterator>
 
 #include <opencv2/imgcodecs.hpp>
-
 
 #ifdef ENABLE_FGRAB
 #pragma comment(lib, "fglib5.lib")
@@ -26,17 +25,17 @@ static const QString SISO_PROVIDER_DESC = "Silicon Software Frame Grabber";
 #define SISO_PROVIDER__SCOPED_ERROR PRINT_ERROR << "[SiSoProvider] : "
 #define SISO_PROVIDER__SCOPED_WARNING PRINT_WARNING << "[SiSoProvider] : "
 
-using namespace LandaJune::Core;
-using namespace LandaJune::FrameProviders;
-using namespace LandaJune::Helpers;
+using namespace LandaJune;
+using namespace Core;
+using namespace Parameters;
+using namespace FrameProviders;
+using namespace Helpers;
 
 SiSoProvider::SiSoProvider()
 {
 	_name = SISO_PROVIDER_NAME;
 	_description = SISO_PROVIDER_DESC;
 	detectBoards();
-
-	_BoardList << "aaaa" << "bbbb";
 	SISO_PROVIDER_SCOPED_LOG << "created";
 }
 
@@ -357,7 +356,26 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::clean()
+void SiSoProvider::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	validateParameters(parameters);
+	_providerParameters = parameters;
+}
+
+void SiSoProvider::validateParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	// TODO : query BaseParameter for named parameters
+	// currently hardcoded
+
+	auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	setAppletFilePath (_processParameters->SISO_AppletFilePath() );
+	setConfigurationFilePath (_processParameters->SISO_ConfigurationFilePath());
+	setOutputImageFormat(_processParameters->SISO_OutputImageFormat());
+	setBoardList(_processParameters->SISO_BoardList());
+	setBoardIndex(_processParameters->SISO_BoardIndex());
+
+}
+FRAME_PROVIDER_ERROR SiSoProvider::cleanup()
 {
 #ifdef ENABLE_FGRAB
 

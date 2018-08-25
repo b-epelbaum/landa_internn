@@ -10,12 +10,10 @@ namespace LandaJune
 {
 	namespace FrameProviders
 	{
-		static const QString OFFLINE_READER_CONFIG_FILE = "offreader.json";
-
 		class OFFREADER_EXPORT OfflineReader : public BaseFrameProvider
 		{
 			Q_OBJECT
-			Q_PLUGIN_METADATA(IID IFrameProvider_iid FILE "offreader.json")
+			Q_PLUGIN_METADATA(IID IFrameProvider_iid)
 			Q_INTERFACES(LandaJune::FrameProviders::IFrameProvider)
 
 		public:
@@ -35,17 +33,18 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
 			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;
 
+			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+
 			FRAME_PROVIDER_ERROR init() override;
-			FRAME_PROVIDER_ERROR clean() override;
+			FRAME_PROVIDER_ERROR cleanup() override;
 
 			DECLARE_PROVIDER_PROPERTY(SourceFolderPath, QString, "")
 			DECLARE_PROVIDER_PROPERTY(ImageMaxCount, int, 1000)
 
 		protected:
 
-			QString getDefaultConfigurationFileName() const override {
-				return OFFLINE_READER_CONFIG_FILE;
-			}
+			void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+
 		private :
 
 			QVector<QString>	_imagePaths;

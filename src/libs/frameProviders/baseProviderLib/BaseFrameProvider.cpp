@@ -1,9 +1,6 @@
 #include "BaseFrameProvider.h"
 
 #include <QMetaProperty>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonParseError>
 
 using namespace LandaJune;
 using namespace FrameProviders;
@@ -16,7 +13,7 @@ using namespace Parameters;
 #define BASEPROVIDER_SCOPED_ERROR PRINT_ERROR << "[BaseFrameProvider] : "
 #define BASEPROVIDER_SCOPED_WARNING PRINT_WARNING << "[BaseFrameProvider] : "
 
-
+/*
 void BaseFrameProvider::loadDefaultConfiguration()
 {
 	auto& strPath = qApp->applicationDirPath() + QDir::separator() + getDefaultConfigurationFileName();
@@ -70,6 +67,7 @@ void BaseFrameProvider::loadConfiguration(QString strJSON)
 		}
 	}
 }
+*/
 
 IPropertyList BaseFrameProvider::getProviderProperties() const
 {
@@ -122,7 +120,6 @@ bool BaseFrameProvider::setProviderProperty(const QString& strValName, const QVa
 			const auto retVal = setProperty(name, val);
 			if (retVal)
 			{
-				saveConfiguration();
 				return retVal;
 			}
 		}
@@ -130,6 +127,7 @@ bool BaseFrameProvider::setProviderProperty(const QString& strValName, const QVa
 	return false;
 }
 
+/*
 void BaseFrameProvider::saveConfiguration()
 {
 	auto dumpObject = QJsonObject();
@@ -154,3 +152,4 @@ void BaseFrameProvider::saveConfiguration()
 		saveFile.write(doc.toJson(QJsonDocument::Indented));
 	}
 }
+*/

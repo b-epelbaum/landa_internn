@@ -4,6 +4,7 @@
 #include "util.h"
 #include "frameRef.h"
 
+#include "ProcessParameter.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -22,6 +23,7 @@ static const QString OFFREADER_PROVIDER_DESC = "Performs QCS analysis in offline
 
 using namespace LandaJune;
 using namespace Core;
+using namespace Parameters;
 using namespace FrameProviders;
 using namespace Helpers;
 
@@ -95,6 +97,22 @@ FRAME_PROVIDER_ERROR OfflineReader::dataPostProcess(FrameRef* frameRef)
 	return ERR_NOT_IMPLEMENTED;
 }
 
+void OfflineReader::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	validateParameters(parameters);
+	_providerParameters = parameters;
+}
+
+void OfflineReader::validateParameters(std::shared_ptr<BaseParameter> parameters)
+{
+	// TODO : query BaseParameter for named parameters
+	// currently hardcoded
+
+	auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	_SourceFolderPath = _processParameters->Off_SourceFolderPath();
+	_ImageMaxCount = _processParameters->Off_ImageMaxCount();
+}
+
 FRAME_PROVIDER_ERROR OfflineReader::init()
 {
 	_lastAcquiredImage = -1;
@@ -111,14 +129,10 @@ FRAME_PROVIDER_ERROR OfflineReader::init()
 	while (it.hasNext()) {
 		_imagePaths.push_back(it.next());
 	}
-
-	//const auto paths = QDir(imageFolder).entryList(QStringList() << "*.bmp" << "*.BMP", QDir::Files);
-
-	//_imagePaths = paths.toVector();
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::clean()
+FRAME_PROVIDER_ERROR OfflineReader::cleanup()
 {
 	_imagePaths.clear();
 	_currentImage.release();

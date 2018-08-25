@@ -5,6 +5,8 @@
 #include <optional>
 #include <chrono>
 
+#define TIME_STAMP std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
+
 namespace LandaJune
 {
 	namespace Helpers

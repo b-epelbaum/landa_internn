@@ -1,9 +1,8 @@
 #include "algo_i2s_impl.h"
-#include "cpu_load.h"
 #include <opencv2/imgproc/imgproc.hpp> 
 #include <opencv2/highgui/highgui.hpp> 
 
-using namespace LandaJune::Parameters;
+using namespace LandaJune::Algorithms;
 using namespace cv;
 
 #ifndef byte
@@ -24,7 +23,7 @@ void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, f
 
 
 
-void detect_i2s_init(const LandaJune::Parameters::INIT_PARAMETER& initParam)
+void detect_i2s_init(const INIT_PARAMETER& initParam)
 {
 	detect_i2s_shutdown();
 
@@ -34,7 +33,7 @@ void detect_i2s_init(const LandaJune::Parameters::INIT_PARAMETER& initParam)
 
 
 
-void detect_i2s(const LandaJune::Parameters::PARAMS_I2S_INPUT& input, LandaJune::Parameters::PARAMS_I2S_OUTPUT& output)
+void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 {
 	int		iX, iY;							// counters
 	float	fCntX, fCntY;					// counters
@@ -145,7 +144,7 @@ void detect_i2s(const LandaJune::Parameters::PARAMS_I2S_INPUT& input, LandaJune:
 		// set output data
 		output._triangeCorner._x = (int)round((fTriangle_X + input._approxTriangeROI.left()) * input.Pixel2MM_X());
 		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y());
-		output._outStatus = ALG_STATUS_SUCCESS;
+		output._result = ALG_STATUS_SUCCESS;
 
 		if (input._GenerateOverlay)
 			imwrite("e:\\temp\\res2.tif", output._triangleOverlay);	// ***
@@ -154,7 +153,7 @@ void detect_i2s(const LandaJune::Parameters::PARAMS_I2S_INPUT& input, LandaJune:
 		// set output data for failure
 		output._triangeCorner._x = 0;
 		output._triangeCorner._y = 0;
-		output._outStatus = ALG_STATUS_FAILED;
+		output._result = ALG_STATUS_FAILED;
 	}
 }
 

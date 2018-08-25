@@ -5,7 +5,7 @@
 #include <QStyledItemDelegate>
 #include "baseparam.h"
 
-#include "interfaces/type_usings.h"
+#include "common/type_usings.h"
 
 class ParamPropItem;
 

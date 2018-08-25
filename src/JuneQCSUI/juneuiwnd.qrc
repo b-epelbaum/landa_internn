@@ -2,8 +2,8 @@
   <qresource prefix="JuneUIWnd">
     <file>Resources/colors.png</file>
     <file>Resources/file_save.png</file>
-    <file>Resources/file_open.png</file>
     <file>Resources/landa_logo.png</file>
+    <file>Resources/file_open.png</file>
     <file>Resources/float.png</file>
     <file>Resources/rect.png</file>
     <file>Resources/boolean.png</file>

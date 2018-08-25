@@ -64,7 +64,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <BrowseInformation>true</BrowseInformation>
+      <BrowseInformation>false</BrowseInformation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -80,8 +80,10 @@
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
     <PostBuildEvent>
-      <Command>copy $(ProjectDir)sisoprovider.json $(TargetDir)</Command>
-      <Message>Copying default configuration file...</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
     <Bscmake>
       <PreserveSbr>true</PreserveSbr>
@@ -120,20 +122,21 @@
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
     <PostBuildEvent>
-      <Command>copy $(ProjectDir)sisoprovider.json $(TargetDir)</Command>
-      <Message>Copying default configuration file...</Message>
+      <Command>
+      </Command>
+      <Message>
+      </Message>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sisoprovider.cpp" />
+    <ClCompile Include="sisoprovider.cpp">
+      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="sisoprovider.h" />
     <ClInclude Include="sisoFGProvLib_global.h" />
     <ClInclude Include="sisohelper.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="sisoprovider.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\frameLib\frameLib.vcxproj">

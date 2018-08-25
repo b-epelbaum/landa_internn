@@ -15,7 +15,7 @@ namespace LandaJune
 		class SISOPROVIDER_EXPORT SiSoProvider : public BaseFrameProvider
 		{
 			Q_OBJECT
-			Q_PLUGIN_METADATA(IID IFrameProvider_iid FILE "sisoprovider.json")
+			Q_PLUGIN_METADATA(IID IFrameProvider_iid)
 			Q_INTERFACES(LandaJune::FrameProviders::IFrameProvider)
 		
 		public:
@@ -34,8 +34,10 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
 			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;
 
+			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+
 			FRAME_PROVIDER_ERROR init() override;
-			FRAME_PROVIDER_ERROR clean() override;
+			FRAME_PROVIDER_ERROR cleanup() override;
 
 			DECLARE_PROVIDER_PROPERTY(AppletFilePath, QString, "")
 			DECLARE_PROVIDER_PROPERTY(ConfigurationFilePath, QString, "")
@@ -45,9 +47,7 @@ namespace LandaJune
 
 		protected:
 
-			QString getDefaultConfigurationFileName() const override {
-				return SISO_PROVIDER_CONFIG_FILE;
-			}
+			void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 
 		private:
 

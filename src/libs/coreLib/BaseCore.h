@@ -31,10 +31,15 @@ namespace LandaJune
 			void cleanup() override;
 
 			const std::list<FrameProviderPtr>& getFrameProviderList() const override;
+			const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const override;
+
 			ProcessParameterPtr getProcessParameters() override;
 
 			void selectFrameProvider(FrameProviderPtr provider) override;
 			FrameProviderPtr getSelectedFrameProvider() const override;
+
+			void selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler) override;
+			AlgorithmHandlerPtr getSelectedAlgorithmHandler() const override;
 
 			void start() const override;
 			void stop() const override;
@@ -58,10 +63,15 @@ namespace LandaJune
 			void initGlobalParameters();
 			void initFramePool() const;
 			void initProviders();
+			void initAlgorithmHandlers();
 			bool _bInited = false;
 
 			std::list<FrameProviderPtr> _providerList;
+			std::list<AlgorithmHandlerPtr> _algorithmHandlerList;
+
 			FrameProviderPtr	_currentFrameProvider;
+			AlgorithmHandlerPtr	_currentAlgorithmHandler;
+
 			ProcessParameterPtr	_processParameters;
 		};
 	}

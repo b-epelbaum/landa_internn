@@ -11,6 +11,7 @@
 
 #include "interfaces/ICore.h"
 #include "interfaces/IFrameProvider.h"
+#include "interfaces/IAlgorithmHandler.h"
 #include "ProcessParameter.h"
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
@@ -47,6 +48,7 @@ void JuneUIWnd::init()
 	setWindowState(Qt::WindowMaximized);
 	initCore();
 	enumerateFrameProviders();
+	enumerateAlgoHandlers();
 	initBatchParameters();
 }
 
@@ -63,7 +65,8 @@ void JuneUIWnd::initUI()
 	_scrollArea->setBackgroundRole(QPalette::Dark);
 	_scrollArea->setWidget(_imageBox);
 	
-	connect(ui.frameSourceCombo,	QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
+	connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
+	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoHandlerComboChanged);
 
 	createActions();
 	createStatusBar();
@@ -89,39 +92,57 @@ void JuneUIWnd::initUI()
 void JuneUIWnd::initCore()
 {
 	auto core = ICore::get();
-	try
-	{
+	//try
+	//{
 		core->init();
-	}
-	catch (CoreEngineException& e)
-	{
+	//}
+	//catch (CoreEngineException& e)
+	//{
 
-	}
+	//}
 }
 
 void JuneUIWnd::enumerateFrameProviders() const
 {
 	ui.frameSourceCombo->clear();
-	try
-	{
+	//try
+	//{
 		auto listOfProviders = ICore::get()->getFrameProviderList();
 		for (auto& provider : listOfProviders)
 		{
 			ui.frameSourceCombo->addItem(provider->getName(), QVariant::fromValue(provider));
 		}
 		listOfProviders.empty() ? ui.frameSourceCombo->setCurrentIndex(-1) : ui.frameSourceCombo->setCurrentIndex(0);
-	}
-	catch ( CoreEngineException& ex)
-	{
+	//}
+	//catch ( CoreEngineException& ex)
+	//{
 		
-	}
+	//}
+}
+
+void JuneUIWnd::enumerateAlgoHandlers() const
+{
+	ui.algoHandlerCombo->clear();
+	//try
+	//{
+		auto listOfAlgo = ICore::get()->getAlgorithmHandlerList();
+		for (auto& algo : listOfAlgo)
+		{
+			ui.algoHandlerCombo->addItem(algo->getName(), QVariant::fromValue(algo));
+		}
+		listOfAlgo.empty() ? ui.algoHandlerCombo->setCurrentIndex(-1) : ui.algoHandlerCombo->setCurrentIndex(0);
+	//}
+	//catch (CoreEngineException& ex)
+	//{
+
+	//}
 }
 
 
 void JuneUIWnd::initBatchParameters() const
 {
-	try
-	{
+	//try
+	//{
 		const auto batchParams = ICore::get()->getProcessParameters();
 
 		connect(batchParams.get(), &BaseParameter::bulkChanged, this, &JuneUIWnd::onUpdateCalculatedParams);
@@ -134,11 +155,11 @@ void JuneUIWnd::initBatchParameters() const
 
 		ui.batchParamView->expandToDepth(1);
 		ui.processParamViewCalculated->expandToDepth(1);
-	}
-	catch (CoreEngineException& ex)
-	{
+	//}
+	//catch (CoreEngineException& ex)
+	//{
 
-	}
+	//}
 }
 
 
@@ -150,24 +171,35 @@ void JuneUIWnd::start()
 		return;
 	}
 
-	try
+	if (ui.algoHandlerCombo->currentIndex() == -1)
 	{
+		CLIENT_SCOPED_WARNING << "[JuneUIWnd] : no valid algorithm handler selected. Aborted ";
+		return;
+	}
+
+
+	//try
+	//{
 		const auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
-		if (selectedProvider)
+		const auto selectedAlgoHandler = ui.algoHandlerCombo->currentData().value<AlgorithmHandlerPtr>();
+		
+		if (selectedProvider && selectedAlgoHandler)
 		{
 			PRINT_DEBUG_DBLINE;
 			CLIENT_SCOPED_LOG << "[JuneUIWnd] : Selected frame provider : " << selectedProvider->getName();
+			CLIENT_SCOPED_LOG << "[JuneUIWnd] : Selected algorithm handler : " << selectedAlgoHandler->getName();
 			CLIENT_SCOPED_LOG << "starting processing...";
 			PRINT_DEBUG_DBLINE;
 
+			ICore::get()->selectAlgorithmHandler(selectedAlgoHandler);
 			ICore::get()->selectFrameProvider(selectedProvider);
 			ICore::get()->start();
 		}
-	}
-	catch (CoreEngineException& ex)
-	{
-		return;
-	}
+	//}
+	//catch (CoreEngineException& ex)
+	//{
+	//	return;
+	//}
 
 	enableUIForProcessing(false);
 	_bRunning = true;
@@ -309,28 +341,17 @@ void JuneUIWnd::updateActions() const
 	normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
 }
 
-QString JuneUIWnd::createRunTargetFolder(const QString& commonTargetFolder)
-{
-	auto runFolderPath = commonTargetFolder + QDir::separator() + QDateTime::currentDateTime().toString("yyyy-MM-dd-hh-mm-ss");
-	if (!QDir(runFolderPath).exists())
-	{
-		Q_UNUSED(QDir().mkdir(runFolderPath));
-	}
-	return std::move(runFolderPath);
-}
-
-
 void JuneUIWnd::stop()
 {
 	CLIENT_SCOPED_LOG << "stopping processing...";
 	
-	try
-	{
+	//try
+	//{
 		ICore::get()->stop();
-	}
-	catch (CoreEngineException& ex)
-	{
-	}
+	//}
+	//catch (CoreEngineException& ex)
+	//{
+	//}
 
 
 	Helpers::RealTimeStats::rtStats().reset();
@@ -359,8 +380,24 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected frame provider is invalid. Aborted ";
 		return;
 	}
+
+	ICore::get()->selectFrameProvider(selectedProvider);
+	ui.frameProvideDesc->setText(selectedProvider->getDescription());
 	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), true);
 }
+
+void JuneUIWnd::onAlgoHandlerComboChanged(int index)
+{
+	const auto selectedAlgo = ui.algoHandlerCombo->itemData(index).value<AlgorithmHandlerPtr>();
+	if (!selectedAlgo)
+	{
+		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected algorithm handler is invalid. Aborted ";
+		return;
+	}
+
+	ui.algoHandlerDesc->setText(selectedAlgo->getDescription());
+}
+
 
 void JuneUIWnd::updateStats() const
 {
@@ -377,14 +414,14 @@ void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
 
 void JuneUIWnd::onBatchPropChanged(QString propName, const QVariant& newVal)
 {
-	try
-	{
+	//try
+	//{
 		const auto batchParams = ICore::get()->getProcessParameters();
 		batchParams->setParamProperty(propName, newVal);
-	}
-	catch (CoreEngineException& ex)
-	{
-	}
+	//}
+	//catch (CoreEngineException& ex)
+	//{
+	//}
 
 }
 
