@@ -61,7 +61,7 @@ FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
 	}
 	
 	// read image to cv::Mat object
-	const auto srcFullPath = QString("%1/%2").arg(_SourceFolderPath).arg(_imagePaths.first());
+	const auto srcFullPath = _imagePaths.first();
 	OFFREADER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
 	_imagePaths.pop_front();
 	

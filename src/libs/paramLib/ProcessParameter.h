@@ -21,7 +21,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
 
 			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
-			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, false, true)
+			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, false, true)
 			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, false, true)
 			DECLARE_PARAM_PROPERTY(DumpI2S, bool, false, true)
