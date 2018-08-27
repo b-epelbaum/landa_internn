@@ -43,11 +43,12 @@ namespace LandaJune
 			virtual void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
 			virtual std::shared_ptr<Parameters::BaseParameter> getProviderParameters() const = 0;
 
-			virtual FRAME_PROVIDER_ERROR dataPreProcess(Core::FrameRef* frameRef) = 0;
-			virtual FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) = 0;
-			virtual FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) = 0;
+			virtual FRAME_PROVIDER_ERROR prepareData(Core::FrameRef* frameRef) = 0;
+			virtual FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) = 0;
+			virtual void releaseData(Core::FrameRef* frameRef) = 0;
 
 			virtual bool canContinue(FRAME_PROVIDER_ERROR lastError) = 0;
+			virtual bool warnAboutDroppedFrames() = 0;
 
 			virtual FRAME_PROVIDER_ERROR init() = 0;
 			virtual FRAME_PROVIDER_ERROR cleanup() = 0;

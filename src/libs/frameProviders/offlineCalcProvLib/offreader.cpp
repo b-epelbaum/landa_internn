@@ -19,8 +19,8 @@ static const QString OFFREADER_PROVIDER_DESC = "Performs QCS analysis in offline
 
 
 #define OFFREADER_PROVIDER_SCOPED_LOG PRINT_INFO2 << "[OfflineReader] : "
-#define OFFREADER_PROVIDER__SCOPED_ERROR PRINT_ERROR << "[OfflineReader] : "
-#define OFFREADER_PROVIDER__SCOPED_WARNING PRINT_WARNING << "[OfflineReader] : "
+#define OFFREADER_PROVIDER_SCOPED_ERROR PRINT_ERROR << "[OfflineReader] : "
+#define OFFREADER_PROVIDER_SCOPED_WARNING PRINT_WARNING << "[OfflineReader] : "
 
 using namespace LandaJune;
 using namespace Core;
@@ -52,54 +52,69 @@ bool OfflineReader::canContinue(FRAME_PROVIDER_ERROR lastError)
 	return _canContinue;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR OfflineReader::prepareData(FrameRef* frameRef)
 {
-	// TODO : think about triggering the next image
-	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-	_currentImage.release();
 	if (_imagePaths.empty())
 	{
 		OFFREADER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
+	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+}
+
+FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
+{
 	// read image to cv::Mat object
 	const auto srcFullPath = _imagePaths.first();
 	OFFREADER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
 	_imagePaths.pop_front();
-	
-	_currentImage = cv::imread(srcFullPath.toStdString());
-	if (!_currentImage.data)                              // Check for invalid input
+
+	const auto& stdPath = srcFullPath.toStdString();
+	const auto &tempObject = cv::imread(stdPath);
+	if (!tempObject.data)            // Check for invalid input
 	{
-		OFFREADER_PROVIDER__SCOPED_WARNING << "Cannot load image " << srcFullPath;
+		OFFREADER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
+
+	auto newImage = new cv::Mat(std::move(tempObject));
 	OFFREADER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
 	++_lastAcquiredImage;
+	
+	const auto w = newImage->cols;
+	const auto h = newImage->rows;
+	const auto s = newImage->step[0] * newImage->rows;
+
+	// push bits to frameRef object
+	frameRef->setBits(++_lastAcquiredImage, w, h, s, newImage->data);
+
+	// attach a created new image to unknown data
+	frameRef->setUnknownData(newImage);
+
+	// pass source image path to frame
+	frameRef->setNamedParameter("srcPath", stdPath);
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::dataAccess(FrameRef* frameRef)
+void OfflineReader::releaseData(FrameRef* frameRef)
 {
-	if (!_currentImage.data )
+	if ( frameRef )
 	{
-		OFFREADER_PROVIDER_SCOPED_LOG << "Currently loaded image is not valid";
-		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		auto& unknownData = frameRef->getUnknownData();
+		if (unknownData.has_value())
+		{
+			try
+			{
+				const auto pImage = std::any_cast<cv::Mat*>(unknownData);
+				delete pImage;
+			}
+			catch (const std::bad_any_cast& e)
+			{
+				OFFREADER_PROVIDER_SCOPED_ERROR << "Cannot delete stored MAT object. Exception cought : " << e.what();
+			}
+		}
 	}
-	const auto w = _currentImage.cols;
-	const auto h = _currentImage.rows;
-	const auto s = _currentImage.step[0] * _currentImage.rows;
-
-	frameRef->setBits(++_lastAcquiredImage, w, h, s,_currentImage.data);
-	
-
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
-}
-
-FRAME_PROVIDER_ERROR OfflineReader::dataPostProcess(FrameRef* frameRef)
-{
-	
-	return ERR_NOT_IMPLEMENTED;
 }
 
 void OfflineReader::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
@@ -113,7 +128,7 @@ void OfflineReader::validateParameters(std::shared_ptr<BaseParameter> parameters
 	// TODO : query BaseParameter for named parameters
 	// currently hardcoded
 
-	auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
 	_SourceFolderPath = _processParameters->Off_SourceFolderPath();
 	_ImageMaxCount = _processParameters->Off_ImageMaxCount();
 }
@@ -140,7 +155,6 @@ FRAME_PROVIDER_ERROR OfflineReader::init()
 FRAME_PROVIDER_ERROR OfflineReader::cleanup()
 {
 	_imagePaths.clear();
-	_currentImage.release();
 	OFFREADER_PROVIDER_SCOPED_LOG << "cleaned up";
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }

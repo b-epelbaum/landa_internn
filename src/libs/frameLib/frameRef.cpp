@@ -4,15 +4,22 @@
 using namespace LandaJune::Parameters;
 using namespace LandaJune::Core;
 
-FrameRef::FrameRef(int32_t frameRefIndex) : _frameRefIndex(frameRefIndex)
+FrameRef::FrameRef(uint64_t frameRefIndex) : _frameRefIndex(frameRefIndex)
 {}
 
 
 void FrameRef::reset()
 {
+	if (_postDataFunc)
+	{
+		_postDataFunc(this);
+	}
+
 	_index = -1;
 	_sizeInBytes = 0;
 	_bits = nullptr;
+	_postDataFunc = nullptr;
+	_paramsMap.clear();
 }
 
 

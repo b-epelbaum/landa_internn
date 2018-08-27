@@ -47,8 +47,6 @@ namespace LandaJune
 
 		protected:
 
-			virtual void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
-
 			static IAlgorithmHandler* loadNextAlgorithmHandler(const QString& strPath);
 		};
 	}

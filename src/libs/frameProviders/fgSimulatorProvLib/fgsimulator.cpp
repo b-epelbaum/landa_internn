@@ -44,7 +44,7 @@ bool FGSimulator::canContinue(FRAME_PROVIDER_ERROR lastError)
 	return false;
 }
 
-FRAME_PROVIDER_ERROR FGSimulator::dataPreProcess(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR FGSimulator::prepareData(FrameRef* frameRef)
 {
 	if ( _images.empty() )
 		throw ProviderException(FRAME_PROVIDER_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES, "FGSimulator has no images loaded. Has you forgot calling init ?");
@@ -55,7 +55,7 @@ FRAME_PROVIDER_ERROR FGSimulator::dataPreProcess(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR FGSimulator::dataAccess(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR FGSimulator::accessData(FrameRef* frameRef)
 {
 	if (_next >= _images.size())
 	{
@@ -75,9 +75,8 @@ FRAME_PROVIDER_ERROR FGSimulator::dataAccess(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR FGSimulator::dataPostProcess(FrameRef* frameRef)
+void FGSimulator::releaseData(FrameRef* frameRef)
 {
-	return ERR_NOT_IMPLEMENTED;
 }
 
 void FGSimulator::setProviderParameters(std::shared_ptr<BaseParameter> parameters)

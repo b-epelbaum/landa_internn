@@ -111,7 +111,7 @@ struct CV_COPY_REGION
 	const cv::Mat&				_srcMatContainer;
 	cv::Mat&					_targetMatContainer;
 	cv::Rect					_srcRequestedRect;
-	cv::Rect					_srcNorlmalizedRect;
+	cv::Rect					_srcNormalizedRect;
 	bool						_bNeedSaving;
 	std::string					_fullSavePath;
 	std::shared_ptr<ProcessParameter> _params;
@@ -129,11 +129,11 @@ struct CV_COPY_REGION
 		: _srcMatContainer(srcMat)
 		, _targetMatContainer(targetMat)
 		, _srcRequestedRect(srcRect)
-		, _srcNorlmalizedRect(srcRect)
+		, _srcNormalizedRect(srcRect)
 		, _bNeedSaving(needSaving)
 	{
 		_bParallelize = params->ParalellizeCalculations();
-		_srcNorlmalizedRect = normalizeRegionRect();
+		_srcNormalizedRect = normalizeRegionRect();
 		// if ROI image needs to be saved, 
 		if (_bNeedSaving)
 		{
@@ -204,7 +204,7 @@ struct CV_COPY_REGION
 		const auto& normRight = ((std::min)(regReqRight, srcWidth));
 		const auto& normBottom = ((std::min)(regReqBottom, srcHeight));
 
-		retValRect.width = normRight - _srcNorlmalizedRect.x;
+		retValRect.width = normRight - _srcNormalizedRect.x;
 		retValRect.height = normBottom - retValRect.y;
 
 		return retValRect;
@@ -213,7 +213,7 @@ struct CV_COPY_REGION
 	static void performCopy(CV_COPY_REGION& rgn)
 	{
 		// create a new MAT object by making a deep copy from the source MAT
-		rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNorlmalizedRect));
+		rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNormalizedRect));
 		if (rgn._bNeedSaving && !rgn._fullSavePath.empty())
 		{
 			if (rgn._bParallelize)
@@ -314,7 +314,17 @@ void registrationPageHandler::fillProcessParameters(const FrameRef* frame, PARAM
 	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
 
-	// TODO : think about more effective way of common paramateres propagatio. Remove inheritance ?
+	try
+	{
+		_sourceFrameImageName = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
+	}
+	catch (const std::bad_any_cast& e)
+	{
+		REGISTRATION_HANDLER_SCOPED_ERROR << "Cannot retrieve source image file name. Error : " << e.what() << "; Resetting to default...";
+		_sourceFrameImageName = fmt::format("source_frame_#{0}", _frameIndex);
+	}
+
+	// TODO : think about more effective way of common parameters propagation. Remove inheritance ? weak_ptr to parent class
 	const auto& bGenerateOverlays = _processParameters->GenerateOverlays();
 
 	input.setGenerateOverlay(bGenerateOverlays);
@@ -333,8 +343,6 @@ void registrationPageHandler::process(const FrameRef * frame)
 {
 	_frame = frame;
 	constructFrameContainer(frame, _processParameters->ScanBitDepth());
-	cv::imwrite("d:\\testtest.bmp", *_frameContainer);
-
 	PARAMS_C2C_STRIP_INPUT input(_frame, LEFT);
 	fillProcessParameters(_frame, input);
 	generateRegions(input);

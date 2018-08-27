@@ -39,8 +39,12 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	if (!frameRef) // no free frame - all threads are busy handling another frames
 	{
 		static auto _droppedFrameCount = 0;
-		FRAMEGENERATE_SCOPED_WARNING << "No free FrameRef object in pool ! [ FRAME # " << frameProvider->getCurrentFrameIndex() << " DROPPED] Total dropped : " << ++_droppedFrameCount;
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, 1.0e-6);
+		if (frameProvider->warnAboutDroppedFrames())
+		{
+			FRAMEGENERATE_SCOPED_WARNING << "No free FrameRef object in pool ! [ FRAME # " << frameProvider->getCurrentFrameIndex() << " DROPPED] Total dropped : " << ++_droppedFrameCount;
+			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, 1.0e-6);
+		}
+
 		static const std::chrono::milliseconds timeout(frameProvider->getFrameDropDelayTimeout());
 		std::this_thread::sleep_for(timeout);
 		return;
@@ -51,9 +55,13 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	const auto& tStart = Utility::now_in_microseconds();
 	try
 	{
-		// ask producer to perform preproces task, if any
-		//if (retVal = IAbstractImageProvider::currentProvider()->dataPreProcess(frameRef.get()); retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR )
-		retVal = frameProvider->dataPreProcess(frameRef.get());
+		// assign postData callback to the frameRefObject
+		using namespace std::placeholders;
+		std::function<void(Core::FrameRef*)> f = std::bind(&IFrameProvider::releaseData, frameProvider, _1);
+		frameRef->setPostDataFunction(f);
+
+		// prepare data for pushing to the frameObject
+		retVal = frameProvider->prepareData(frameRef.get());
 		if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
 		{
 			framePool->release(std::move(frameRef));
@@ -66,7 +74,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 
 
 		// perform an actual acquisition
-		retVal = frameProvider->dataAccess(frameRef.get());
+		retVal = frameProvider->accessData (frameRef.get());
 		if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
 		{
 			framePool->release(std::move(frameRef));
@@ -75,18 +83,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 				return;
 			throw std::runtime_error(msg.c_str());
 		}
-
-		retVal = frameProvider->dataPostProcess(frameRef.get());
-		if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
-		{
-			framePool->release(std::move(frameRef));
-			FRAMEGENERATE_SCOPED_ERROR << "Image provider failed getting post processing frame. Error : " << toInt(retVal);
-			if (frameProvider->canContinue(retVal))
-				return;
-
-			throw std::runtime_error(msg.c_str());
-		}
-
+	
 		// push loaded frame reference object to queue
 		framePool->pushNextLoaded(std::move(frameRef));
 	}

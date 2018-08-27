@@ -30,9 +30,9 @@ namespace LandaJune
 			bool canContinue(FRAME_PROVIDER_ERROR lastError) override;
 		
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency() / 2 + 1; }
-			FRAME_PROVIDER_ERROR dataPreProcess(Core::FrameRef* frameRef) override;
-			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
-			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;
+			FRAME_PROVIDER_ERROR prepareData(Core::FrameRef* frameRef) override;
+			FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) override;
+			void releaseData(Core::FrameRef* frameRef) override;
 
 			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 

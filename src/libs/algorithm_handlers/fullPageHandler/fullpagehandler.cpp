@@ -131,6 +131,7 @@ struct CV_COPY_REGION
 		, _srcRequestedRect(srcRect)
 		, _srcNorlmalizedRect(srcRect)
 		, _bNeedSaving(needSaving)
+		, _params(params)
 	{
 		_bParallelize = params->ParalellizeCalculations();
 		_srcNorlmalizedRect = normalizeRegionRect();
@@ -178,7 +179,7 @@ struct CV_COPY_REGION
 		{
 			throw AlgorithmException(ALGORITHM_ERROR::ALGO_ROI_INVALID_RECT, "ROI rectangle is invalid. Batch input parameters init problem ?");
 		}
-		// todo : think about exceeding frame dimesions
+		// todo : think about exceeding frame dimensions
 		if (regReqLeft < 0
 			|| regReqTop < 0
 			|| regReqRight >srcWidth
@@ -206,7 +207,7 @@ struct CV_COPY_REGION
 	{
 		// create a new MAT object by making a deep copy from the source MAT
 		rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNorlmalizedRect));
-		if (rgn._bNeedSaving && !rgn._fullSavePath.empty())
+		if (!rgn._params->DisableAllROISaving() && rgn._bNeedSaving && !rgn._fullSavePath.empty())
 		{
 			if (rgn._bParallelize)
 			{
@@ -308,7 +309,7 @@ void fullPageHandler::fillProcessParameters(const FrameRef* frame, PARAMS_C2C_SH
 	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
 
-	// TODO : think about more effective way of common paramateres propagatio. Remove inheritance ?
+	// TODO : think about more effective way of common parameters propagation. Remove inheritance ?
 	const auto& bGenerateOverlays = _processParameters->GenerateOverlays();
 
 	input.setGenerateOverlay(bGenerateOverlays);
@@ -521,10 +522,16 @@ PARAMS_C2C_SHEET_OUTPUT fullPageHandler::processSheet(const PARAMS_C2C_SHEET_INP
 	retVal._input = sheetInput;
 	retVal._result = ALG_STATUS_SUCCESS;
 
+	if (_processParameters->DisableAllAlgorithmProcessing())
+	{
+		FULLPAGE_HANDLER_SCOPED_LOG << " ---- All algorithm processing is disabled. Skipping calculations";
+		return retVal;
+	}
+
 	if (_bParallelizeCalculations)
 	{
 		/////////////////////////////////////
-		/// calculate strip regioons in parallel
+		/// calculate strip regions in parallel
 		FUTURE_VECTOR<PARAMS_C2C_STRIP_OUTPUT> _futureStripOutputList;
 		if (_processParameters->ProcessRightSide())
 		{

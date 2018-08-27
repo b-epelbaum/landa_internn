@@ -76,6 +76,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "algorithmic_functions", "sr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "registrationHandler", "src\libs\algorithm_handlers\registrationHandler\registrationHandler.vcxproj", "{B9894468-D5D8-4B80-87AE-957329414CAC}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "abstractAlgoHandler", "src\libs\algorithm_handlers\abstractAlgoHandler\abstractAlgoHandler.vcxproj", "{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -154,6 +156,10 @@ Global
 		{B9894468-D5D8-4B80-87AE-957329414CAC}.Debug|x64.Build.0 = Debug|x64
 		{B9894468-D5D8-4B80-87AE-957329414CAC}.Release|x64.ActiveCfg = Release|x64
 		{B9894468-D5D8-4B80-87AE-957329414CAC}.Release|x64.Build.0 = Release|x64
+		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Debug|x64.ActiveCfg = Debug|x64
+		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Debug|x64.Build.0 = Debug|x64
+		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Release|x64.ActiveCfg = Release|x64
+		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,6 +192,7 @@ Global
 		{79EC106F-D1CC-4A66-8FC5-549E2202CF78} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
 		{74E573FA-04D1-4592-9BAC-6443784A562D} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 		{B9894468-D5D8-4B80-87AE-957329414CAC} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
+		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3} = {C7817FBE-27DB-4AFB-B2EB-3AFEA04A15F3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {86760CC3-BF26-4AE0-B27D-24F54426E658}

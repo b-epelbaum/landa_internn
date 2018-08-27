@@ -1,5 +1,6 @@
 #include "functions.h"
 #include "util.h"
+#include "ProcessParameter.h"
 #include "applog.h"
 #include "RealTimeStats.h"
 #include "frameRef.h"
@@ -19,8 +20,11 @@ void Functions::frameRunAlgorithms(FrameRef *frame, std::unique_ptr<IAlgorithmHa
 {
 	// call root analysis function, which performed in calling thread
 	const auto& tStart = Utility::now_in_microseconds();
-			
-	algorithmHandler->process(frame);
+
+	const auto processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameter>(algorithmHandler->getParameters());
+
+	if (!processParameters->DisableAllProcessing())
+		algorithmHandler->process(frame);
 
 	const auto& tFinish = Utility::now_in_microseconds();
 

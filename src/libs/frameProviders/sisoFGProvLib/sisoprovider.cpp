@@ -60,7 +60,7 @@ bool SiSoProvider::canContinue(const FRAME_PROVIDER_ERROR lastError)
 	return _canContinue;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::dataPreProcess(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR SiSoProvider::prepareData(FrameRef* frameRef)
 {
 #ifdef ENABLE_FGRAB
 	const auto targetChannel = _camPort1;
@@ -83,7 +83,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::dataPreProcess(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::dataAccess(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR SiSoProvider::accessData(FrameRef* frameRef)
 {
 #ifdef ENABLE_FGRAB
 	const auto targetChannel = _camPort1;
@@ -107,9 +107,8 @@ FRAME_PROVIDER_ERROR SiSoProvider::dataAccess(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::dataPostProcess(FrameRef* frameRef)
+void SiSoProvider::releaseData(FrameRef* frameRef)
 {
-	return ERR_NOT_IMPLEMENTED;
 }
 
 FRAME_PROVIDER_ERROR SiSoProvider::init()

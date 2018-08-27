@@ -4,6 +4,7 @@
 #include "BaseFrameProvider.h"
 
 #include <opencv2/imgcodecs.hpp>
+#include <thread>
 
 
 namespace LandaJune
@@ -27,12 +28,13 @@ namespace LandaJune
 			const OfflineReader & operator = (const OfflineReader &) = delete;
 			OfflineReader & operator = (OfflineReader &&) = delete;
 
+			bool warnAboutDroppedFrames() override { return false; }
 			bool canContinue(FRAME_PROVIDER_ERROR lastError) override;
 
-			int getRecommendedFramePoolSize() override { return 4; }
-			FRAME_PROVIDER_ERROR dataPreProcess(Core::FrameRef* frameRef) override;
-			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
-			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;
+			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency(); }
+			FRAME_PROVIDER_ERROR prepareData(Core::FrameRef* frameRef) override;
+			FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) override;
+			void releaseData(Core::FrameRef* frameRef) override;
 
 			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 
@@ -40,7 +42,7 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR cleanup() override;
 
 			DECLARE_PROVIDER_PROPERTY(SourceFolderPath, QString, "")
-			DECLARE_PROVIDER_PROPERTY(ImageMaxCount, int, 1000)
+			DECLARE_PROVIDER_PROPERTY(ImageMaxCount, int, -1)
 
 		protected:
 
@@ -49,7 +51,6 @@ namespace LandaJune
 		private :
 
 			QVector<QString>	_imagePaths;
-			cv::Mat				_currentImage;
 		};
 	}
 }

@@ -28,6 +28,8 @@ namespace LandaJune
 			QString getName() const override { return _name;  }
 			QString getDescription() const override { return _description; }
 
+			bool warnAboutDroppedFrames() override { return true; }
+
 			std::shared_ptr<Parameters::BaseParameter>  getProviderParameters() const override { return _providerParameters;  }
 
 			int32_t getFrameDropDelayTimeout() const override {

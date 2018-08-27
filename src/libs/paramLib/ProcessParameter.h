@@ -21,14 +21,19 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(PanelCount, int, 11, true)
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
 
-			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
-			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, true, true)
+			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Debug parameters" }, true)
+			DECLARE_PARAM_PROPERTY(ParalellizeCalculations, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DisableAllProcessing, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DisableAllAlgorithmProcessing, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DisableAllROISaving, bool, false, true)
 			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, false, true)
 			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
+
+			DECLARE_PARAM_PROPERTY(AlgorithmParams, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
+			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, true, true)
 			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
-			DECLARE_PARAM_PROPERTY(ParalellizeCalculations, bool, false, true)
 			DECLARE_PARAM_PROPERTY(CircleTemplateBuffer, QByteArray, {}, true)
 
 			DECLARE_PARAM_PROPERTY(FGSimulator, PARAM_GROUP_HEADER, { "Frame Grabber Simulator parameters" }, true)

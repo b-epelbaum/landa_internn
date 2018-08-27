@@ -56,7 +56,7 @@ namespace LandaJune
 
 		protected:
 
-			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters);// override;
 
 		private:
 

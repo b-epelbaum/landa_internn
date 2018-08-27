@@ -56,7 +56,7 @@ namespace LandaJune
 
 		protected:
 
-			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters);// override;
 
 		private:
 
@@ -85,6 +85,7 @@ namespace LandaJune
 			std::unique_ptr<cv::Mat> _frameContainer;
 			int _frameIndex = 0;
 			std::shared_ptr<Parameters::ProcessParameter> _processParameters;
+			std::string _sourceFrameImageName;
 			bool _bParallelizeCalculations = false;
 		};
 	}
