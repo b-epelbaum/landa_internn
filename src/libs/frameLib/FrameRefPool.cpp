@@ -20,7 +20,7 @@ void FrameRefPool::init(const uint64_t size)
 	autolock lock(_mutex);
 	for (uint64_t i = 0; i < size; ++i)
 	{
-		_framesFree.push_back(std::make_unique<FrameRef>());
+		_framesFree.push_back(std::make_unique<FrameRef>(i));
 	}
 	_size = size;
 }

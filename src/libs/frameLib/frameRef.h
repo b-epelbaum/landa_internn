@@ -24,7 +24,7 @@ namespace LandaJune
 			const FrameRef & operator = (const FrameRef &) = delete;
 			FrameRef & operator = (FrameRef &&) = delete;
 	
-			explicit FrameRef();
+			explicit FrameRef( int32_t frameRefIndex );
 			void reset();
 
 			void setBits(const int32_t imageIdx
@@ -34,6 +34,7 @@ namespace LandaJune
 				, uint8_t* bits);
 		
 			uint32_t getIndex() const { return _index; }
+			uint32_t getFrameRefIndex() const { return _frameRefIndex; }
 			long long getTimeStamp() const { return _frameTimeStamp;  }
 			const uint8_t* getBits() const;
 			uint8_t* getBits();
@@ -44,7 +45,7 @@ namespace LandaJune
 
 		private:
 			int32_t _index = -1;
-
+			int32_t _frameRefIndex = 0;
 		
 			int32_t _frameWidth = -1;
 			int32_t _frameHeight = -1;

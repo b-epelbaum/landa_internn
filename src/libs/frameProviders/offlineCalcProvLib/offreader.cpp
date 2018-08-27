@@ -5,6 +5,7 @@
 #include "frameRef.h"
 
 #include "ProcessParameter.h"
+#include <thread>
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -53,13 +54,15 @@ bool OfflineReader::canContinue(FRAME_PROVIDER_ERROR lastError)
 
 FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
 {
+	// TODO : think about triggering the next image
+	std::this_thread::sleep_for(std::chrono::milliseconds(2000));
 	_currentImage.release();
 	if (_imagePaths.empty())
 	{
 		OFFREADER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
-	
+
 	// read image to cv::Mat object
 	const auto srcFullPath = _imagePaths.first();
 	OFFREADER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
@@ -71,7 +74,7 @@ FRAME_PROVIDER_ERROR OfflineReader::dataPreProcess(FrameRef* frameRef)
 		OFFREADER_PROVIDER__SCOPED_WARNING << "Cannot load image " << srcFullPath;
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
-
+	OFFREADER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
 	++_lastAcquiredImage;
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
@@ -88,12 +91,14 @@ FRAME_PROVIDER_ERROR OfflineReader::dataAccess(FrameRef* frameRef)
 	const auto s = _currentImage.step[0] * _currentImage.rows;
 
 	frameRef->setBits(++_lastAcquiredImage, w, h, s,_currentImage.data);
+	
 
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
 FRAME_PROVIDER_ERROR OfflineReader::dataPostProcess(FrameRef* frameRef)
 {
+	
 	return ERR_NOT_IMPLEMENTED;
 }
 

@@ -23,12 +23,13 @@ namespace LandaJune
 			OfflineReader(OfflineReader &&) = delete;
 			virtual ~OfflineReader();
 
+
 			const OfflineReader & operator = (const OfflineReader &) = delete;
 			OfflineReader & operator = (OfflineReader &&) = delete;
 
 			bool canContinue(FRAME_PROVIDER_ERROR lastError) override;
 
-			int getRecommendedFramePoolSize() override { return 1; }
+			int getRecommendedFramePoolSize() override { return 4; }
 			FRAME_PROVIDER_ERROR dataPreProcess(Core::FrameRef* frameRef) override;
 			FRAME_PROVIDER_ERROR dataAccess(Core::FrameRef* frameRef) override;
 			FRAME_PROVIDER_ERROR dataPostProcess(Core::FrameRef* frameRef) override;

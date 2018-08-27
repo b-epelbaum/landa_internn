@@ -333,6 +333,7 @@ void registrationPageHandler::process(const FrameRef * frame)
 {
 	_frame = frame;
 	constructFrameContainer(frame, _processParameters->ScanBitDepth());
+	cv::imwrite("d:\\testtest.bmp", *_frameContainer);
 
 	PARAMS_C2C_STRIP_INPUT input(_frame, LEFT);
 	fillProcessParameters(_frame, input);
@@ -343,6 +344,7 @@ void registrationPageHandler::process(const FrameRef * frame)
 
 void registrationPageHandler::generateRegions(PARAMS_C2C_STRIP_INPUT& input)
 {
+	
 	CV_COPY_REGION_LIST _regionsToCopy;
 
 	// add region of left strip

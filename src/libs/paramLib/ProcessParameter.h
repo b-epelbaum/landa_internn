@@ -18,15 +18,16 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(GeneralParams, PARAM_GROUP_HEADER, {"General parameters"}, true)
 			DECLARE_PARAM_PROPERTY(JobID, int, 0, true)
 			DECLARE_PARAM_PROPERTY(SheetID, int, 0, true)
+			DECLARE_PARAM_PROPERTY(PanelCount, int, 11, true)
 			DECLARE_PARAM_PROPERTY(RootOutputFolder, QString, "C:\\temp\\june_out", true)
 
 			DECLARE_PARAM_PROPERTY(Debug, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
 			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, true, true)
-			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpLeftStrip, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, false, true)
-			DECLARE_PARAM_PROPERTY(DumpI2S, bool, false, true)
-			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, false, true)
-			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, false, true)
+			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
+			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
 			DECLARE_PARAM_PROPERTY(ParalellizeCalculations, bool, false, true)
 			DECLARE_PARAM_PROPERTY(CircleTemplateBuffer, QByteArray, {}, true)
 
@@ -46,24 +47,31 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(SISO_BoardList, QStringList, {}, true)
 			DECLARE_PARAM_PROPERTY(SISO_BoardIndex, int, 0, true)
 
-			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate paramaters"}, true)
-			DECLARE_PARAM_PROPERTY(SubstrateWidth_mm, int, 1000, true)
-			DECLARE_PARAM_PROPERTY(SubstrateHeight_mm, int, 700, true)
-			DECLARE_PARAM_PROPERTY(Pixel2MM_X, double, 0.08660258, true)
-			DECLARE_PARAM_PROPERTY(Pixel2MM_Y, double, 0.08466683, true)
+			DECLARE_PARAM_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate parameters"}, true)
+			DECLARE_PARAM_PROPERTY(SubstrateWidth_mm, double, 1000, true)
+			DECLARE_PARAM_PROPERTY(SubstrateHeight_mm, double, 700, true)
+			DECLARE_PARAM_PROPERTY(SubstrateImageMargin_mm, double, 2, true)
+
+			DECLARE_PARAM_PROPERTY(Pixel2MM_X, double, 0.08466683, true)
+			DECLARE_PARAM_PROPERTY(Pixel2MM_Y, double, 0.08660258, true)
+			
 			DECLARE_PARAM_PROPERTY(ReferenceColorTriplet, COLOR_TRIPLET_SINGLE, {}, true)
 			DECLARE_PARAM_PROPERTY(ScanBitDepth, int, 24, true)
 
 			/// strip properties
 			DECLARE_PARAM_PROPERTY(Strip, PARAM_GROUP_HEADER, { "Strip offsets" }, true)
-			DECLARE_PARAM_PROPERTY(OffsetFromLeftEdge_mm, double, 10.5, true)
+			//DECLARE_PARAM_PROPERTY(OffsetFromLeftEdge_mm, double, 10.5, true)
+			DECLARE_PARAM_PROPERTY(OffsetFromLeftEdge_mm, double, 2.94, true)
 			DECLARE_PARAM_PROPERTY(OffsetBetweenTriangles_mm, double, 1012.5, true)
-			DECLARE_PARAM_PROPERTY(StripWidth_mm, double, 13.7, true)
+			//DECLARE_PARAM_PROPERTY(StripWidth_mm, double, 13.7, true)
+			DECLARE_PARAM_PROPERTY(StripWidth_mm, double, 11.85, true)
 
 			// I2S Triangle
 			DECLARE_PARAM_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" }, true)
-			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double, 5.3, true)
-			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double, 5.6, true)
+			//DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double, 5.3, true)
+			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double, 3.19, true)
+			//DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double, 5.6, true)
+			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double, 10.5, true)
 			DECLARE_PARAM_PROPERTY(I2SMarginX_mm, double, 2.5, true)
 			DECLARE_PARAM_PROPERTY(I2SMarginY_mm, double, 2.5, true)
 			DECLARE_PARAM_PROPERTY(I2SROIWidth_mm, double, 8.5, true)
@@ -73,7 +81,8 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROI, PARAM_GROUP_HEADER, { "C2C ROI Parameters" }, true)
 			DECLARE_PARAM_PROPERTY(C2CROISetsCount, int, 5, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenDots_um, double, 3048, true)
-			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 155500, true)
+			//DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 155500, true)
+			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 159300, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double, 8300, true)
 
 			// HSV
@@ -81,6 +90,10 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(ColorArray, QVector<COLOR_TRIPLET>, {}, true)
 			DECLARE_PARAM_PROPERTY(TestTriplet, COLOR_TRIPLET, {}, true)
 			DECLARE_PARAM_PROPERTY(TestSingleTriplet, COLOR_TRIPLET_SINGLE, {}, true)
+
+			DECLARE_PARAM_PROPERTY(Wave, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
+			DECLARE_PARAM_PROPERTY(WaveCircleDiameter_um, double, 1016, true)
+			DECLARE_PARAM_PROPERTY(WaveDistanceBetweenDotsY_um, double, 3048, true)
 
 
 			//-------------------------------------------------------
@@ -122,6 +135,9 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_px, int, 0, false)
 			DECLARE_PARAM_PROPERTY(C2CROIArrayLeft, QVector<QRect>, {}, false)
 			DECLARE_PARAM_PROPERTY(C2CROIArrayRight, QVector<QRect>, {}, false)
+
+			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
+			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false)
 			
 	
 		private slots:

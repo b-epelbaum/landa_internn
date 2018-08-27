@@ -4,8 +4,8 @@
 using namespace LandaJune::Parameters;
 using namespace LandaJune::Core;
 
-FrameRef::FrameRef()
-= default;
+FrameRef::FrameRef(int32_t frameRefIndex) : _frameRefIndex(frameRefIndex)
+{}
 
 
 void FrameRef::reset()
