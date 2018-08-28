@@ -62,6 +62,10 @@ float	Detect_Edge_X(const Mat& imImage, int iX1, int iX2, int iY)
 	fBright = afVal[iLen - 3];
 	fMid = (fBright + fDark) / 2;
 
+	// no edge
+	if (fBright - fDark < 50)
+		return -999 ;
+
 	// find point (in pixel resolution) which has around middle value
 	iPoint_X = 0;
 	for (iX = iX1; iX != iX2; iX += iStep)

@@ -17,6 +17,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include "applog.h"
 #include <opencv2/imgcodecs/imgcodecs_c.h>
+#include "util.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -93,6 +94,7 @@ namespace LandaJune
 			HSV out;
 			out._min = colorSingle2HSVSingle(color._min);
 			out._max = colorSingle2HSVSingle(color._max);
+			out._colorName = color._colorName;
 			return std::move(out);
 		}
 
@@ -107,6 +109,27 @@ namespace LandaJune
 			return cv::Rect(rcSrc.left(), rcSrc.top(), rcSrc.width(), rcSrc.height());
 		}
 
+		inline void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool bCloneImage, bool bParallelWrite)
+		{
+			const auto t0 = Helpers::Utility::now_in_microseconds();
+			if (bParallelWrite)
+			{
+				const auto t0 = Helpers::Utility::now_in_microseconds();
+				if (bCloneImage)
+					Threading::TaskThreadPools::postJob(Threading::TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, std::move(img.clone()), filePath);
+				else
+					Threading::TaskThreadPools::postJob(Threading::TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, std::move(img), filePath);
+
+				const auto t1 = Helpers::Utility::now_in_microseconds();
+				//const double& perfTime = (static_cast<double>(t1) - static_cast<double>(t0)) / 1000;
+				//PRINT_INFO7 << "dumpMatFile !!!!!!!!!!!! " << perfTime << " msec...";
+			}
+			else
+			{
+				Functions::frameSaveImage(img, filePath);
+			}
+		}
+
 
 		///////////////////////////////////////////////////
 		/////////////  REGIONS
@@ -117,7 +140,7 @@ namespace LandaJune
 			const cv::Mat&				_srcMatContainer;
 			cv::Mat&					_targetMatContainer;
 			cv::Rect					_srcRequestedRect;
-			cv::Rect					_srcNorlmalizedRect;
+			cv::Rect					_srcNormalizedRect;
 			bool						_bNeedSaving;
 			std::string					_fullSavePath;
 			std::shared_ptr<Parameters::ProcessParameter> _params;
@@ -135,12 +158,12 @@ namespace LandaJune
 				: _srcMatContainer(srcMat)
 				, _targetMatContainer(targetMat)
 				, _srcRequestedRect(srcRect)
-				, _srcNorlmalizedRect(srcRect)
+				, _srcNormalizedRect(srcRect)
 				, _bNeedSaving(needSaving)
 				, _params(params)
 			{
 				_bParallelize = params->ParalellizeCalculations();
-				_srcNorlmalizedRect = normalizeRegionRect();
+				_srcNormalizedRect = normalizeRegionRect();
 				// if ROI image needs to be saved, 
 				if (_bNeedSaving)
 				{
@@ -203,7 +226,7 @@ namespace LandaJune
 				const auto& normRight = ((std::min)(regReqRight, srcWidth));
 				const auto& normBottom = ((std::min)(regReqBottom, srcHeight));
 
-				retValRect.width = normRight - _srcNorlmalizedRect.x;
+				retValRect.width = normRight - _srcNormalizedRect.x;
 				retValRect.height = normBottom - retValRect.y;
 
 				return retValRect;
@@ -212,17 +235,12 @@ namespace LandaJune
 			static void performCopy(CV_COPY_REGION& rgn)
 			{
 				// create a new MAT object by making a deep copy from the source MAT
-				rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNorlmalizedRect));
+				rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNormalizedRect));
+
+				// dump input regions if needed
 				if (!rgn._params->DisableAllROISaving() && rgn._bNeedSaving && !rgn._fullSavePath.empty())
 				{
-					if (rgn._bParallelize)
-					{
-						Threading::TaskThreadPools::postJob(Threading::TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, rgn._targetMatContainer.clone(), rgn._fullSavePath);
-					}
-					else
-					{
-						Functions::frameSaveImage(rgn._targetMatContainer.clone(), rgn._fullSavePath);
-					}
+					dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, true, rgn._bParallelize);
 				}
 			}
 		};
@@ -254,42 +272,49 @@ namespace LandaJune
 
 			virtual void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
 
-			virtual void fillProcessParameters(ABSTRACT_INPUT& input);
-			virtual void fillProcessParameters(PARAMS_C2C_SHEET_INPUT& input);
-			virtual void fillProcessParameters(PARAMS_C2C_STRIP_INPUT& input, SHEET_SIDE side);
-			virtual void fillProcessParameters(PARAMS_I2S_INPUT& input, SHEET_SIDE side);
-			virtual void fillProcessParameters(PARAMS_C2C_ROI_INPUT& input, SHEET_SIDE side);
-			virtual void fillProcessParameters(PARAMS_WAVE_INPUT& input);
+			virtual void fillCommonProcessParameters(ABSTRACT_INPUT& input);
+			virtual void fillSheetProcessParameters(PARAMS_C2C_SHEET_INPUT& input);
+			virtual void fillStripProcessParameters(PARAMS_C2C_STRIP_INPUT& input, SHEET_SIDE side);
+			virtual void fillEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT& input, SHEET_SIDE side);
+			virtual void fillI2SProcessParameters(PARAMS_I2S_INPUT& input, SHEET_SIDE side);
+			virtual void fillC2CProcessParameters(PARAMS_C2C_ROI_INPUT& input, SHEET_SIDE side);
+			virtual void fillWaveProcessParameters(PARAMS_WAVE_INPUT& input);
 
-			virtual void generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV_COPY_REGION_LIST& regionList);
+			virtual void generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV_COPY_REGION_LIST& regionList) const;
 			virtual void generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, CV_COPY_REGION_LIST& regionList) const;
 			virtual void generateI2SRegions(PARAMS_I2S_INPUT& input, CV_COPY_REGION_LIST& regionList) const;
 			virtual void generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, CV_COPY_REGION_LIST& regionList) const;
 			virtual void generateWaveRegions(PARAMS_WAVE_INPUT& input, CV_COPY_REGION_LIST& regionList);
 
 			virtual void copyRegions(CV_COPY_REGION_LIST& regionList );
+			virtual void dumpOverlays(const cv::Mat& img, const std::string& fileName);
+			virtual void dumpFrameCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut);
 
-			PARAMS_C2C_SHEET_OUTPUT processSheet(const PARAMS_C2C_SHEET_INPUT& sheetInput);
-			PARAMS_C2C_STRIP_OUTPUT processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, bool detectEdge);
+			virtual std::string getBatchRootFolder();
+			virtual std::string getFrameFolderName();
 
-			void initEdge(const INIT_PARAMETER& initParam) const;
-			PARAMS_PAPEREDGE_OUTPUT processEdge(const PARAMS_PAPEREDGE_INPUT& input);
-			void shutdownEdge() const;
+			virtual void createCSVFolder();
 
-			void initI2S(const INIT_PARAMETER& initParam) const;
-			PARAMS_I2S_OUTPUT processI2S(const PARAMS_I2S_INPUT& input);
-			void shutdownI2S() const;
+			virtual PARAMS_C2C_SHEET_OUTPUT processSheet(const PARAMS_C2C_SHEET_INPUT& sheetInput);
+			virtual PARAMS_C2C_STRIP_OUTPUT processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, bool detectEdge);
 
-			void initC2CRoi(const INIT_PARAMETER& initParam) const;
-			PARAMS_C2C_ROI_OUTPUT processC2CROI(const PARAMS_C2C_ROI_INPUT& input);
-			void shutdownC2CRoi() const;
+			virtual void initEdge(const INIT_PARAMETER& initParam) const;
+			virtual PARAMS_PAPEREDGE_OUTPUT processEdge(const PARAMS_PAPEREDGE_INPUT& input);
+			virtual void shutdownEdge() const;
 
-			void initWave(const INIT_PARAMETER& initParam);
-			PARAMS_WAVE_OUTPUT processWave(const PARAMS_WAVE_INPUT& input);
-			void shutdownWave();
-
-		
-			void constructFrameContainer(const Core::FrameRef* frame, int bitsPerPixel);
+			virtual void initI2S(const INIT_PARAMETER& initParam) const;
+			virtual PARAMS_I2S_OUTPUT processI2S(const PARAMS_I2S_INPUT& input);
+			virtual void shutdownI2S() const;
+			
+			virtual void initC2CRoi(const INIT_PARAMETER& initParam) const;
+			virtual PARAMS_C2C_ROI_OUTPUT processC2CROI(const PARAMS_C2C_ROI_INPUT& input);
+			virtual void shutdownC2CRoi() const;
+			
+			virtual void initWave(const INIT_PARAMETER& initParam);
+			virtual PARAMS_WAVE_OUTPUT processWave(const PARAMS_WAVE_INPUT& input);
+			virtual void shutdownWave();
+			
+			virtual void constructFrameContainer(const Core::FrameRef* frame, int bitsPerPixel);
 
 			const Core::FrameRef* _frame = nullptr;;
 			std::unique_ptr<cv::Mat> _frameContainer;

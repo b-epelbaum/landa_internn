@@ -16,6 +16,7 @@
 
 #include "applog.h"
 #include <Windows.h>
+#include "util.h"
 
 #define TPOOL_SCOPED_LOG PRINT_INFO4 << "[ThreadPool] : "
 #define TPOOL_SCOPED_ERROR PRINT_ERROR << "[ThreadPool] : "
@@ -180,8 +181,20 @@ namespace LandaJune
 					using TaskType = ThreadJob<PackagedTask>;
 
 					PackagedTask task{ std::move(boundTask) };
+
+					
+					const auto t0 = Helpers::Utility::now_in_microseconds();
 					JobFuture<ResultType> result{ task.get_future() };
 					_jobQueue.push(std::make_unique<TaskType>(std::move(task)));
+					
+					//const auto t1 = Helpers::Utility::now_in_microseconds();
+
+					//if (_alias == "Disk Dumper Thread Pool")
+					//{
+					//	const double& perfTime = (static_cast<double>(t1) - static_cast<double>(t0)) / 1000;
+					//	PRINT_INFO7 << "PUSH TO QUEUE  " << perfTime << " msec...";
+					//}
+
 					return result;
 				}
 
@@ -222,11 +235,12 @@ namespace LandaJune
 				}
 			}
 
+		public:
+			std::string _alias;
 		private:
 			std::atomic_bool _done;
 			GenericSafeQueue<std::unique_ptr<IThreadJob>> _jobQueue;
 			std::vector<std::thread> _threads;
-			std::string _alias;
 		};
 
 		namespace TaskThreadPools
@@ -254,7 +268,17 @@ namespace LandaJune
 			template <typename Func, typename... Args>
 			auto postJob(TaskThreadPool& pool, Func&& func, Args&&... args)
 			{
-				return pool.submit(std::forward<Func>(func), std::forward<Args>(args)...);
+				const auto t0 = Helpers::Utility::now_in_microseconds();
+				auto retVal =  pool.submit(std::forward<Func>(func), std::forward<Args>(args)...);
+				//const auto t1 = Helpers::Utility::now_in_microseconds();
+
+				//if (pool._alias == "Disk Dumper Thread Pool")
+				//{
+				//	const double& perfTime = (static_cast<double>(t1) - static_cast<double>(t0)) / 1000;
+				//	PRINT_INFO7 << "POST JOB !!!!!!!!!!!! " << perfTime << " msec...";
+				//}
+
+				return retVal;
 			}
 		}
 

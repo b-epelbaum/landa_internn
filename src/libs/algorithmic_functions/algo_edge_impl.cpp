@@ -49,12 +49,23 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	int iEnd_X = min(iEstimated_X + 20, input._stripImageSource.cols - 1);
 
 	// paper edge
+	int iCount = 0 ;		// toal number of edges
+	int iFails = 0 ;		// number of fail edges
 	int iEdges_Len = 0;
+
 	for (iY = 100; iY < g_imPaperEdge_Input_GL.rows - 100; iY += 50) {
 		float fMiddle_Paper = Detect_Edge_X(g_imPaperEdge_Input_GL, iEnd_X, iStart_X, iY);
+
+		iCount ++ ;
+		if (fMiddle_Paper < 0)
+			iFails ++ ;
+
 		g_afPaperEdge_Edges[iEdges_Len++] = fMiddle_Paper;
 	}
 	Find_Line_Data(g_afPaperEdge_Edges, iEdges_Len, fAx, fBx);
+
+	if (iFails > iCount / 2)
+		output._result = ALG_STATUS_FAILED;
 
 	// draw overlay
 	if (input.GenerateOverlay())

@@ -166,10 +166,27 @@ void BaseCore::start() const
 	}
 
 	// call algorithms initialization functions
-	
-	_currentAlgorithmHandler->init(_processParameters);
+
+	try
+	{
+		_currentAlgorithmHandler->init(_processParameters);
+	}
+	catch(...)
+	{
+		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_ALGO_HANDLER_THROWN_RUNTIME_EXCEPTION, "");
+	}
+
+
 	initFramePool();
-	_currentFrameProvider->init();
+
+	try
+	{
+		_currentFrameProvider->init();
+	}
+	catch (...)
+	{
+		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION, "");
+	}
 
 	// start two thread pools
 	// one for frame processing

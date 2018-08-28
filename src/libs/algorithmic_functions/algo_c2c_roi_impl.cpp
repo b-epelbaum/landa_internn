@@ -6,6 +6,8 @@
 using namespace cv;
 using namespace LandaJune::Algorithms;
 
+//#include <fstream>
+//std::fstream tData ("e:\\temp\\hsv.txt", std::ios::app) ;
 //#define TEMPLATE_PATH "d:\\Template1.tif"
 
 #ifndef byte
@@ -16,16 +18,17 @@ typedef unsigned char byte;
 void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, float fFactor = 1) ;
 
 // global variables
-thread_local Mat		g_imPart_GL, g_imPart_HSV, g_imPart_GL_Smooth;
-thread_local Mat		g_aimBGR[3];
-thread_local Mat		g_aimHSV[3];
-thread_local Mat		g_imMin_Channel;
-thread_local Mat		g_imPart_T;
-thread_local Mat		g_imCyan, g_imYellow, g_imMagenta, g_imBlack;
-Mat		g_imTemplate_Smooth;				// template after smoothing
-thread_local Mat		g_imLabels, g_imStat, g_imCentroids;
-thread_local Mat		g_imUsed_Proc;
-thread_local Mat		g_tCorr_Matrix(50, 50, CV_32F);
+thread_local	Mat		g_imPart_GL, g_imPart_HSV, g_imPart_GL_Smooth;
+thread_local	Mat		g_aimBGR[3];
+thread_local	Mat		g_aimHSV[3];
+//thread_local	Mat		g_imMin_Channel;
+//thread_local	Mat		g_imPart_T;
+thread_local	Mat		g_imColor_Circle ;
+//thread_local	Mat		g_imCyan, g_imYellow, g_imMagenta, g_imBlack;
+thread_local	Mat		g_imLabels, g_imStat, g_imCentroids;
+thread_local	Mat		g_imUsed_Proc;
+thread_local	Mat		g_tCorr_Matrix(50, 50, CV_32F);
+				Mat		g_imTemplate_Smooth;				// template after smoothing
 
 
 Mat	H_Diff(const Mat& imH1, int iH)
@@ -67,7 +70,7 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 
 			float fVal1 = (float)imImage.at<byte>(iY + iDy, iX + iDx);
 			float fVal2 = (float)imTemplate.at<byte>(iY, iX);
-
+		
 			if (iMode == 1 && iX < imTemplate.cols / 2)
 				continue;
 			if (iMode == 2 && iX > imTemplate.cols / 2)
@@ -186,18 +189,23 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 	static int iSeq = 0 ;
 
+	output._result = ALG_STATUS_SUCCESS ;
+
+	int iColor_Num = input._colors.size() ;		// number of clircles
+
 	// define and clear overlay image
 	if (input._GenerateOverlay) {
-		output._colorOverlays.resize (4) ;
-		for (iCnt = 0 ; iCnt < 4 ; iCnt ++) {
+		output._colorOverlays.resize (iColor_Num) ;
+		for (iCnt = 0 ; iCnt < iColor_Num; iCnt ++) {
 			output._colorOverlays[iCnt].create(input._ROIImageSource.rows, input._ROIImageSource.cols, CV_8UC3);
 			output._colorOverlays[iCnt].setTo(0);
 			// output._colorOverlays[iCnt] = input._ROIImageSource.clone() ;
 		}
 	}
 
-	// siz eof color centers
-	output._colorCenters.resize(4);
+	// size of color centers
+	output._colorCenters.resize(iColor_Num);
+	output._colorStatuses.resize(iColor_Num);
 
 	// convert part to gray levels and HSV
 	cvtColor(input._ROIImageSource, g_imPart_GL, CV_RGB2GRAY);
@@ -206,85 +214,79 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 	blur(g_imPart_GL, g_imPart_GL_Smooth, Size(1, 1));
 
 	split(input._ROIImageSource, g_aimBGR);
+
 	split(g_imPart_HSV, g_aimHSV);
 
+	// use to determine H, S and V of circels
+	// somehow it is different than regulat RGB to HSV formula
 //	imwrite("e:\\temp\\a1_h.tif", g_aimHSV[0]);
 //	imwrite("e:\\temp\\a1_s.tif", g_aimHSV[1]);
 //	imwrite("e:\\temp\\a1_v.tif", g_aimHSV[2]);
 
-	g_imMin_Channel = min(min(g_aimBGR[0], g_aimBGR[1]), g_aimBGR[2]);
-
-	threshold(g_imMin_Channel, g_imPart_T, 180, 255, THRESH_BINARY_INV);
-	// imwrite("e:\\temp\\a0.tif", g_imPart_T);
-
-	erode(g_imPart_T, g_imPart_T, Mat::ones(9, 9, CV_8U));
-	dilate(g_imPart_T, g_imPart_T, Mat::ones(9, 9, CV_8U));
-
-	// find connected componenets for circle detection
-	iLabels = cv::connectedComponentsWithStats(g_imPart_T, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
-
-	for (int iLabel = 1; iLabel < iLabels; iLabel++) {
-
-		int iXS = g_imStat.at<int>(iLabel, cv::CC_STAT_LEFT);
-		int iWH = g_imStat.at<int>(iLabel, cv::CC_STAT_WIDTH);
-		int iYS = g_imStat.at<int>(iLabel, cv::CC_STAT_TOP);
-		int iHT = g_imStat.at<int>(iLabel, cv::CC_STAT_HEIGHT);
-		int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
-
-		// remove blbls - to small, too large, high aspect ratio
-		if (iSize < 80 || iSize > 400 || abs(iWH - iHT) > 10)
-			g_imPart_T(Rect(iXS, iYS, iWH, iHT)) = 0;
-	}
-	// imwrite("e:\\temp\\a1.tif", g_imPart_T);
-
-	// binary image of each circle
-	int iH_Range = 15;
-	int iS_Range = 50;
-//	int aiH[] = { 15, 95, 125 };
-//	int aiS[] = { 210, 220, 205 };
-//	int aiV[] = { 180, 230, 230 };
-
-	int aiH[] = { 30, 90, 150 };
-	int aiS[] = { 170, 150, 130 };
-	int aiV[] = { 230, 230, 230 };
-
-	g_imCyan = g_imPart_T & H_Diff(g_aimHSV[0], aiH[0]) < iH_Range & abs(g_aimHSV[1] - aiS[0]) < iS_Range;
-	g_imYellow = g_imPart_T & H_Diff(g_aimHSV[0], aiH[1]) < iH_Range & abs(g_aimHSV[1] - aiS[1]) < iS_Range;
-	g_imMagenta = g_imPart_T & H_Diff(g_aimHSV[0], aiH[2]) < iH_Range & abs(g_aimHSV[1] - aiS[2]) < iS_Range;
-
-	g_imBlack = g_imPart_T & (g_aimHSV[2] < 128) & (g_aimHSV[1] < 100);
 
 	int iFail = 0;
 	int iFail_Circles = 0;
 
-	for (iCnt = 0; iCnt < 4; iCnt++) {
-		afX[iCnt] = 0;
-		afY[iCnt] = 0;
-	}
-
-	// color for overlay
-	Scalar aiColors[] = { Scalar(255, 128, 0), Scalar(64, 64, 64), Scalar(0, 255, 255), Scalar(255, 0, 255) };
-
-	// tOutput_Data.ptTarget_Res[0].eMain_Stat = ALG_STATUS_SUCCESS;
 
 	// loop on circles
 	for (iCnt = 0; iCnt < 4; iCnt++) {
-		Mat* imUsed = nullptr;
-		switch (iCnt) 
-		{
-			case 0:	imUsed = &g_imCyan;		break;
-			case 1:	imUsed = &g_imBlack;	break;
-			case 2:	imUsed = &g_imYellow;	break;
-			case 3:	imUsed = &g_imMagenta;	break;
+
+		afX[iCnt] = 0;
+		afY[iCnt] = 0;
+
+		// find center of H
+		int iH_Center, iH_Range ;
+		if (input._colors[iCnt]._min._iH < input._colors[iCnt]._max._iH) {
+			iH_Center = (input._colors[iCnt]._min._iH + input._colors[iCnt]._max._iH) / 2 ;
+			iH_Range = input._colors[iCnt]._max._iH - input._colors[iCnt]._min._iH ;
+		}
+		else {
+			iH_Center = (input._colors[iCnt]._min._iH + input._colors[iCnt]._max._iH - 256) / 2;
+			iH_Range = input._colors[iCnt]._max._iH - input._colors[iCnt]._min._iH + 256 ;
+			if (iH_Center < 0)
+				iH_Center += 256 ;
 		}
 
-		if (imUsed)
-			erode(*imUsed, g_imUsed_Proc, Mat::ones(9, 9, CV_8U));
-		dilate(g_imUsed_Proc, g_imUsed_Proc, Mat::ones(9, 9, CV_8U));
+		int iS_Center = (input._colors[iCnt]._min._iS + input._colors[iCnt]._max._iS) / 2 ;
+		int iV_Center = (input._colors[iCnt]._min._iV + input._colors[iCnt]._max._iV) / 2 ;
 
-		// imwrite ("e:\\temp\\a2.tif", g_imUsed_Proc) ;
+		g_imColor_Circle = H_Diff(g_aimHSV[0], iH_Center) <= iH_Range &
+							g_aimHSV[1] >= input._colors[iCnt]._min._iS & g_aimHSV[1] <= input._colors[iCnt]._max._iS &
+							g_aimHSV[2] >= input._colors[iCnt]._min._iV & g_aimHSV[2] <= input._colors[iCnt]._max._iV ;
 
-		iLabels = cv::connectedComponentsWithStats(g_imUsed_Proc, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+		
+		erode(g_imColor_Circle, g_imColor_Circle, Mat::ones(9, 9, CV_8U));
+		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(9, 9, CV_8U));
+
+		// color for overlay
+		Mat tHSV (1, 1, CV_8UC3) ;
+		Mat tRGB(1, 1, CV_8UC3);
+		tHSV.at<Vec3b>(0)[0] = iH_Center ;
+		tHSV.at<Vec3b>(0)[1] = iS_Center;
+		tHSV.at<Vec3b>(0)[2] = iV_Center;
+		cvtColor(tHSV, tRGB, CV_HSV2RGB);
+
+//		tData << "*" << std::endl ;
+//		tData << "CSV:\t" << (int)tHSV.at<Vec3b>(0)[0] << '\t' << (int)tHSV.at<Vec3b>(0)[1] << '\t' << (int)tHSV.at<Vec3b>(0)[2] << std::endl ;
+//		tData << "RGB:\t" << (int)tRGB.at<Vec3b>(0)[0] << '\t' << (int)tRGB.at<Vec3b>(0)[1] << '\t' << (int)tRGB.at<Vec3b>(0)[2] << std::endl;
+
+		// find connected componenets for circle detection
+		iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+
+		for (int iLabel = 1; iLabel < iLabels; iLabel++) {
+
+			int iXS = g_imStat.at<int>(iLabel, cv::CC_STAT_LEFT);
+			int iWH = g_imStat.at<int>(iLabel, cv::CC_STAT_WIDTH);
+			int iYS = g_imStat.at<int>(iLabel, cv::CC_STAT_TOP);
+			int iHT = g_imStat.at<int>(iLabel, cv::CC_STAT_HEIGHT);
+			int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
+
+			// remove blbls - to small, too large, high aspect ratio
+			if (iSize < 80 || iSize > 400 || abs(iWH - iHT) > 10)
+				g_imColor_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
+		}
+
+		iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
 
 		if (iLabels == 2) {
 			afX[iCnt] = (float)g_imCentroids.at<double>(2); // + (float)iStart_X;
@@ -301,23 +303,22 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 			output._colorCenters[iCnt]._x = (int)round(afX[iCnt] * input.Pixel2MM_X() * 1000);
 			output._colorCenters[iCnt]._y = (int)round(afX[iCnt] * input.Pixel2MM_Y() * 1000);
-			output._result = ALG_STATUS_SUCCESS ;
+			output._colorStatuses[iCnt] =  ALG_STATUS_SUCCESS ;
 		}
 		else {
 			output._colorCenters[iCnt]._x = (int)round((afX[iCnt] + (float)input._ROI.left()) *	input.Pixel2MM_X() * 1000);
 			output._colorCenters[iCnt]._y = (int)round((afY[iCnt] + (float)input._ROI.top()) *	input.Pixel2MM_Y() * 1000);
-			output._result = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
-
-			iFail++;
-			iFail_Circles = 1;
+			output._colorStatuses[iCnt] = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
+			output._result = ALG_STATUS_FAILED ;
 		}
+
 		Point tCircle_Center = cv::Point((int)round(afX[iCnt]), (int)round(afY[iCnt])) ;
 
 		if (input._GenerateOverlay) {
 			for (float fAng = 0 ;fAng < 2 * 3.14159; fAng += 0.03) {
 				float fPos_X = afX[iCnt] + 13 * cosf (fAng) ;
 				float fPos_Y = afY[iCnt] + 13 * sinf (fAng);
-				Draw_Point (output._colorOverlays[iCnt], fPos_X, fPos_Y, aiColors[iCnt][0], aiColors[iCnt][1], aiColors[iCnt][2]) ;
+				Draw_Point (output._colorOverlays[iCnt], fPos_X, fPos_Y, tRGB.at<Vec3b>(0)[2], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[0]) ;
 			}
 		}
 

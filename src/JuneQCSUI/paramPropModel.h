@@ -62,16 +62,22 @@ signals:
 	void propChanged(QString propName, const QVariant& newVal);
 
 private:
-	LandaJune::IPropertyTuple propertyValue(const ParamPropItem *child) const noexcept;
+	LandaJune::IPropertyTuple propertyValue(ParamPropItem *child) const noexcept;
 
-	LandaJune::Parameters::COLOR_TRIPLET createColorTriplet(const ParamPropItem *item) const noexcept;
-	LandaJune::Parameters::COLOR_TRIPLET_SINGLE createColorTripletSingle(const ParamPropItem *item) const noexcept;
+	QPoint createQPoint(ParamPropItem *item) const noexcept;
+	QRect createQRect(ParamPropItem *item) const noexcept;
+	QVector<LandaJune::Parameters::COLOR_TRIPLET> createColorTripletVector(ParamPropItem *item) const noexcept;
+	LandaJune::Parameters::COLOR_TRIPLET createColorTriplet(ParamPropItem *item) const noexcept;
+	LandaJune::Parameters::COLOR_TRIPLET_SINGLE createColorTripletSingle(ParamPropItem *item) const noexcept;
 		
 	ParamPropItem *insertChild(ParamPropItem *parent, const QString &name, const QVariant &value) noexcept;
 	
 	// Setup custom type
+	void setupQPoint(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupQRect(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupColorTripletVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	ParamPropItem * setupGroupHeader(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 
 	ParamPropItem *getItem(const QModelIndex &index) const;

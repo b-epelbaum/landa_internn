@@ -7,6 +7,13 @@ namespace LandaJune
 	namespace Algorithms
 	{
 		enum SHEET_SIDE { LEFT = 0, RIGHT, NUM_SIDES};
+		
+		static std::string SIDE_NAMES[] =
+		{
+			  "LEFT"
+			, "RIGHT"
+		};
+
 		enum GRABBER_SIDE { FRONT = 0, BACK };
 
 		struct APOINT
@@ -46,10 +53,11 @@ namespace LandaJune
 		struct HSV_SINGLE
 		{
 			HSV_SINGLE() = default;
-			HSV_SINGLE(const int32_t iH, const int32_t iS, const int32_t iV)
+			HSV_SINGLE(const int32_t iH, const int32_t iS, const int32_t iV, std::string colorName)
 				: _iH(iH)
 				, _iS(iS)
 				, _iV(iV)
+				, _colorName(std::move(colorName))
 			{}
 
 			HSV_SINGLE(const HSV_SINGLE& other) = default;
@@ -57,6 +65,7 @@ namespace LandaJune
 			int32_t	_iH = 0;
 			int32_t	_iS = 0;
 			int32_t	_iV = 0;
+			std::string _colorName;
 		};
 
 		struct HSV
@@ -65,12 +74,14 @@ namespace LandaJune
 			HSV(HSV_SINGLE hsvMin, HSV_SINGLE hsvMax )
 				: _min(hsvMin)
 				, _max(hsvMax)
+				, _colorName(hsvMin._colorName)
 			{}
 
 
 			HSV(const HSV& other) = default;
 			HSV_SINGLE _min;
 			HSV_SINGLE _max;
+			std::string _colorName;
 		};
 	}
 }

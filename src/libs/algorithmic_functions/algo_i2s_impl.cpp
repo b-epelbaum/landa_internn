@@ -129,7 +129,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		float fDet = -fV0x * fV1y + fV0y * fV1x;
 		float fT1 = (fY1 - fY0) * fV0x - (fX1 - fX0) * fV0y;
 		float fT0 = (fY1 - fY0) * fV1x - (fX1 - fX0) * fV1y;
-
+	
 		fT0 = fT0 / fDet;
 		fT1 = fT1 / fDet;
 

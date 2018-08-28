@@ -199,12 +199,8 @@ namespace LandaJune
 				, _paperEdgeInput(frame, side)
 				, _i2sInput(frame, side)
 			{
-				for (auto& roiInput : _c2cROIInputs)
-				{
-					roiInput._side = side;
-					roiInput._frame = frame;
-				}
 			}
+
 			SHEET_SIDE							_side = LEFT;
 			PARAMS_PAPEREDGE_INPUT				_paperEdgeInput;
 			PARAMS_I2S_INPUT					_i2sInput;

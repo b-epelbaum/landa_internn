@@ -57,6 +57,7 @@ namespace LandaJune
 					{
 						return !_queue.empty() || !_valid;
 					});
+					
 					/*
 					* Using the condition in the predicate ensures that spurious wakeups with a valid
 					* but empty queue will not proceed, so only need to check for validity before proceeding.

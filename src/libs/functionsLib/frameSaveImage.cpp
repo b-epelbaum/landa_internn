@@ -30,8 +30,10 @@ void Functions::frameSaveImage(const cv::Mat& image, const std::string& pathName
 
 		}
 	}
+	
 	try
 	{
+		//std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		auto bSaved = cv::imwrite(pathName.c_str(), image);
 	}
 	catch (...)
@@ -39,8 +41,8 @@ void Functions::frameSaveImage(const cv::Mat& image, const std::string& pathName
 
 
 	}
-	const auto fres = cv::imwrite(pathName.c_str(), image);
 
+	/*
 	if (fres)
 	{
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, image.step[0] * image.rows);
@@ -49,5 +51,6 @@ void Functions::frameSaveImage(const cv::Mat& image, const std::string& pathName
 	{
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsFail, (Utility::now_in_microseconds() - t0) * 1.0e-6);
 	}
+	*/
 
 }

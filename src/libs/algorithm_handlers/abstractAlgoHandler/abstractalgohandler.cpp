@@ -5,6 +5,10 @@
 #include "algo_edge_impl.h"
 #include "algo_i2s_impl.h"
 #include "algo_c2c_roi_impl.h"
+#include "util.h"
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 using namespace LandaJune;
 using namespace Algorithms;
@@ -18,6 +22,7 @@ using namespace Core;
 
 void abstractAlgoHandler::init(std::shared_ptr<BaseParameter> parameters)
 {
+	createCSVFolder();
 	validateProcessParameters(parameters);
 }
 
@@ -43,7 +48,7 @@ void abstractAlgoHandler::constructFrameContainer(const FrameRef* frame, int bit
 		CV_MAKETYPE(CV_8U, bitsPerPixel / 8), (void*)frame->getBits());
 }
 
-void abstractAlgoHandler::fillProcessParameters(ABSTRACT_INPUT& input)
+void abstractAlgoHandler::fillCommonProcessParameters(ABSTRACT_INPUT& input)
 {
 	const auto& bGenerateOverlays = _processParameters->GenerateOverlays();
 	input.setGenerateOverlay(bGenerateOverlays);
@@ -52,29 +57,37 @@ void abstractAlgoHandler::fillProcessParameters(ABSTRACT_INPUT& input)
 }
 
 
-void abstractAlgoHandler::fillProcessParameters(PARAMS_C2C_SHEET_INPUT& input)
+void abstractAlgoHandler::fillSheetProcessParameters(PARAMS_C2C_SHEET_INPUT& input)
 {
 	// sheet
-	fillProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
 	
 	// strips 
-	fillProcessParameters(input._stripInputParamLeft, LEFT);
+	fillStripProcessParameters(input._stripInputParamLeft, LEFT);
 	if (_processParameters->ProcessRightSide())
 	{
-		fillProcessParameters(input._stripInputParamRight, RIGHT);
+		fillStripProcessParameters(input._stripInputParamRight, RIGHT);
 	}
 }
 
-void abstractAlgoHandler::fillProcessParameters(PARAMS_C2C_STRIP_INPUT& input, SHEET_SIDE side)
+void abstractAlgoHandler::fillStripProcessParameters(PARAMS_C2C_STRIP_INPUT& input, SHEET_SIDE side)
 {
-	fillProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	// fill base class parameters
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
 	input._side = side;
-	fillProcessParameters( input._i2sInput, side);
 
+	// fill edge parameters
+	fillEdgeProcessParameters(input._paperEdgeInput, side);
+
+	// fill I2S parameters
+	fillI2SProcessParameters( input._i2sInput, side);
+
+	// get rectangles of correspondent C2C ROIs
 	const auto& ROIArray = (input._side == LEFT)
 		? _processParameters->C2CROIArrayLeft()
 		: _processParameters->C2CROIArrayRight();
 
+	// create array of C2C ROIs
 	if (_processParameters->C2CROISetsCount() != 0)
 	{
 		std::vector<HSV> hsv;
@@ -100,27 +113,84 @@ void abstractAlgoHandler::fillProcessParameters(PARAMS_C2C_STRIP_INPUT& input, S
 
 		for (auto i = 0; i < _processParameters->C2CROISetsCount(); i++)
 		{
-			fillProcessParameters(input._c2cROIInputs[i], side );
+			fillC2CProcessParameters(input._c2cROIInputs[i], side );
 		}
 	}
 }
 
-void abstractAlgoHandler::fillProcessParameters(PARAMS_I2S_INPUT& input, SHEET_SIDE side)
+void abstractAlgoHandler::fillEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT& input, SHEET_SIDE side)
 {
-	fillProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	input._approxDistanceFromEdgeX = _processParameters->EdgeApproximateDistanceX_px();
+	input._triangeApproximateY = _processParameters->EdgeTriangleApproximateY_px();
 	input._side = side;
 }
 
-void abstractAlgoHandler::fillProcessParameters(PARAMS_C2C_ROI_INPUT& input, SHEET_SIDE side)
+void abstractAlgoHandler::fillI2SProcessParameters(PARAMS_I2S_INPUT& input, SHEET_SIDE side)
 {
-	fillProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
 	input._side = side;
 }
 
-void abstractAlgoHandler::fillProcessParameters(PARAMS_WAVE_INPUT& input)
+void abstractAlgoHandler::fillC2CProcessParameters(PARAMS_C2C_ROI_INPUT& input, SHEET_SIDE side)
+{
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	input._side = side;
+}
+
+void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 {
 }
 
+void abstractAlgoHandler::dumpOverlays(const cv::Mat& img, const std::string& fileName)
+{
+	if (!_processParameters->DisableAllROISaving() && _processParameters->GenerateOverlays())
+	{
+		dumpMatFile(img, CV_COPY_REGION::getSavePath(_processParameters, fileName, _frameIndex), false, _bParallelizeCalculations);
+	}
+}
+
+void abstractAlgoHandler::dumpFrameCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
+{
+	
+}
+
+std::string abstractAlgoHandler::getBatchRootFolder()
+{
+	return fmt::format("{0}", _processParameters->JobID());
+}
+
+std::string abstractAlgoHandler::getFrameFolderName()
+{
+	return fmt::format("frame_#{2}", _frameIndex);
+}
+
+void abstractAlgoHandler::createCSVFolder()
+{
+	auto rootPath = _processParameters->RootOutputFolder().toStdString();
+	if (rootPath.empty())
+	{
+		rootPath = DEFAULT_OUT_FOLDER;
+	}
+
+	const fs::path p{ 
+		fmt::format("{0}\\{1}\\RawResults"
+		, rootPath
+		, _processParameters->JobID() )
+	};
+	
+	if (!is_directory(p) || !exists(p))
+	{
+		try
+		{
+			create_directories(p); // create CSV folder
+		}
+		catch (fs::filesystem_error& er)
+		{
+
+		}
+	}
+}
 
 void abstractAlgoHandler::copyRegions(CV_COPY_REGION_LIST& regionList)
 {
@@ -153,7 +223,7 @@ void abstractAlgoHandler::copyRegions(CV_COPY_REGION_LIST& regionList)
 }
 
 
-void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV_COPY_REGION_LIST& regionList)
+void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV_COPY_REGION_LIST& regionList) const
 {
 	auto& inputStripLeft = input._stripInputParamLeft;
 	generateStripRegions(inputStripLeft, regionList);
@@ -206,7 +276,7 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, CV
 
 	///////////////////////
 	////////// C2C ROIs
-	for (auto i = 0; i < _processParameters->C2CROISetsCount(); i++)
+	for (auto i = 0; i < input._c2cROIInputs.size(); i++)
 	{
 		generateC2CRegions(input._c2cROIInputs[i], regionList);
 	}
@@ -303,6 +373,10 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 		if (_processParameters->ProcessRightSide())
 			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
+
+	dumpFrameCSV(retVal._stripOutputParameterLeft);
+	if (_processParameters->ProcessRightSide())
+		dumpFrameCSV(retVal._stripOutputParameterRight);
 	return retVal;
 }
 
@@ -313,6 +387,20 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, const bool detectEdge)
 {
 	PARAMS_C2C_STRIP_OUTPUT retVal;
+
+	// allocate array of C2C outputs
+	const auto& roiCount = stripInput._c2cROIInputs.size();
+
+	retVal._c2cROIOutputs.resize(roiCount);
+
+	for (auto& roiOut : retVal._c2cROIOutputs)
+	{
+		roiOut._result = ALG_STATUS_FAILED;
+		roiOut._colorStatuses = { roiCount, ALG_STATUS_FAILED };
+		roiOut._colorCenters = { roiCount, {0,0} };
+		roiOut._colorOverlays.resize(roiCount);
+	}
+
 	retVal._input = stripInput;
 
 	if (_bParallelizeCalculations)
@@ -419,19 +507,7 @@ PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	if (input.GenerateOverlay())
-	{
-		const auto& savePath = CV_COPY_REGION::getSavePath(_processParameters, fmt::format("edge_overlay_{0}.bmp", input._side), _frame->getIndex());
-		if (_bParallelizeCalculations)
-		{
-			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, retVal._edgeOverlay.clone(), savePath);
-		}
-		else
-		{
-			Functions::frameSaveImage(retVal._edgeOverlay.clone(), savePath);
-		}
-	}
-
+	dumpOverlays(retVal._edgeOverlay, fmt::format("strip_[{0}]_OVERLAY.bmp", SIDE_NAMES[input._side]));
 	return std::move(retVal);
 }
 
@@ -479,18 +555,7 @@ PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	if (input.GenerateOverlay())
-	{
-		const auto& savePath = CV_COPY_REGION::getSavePath(_processParameters, fmt::format("I2S_overlay_{0}.bmp", input._side), _frame->getIndex());
-		if (_bParallelizeCalculations)
-		{
-			TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, retVal._triangleOverlay.clone(), savePath);
-		}
-		else
-		{
-			Functions::frameSaveImage(retVal._triangleOverlay.clone(), savePath);
-		}
-	}
+	dumpOverlays(retVal._triangleOverlay, fmt::format("I2S_[{0}]_OVERLAY.bmp", SIDE_NAMES[input._side]));
 	return std::move(retVal);
 }
 
@@ -545,22 +610,13 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	if (input.GenerateOverlay())
+	// double check for saving overlays to avoid unnecessary array iteration
+	if (!_processParameters->DisableAllROISaving() && input.GenerateOverlay())
 	{
-		int iIndex = 0;
 		std::for_each(retVal._colorOverlays.begin(), retVal._colorOverlays.end()
-			, [&iIndex, &input, this](auto overlay)
+			, [&input, this](auto overlay)
 		{
-			const auto& savePath = CV_COPY_REGION::getSavePath(_processParameters, fmt::format("c2c_overlay_[{0}]_{1}.bmp", input._side, iIndex), this->_frame->getIndex());
-			if (this->_bParallelizeCalculations)
-			{
-				TaskThreadPools::postJob(TaskThreadPools::diskDumperThreadPool(), Functions::frameSaveImage, overlay.clone(), savePath);
-			}
-			else
-			{
-				Functions::frameSaveImage(overlay.clone(), savePath);
-			}
-			++iIndex;
+			dumpOverlays(overlay, fmt::format("C2C_[{0}]_{1}_OVERLAY.bmp", SIDE_NAMES[input._side], input._roiIndex));
 		}
 		);
 	}

@@ -4,6 +4,7 @@
 #include <QVector>
 #include <QRect>
 #include "common/type_usings.h"
+#include <string>
 
 #include <QJsonObject>
 #include <utility>
@@ -65,9 +66,18 @@ namespace LandaJune
 			COLOR_TRIPLET_SINGLE() = default;
 			COLOR_TRIPLET_SINGLE(const COLOR_TRIPLET_SINGLE& other) = default;
 			~COLOR_TRIPLET_SINGLE() = default;
+			
+			QString toString() const noexcept
+			{
+				return QString("(%1,%2,%3)").arg(QString::number(_iH)
+					, QString::number(_iS)
+					, QString::number(_iV));
+			}
+
 			qint32	_iH = 0;
 			qint32	_iS = 0;
 			qint32	_iV = 0;
+			std::string _colorName;
 
 		};
 
@@ -76,6 +86,11 @@ namespace LandaJune
 			COLOR_TRIPLET() = default;
 			COLOR_TRIPLET(const COLOR_TRIPLET& other) = default;
 			~COLOR_TRIPLET() = default;
+			QString toString() const noexcept
+			{
+				return _min.toString() + " - " + _max.toString();
+			}
+
 			COLOR_TRIPLET_SINGLE _min;
 			COLOR_TRIPLET_SINGLE _max;
 			std::string _colorName;
