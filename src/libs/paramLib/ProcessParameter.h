@@ -88,7 +88,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenDots_um, double, 3048, true)
 			//DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 155500, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 159300, true)
-			DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double, 8300, true)
+			DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double, 9600, true)
 
 			// HSV
 			DECLARE_PARAM_PROPERTY(Colors, PARAM_GROUP_HEADER, { "Color Parameters" }, true)
