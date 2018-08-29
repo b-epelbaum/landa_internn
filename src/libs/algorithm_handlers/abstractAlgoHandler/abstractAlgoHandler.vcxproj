@@ -110,6 +110,9 @@
     <ClCompile Include="abstractalgohandler.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImageRegion.h" />
+    <ClInclude Include="saveFunc.h" />
+    <ClInclude Include="typeConverters.hpp" />
     <QtMoc Include="abstractalgohandler.h" />
     <ClInclude Include="abstractalgohandler_global.h" />
   </ItemGroup>

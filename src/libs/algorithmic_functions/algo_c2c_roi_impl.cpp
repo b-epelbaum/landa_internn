@@ -194,7 +194,7 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 	int iColor_Num = input._colors.size() ;		// number of clircles
 
 	// define and clear overlay image
-	if (input._GenerateOverlay) {
+	if (input.GenerateOverlay()) {
 		output._colorOverlay.create(input._ROIImageSource.rows, input._ROIImageSource.cols, CV_8UC3);
 		output._colorOverlay.setTo(0);
 	}

@@ -34,6 +34,15 @@
     <ClInclude Include="abstractalgohandler_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="typeConverters.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageRegion.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="saveFunc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="abstractalgohandler.h">

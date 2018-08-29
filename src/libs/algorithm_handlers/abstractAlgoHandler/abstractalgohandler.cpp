@@ -8,6 +8,9 @@
 #include "util.h"
 #include <filesystem>
 
+#include "typeConverters.hpp"
+#include <fstream>
+
 namespace fs = std::filesystem;
 
 using namespace LandaJune;
@@ -25,6 +28,175 @@ void abstractAlgoHandler::init(std::shared_ptr<BaseParameter> parameters)
 	createCSVFolder();
 	validateProcessParameters(parameters);
 }
+
+//////////////////////////////////////////////
+//////////////  file naming functions 
+
+
+std::string abstractAlgoHandler::getBatchRootFolder() const
+{
+	return std::move(std::to_string(_processParameters->JobID()));
+}
+
+
+std::string abstractAlgoHandler::getFrameFolderName() const
+{
+	return fmt::format("frame_#{0}", _frameIndex);
+}
+
+std::string abstractAlgoHandler::getElementPrefix() const
+{
+	//file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
+	return std::move(
+		fmt::format(
+			"{0}_{1}_"
+			, _frameIndex
+			, _imageIndex)
+	);
+}
+
+std::string abstractAlgoHandler::generateFullPathForElement(const std::string& elementName, const std::string& ext ) const
+{
+	// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_EDGE_LEFT or
+	// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
+
+	return std::move(
+		fmt::format(
+			R"({0}\{1}\{2}\{3}_{4}.{5})"
+			, _processParameters->RootOutputFolder().toStdString()
+			, getBatchRootFolder()
+			, getFrameFolderName()
+			, getElementPrefix()
+			, elementName
+			, ext)
+	);
+}
+
+std::string abstractAlgoHandler::generateFullPathForRegCSV(const PARAMS_C2C_STRIP_OUTPUT& out) const
+{
+	return fmt::format("{0}\\Registration_{1}_{2}.csv", _csvFolder, SIDE_NAMES[out._input->_side], _frameIndex );
+}
+
+std::string abstractAlgoHandler::generateFullPathForPlacementCSV(SHEET_SIDE side) const
+{
+	return fmt::format("{0}\\ImagePlacement_{1}.csv", _csvFolder, SIDE_NAMES[side]);
+}
+
+
+////////////////////////////////////////////////////////
+/////////////////  file saving  functions
+
+void abstractAlgoHandler::dumpRegistrationCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
+{
+	std::string resultName = (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+
+	std::ostringstream ss;
+	ss << "Pattern Type :,Registration" << std::endl << std::endl
+	<< "Job Id :," << _processParameters->JobID() << std::endl
+	<< "Flat ID :," << _frameIndex << std::endl
+	<< "ImageIndex ID :," << _imageIndex << std::endl
+	<< "Registration Side :" << SIDE_NAMES[stripOut._input->_side] << std::endl
+	<< "Registration Overall Status :," << resultName << std::endl
+	<< "Ink\\Sets,";
+	
+	for (const auto& out : stripOut._c2cROIOutputs)
+	{
+		resultName =  (out._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+		ss << "Set #" << out._input->_roiIndex + 1 << " :," << resultName << ",";
+	}
+	ss << std::endl;
+
+	for ( size_t i = 0; i < stripOut._c2cROIOutputs[0]._input->_colors.size(); i++)
+	{
+		ss << stripOut._c2cROIOutputs[0]._input->_colors[i]._colorName;
+		for (const auto& out : stripOut._c2cROIOutputs)
+		{
+			ss << "," << out._colorCenters[i]._x << "," << out._colorCenters[i]._y;
+		}
+		ss << std::endl;
+	}
+
+	auto const& fPath = generateFullPathForRegCSV(stripOut);
+	std::ofstream outFile;
+	outFile.open (fPath);
+	if (outFile.fail())
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "cannot save file " << fPath.c_str() << "; error : " << strerror(errno);
+	}
+	else
+	{
+		outFile << ss.str();
+		outFile.close();
+	}
+}
+
+void abstractAlgoHandler::dumpPlacementCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
+{
+	const auto& i2sOut = stripOut._i2sOutput;
+	static const std::string colons = ",,,,,,,";
+
+	const auto& csvOutFilePath = QString::fromStdString(generateFullPathForPlacementCSV(stripOut._input->_side));
+	
+	const auto fileExists = QFileInfo(csvOutFilePath).exists();
+
+	const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
+	
+	QFile outFile(csvOutFilePath);
+	outFile.open(flags | QFile::Text);
+
+	const std::string resultName =  (i2sOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+	std::ostringstream ss;
+
+	if (!fileExists)
+		ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl ;
+
+	// TODO : move pixel density multiplication to algorithm function
+	ss << _frameIndex 
+		<< "," 
+		<< _imageIndex
+		<< "," 
+		<< resultName 
+		<< colons 
+		<< i2sOut._triangeCorner._x  *  1000 
+		<< "," << i2sOut._triangeCorner._y * 1000 
+		<< std::endl;
+
+	const std::string& outString = ss.str();
+	outFile.write(outString.c_str(), outString.size());
+}
+
+
+void abstractAlgoHandler::createCSVFolder()
+{
+	auto rootPath = _processParameters->RootOutputFolder().toStdString();
+	if (rootPath.empty())
+	{
+		rootPath = DEFAULT_OUT_FOLDER;
+	}
+
+	const fs::path p{ 
+		fmt::format("{0}\\{1}\\RawResults"
+		, rootPath
+		, getBatchRootFolder() )
+	};
+	
+	if (!is_directory(p) || !exists(p))
+	{
+		try
+		{
+			create_directories(p); // create CSV folder
+		}
+		catch (fs::filesystem_error& er)
+		{
+			// 
+		}
+	}
+	_csvFolder = p.string();
+}
+
+
+////////////////////////////////////////////////////////
+/////////////////  core functions
 
 void abstractAlgoHandler::process(const FrameRef* frame)
 {
@@ -48,6 +220,9 @@ void abstractAlgoHandler::constructFrameContainer(const FrameRef* frame, int bit
 	_frameContainer = std::make_unique<cv::Mat>(frame->getHeight(), frame->getWidth(),
 		CV_MAKETYPE(CV_8U, bitsPerPixel / 8), (void*)frame->getBits());
 }
+
+////////////////////////////////////////////////////////
+/////////////////  fill data structures functions
 
 void abstractAlgoHandler::fillCommonProcessParameters(ABSTRACT_INPUT& input)
 {
@@ -143,103 +318,11 @@ void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 {
 }
 
-void abstractAlgoHandler::dumpOverlays(const cv::Mat& img, const std::string& fileName)
-{
-	if (!_processParameters->DisableAllROISaving() && _processParameters->GenerateOverlays())
-	{
-		dumpMatFile(img, CV_COPY_REGION::getSavePath(_processParameters, fileName, _frameIndex), false, _bParallelizeCalculations);
-	}
-}
 
-void abstractAlgoHandler::dumpFrameCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
-{
-	std::string resultName = (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+////////////////////////////////////////////////////////
+/////////////////  copy regions functions
 
-	std::ostringstream ss;
-	ss << "Pattern Type :,Registration" << std::endl << std::endl
-	<< "Job Id :," << _processParameters->JobID() << std::endl
-	<< "Flat ID :," << _frameIndex << std::endl
-	<< "ImageIndex ID :," << _imageIndex << std::endl
-	<< "Registration Side :" << SIDE_NAMES[stripOut._input->_side] << std::endl
-	<< "Registration Overall Status :," << resultName << std::endl
-	<< "Ink\\Sets,";
-	
-	for (const auto& out : stripOut._c2cROIOutputs)
-	{
-		resultName =  (out._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-		ss << "Set #" << out._input->_roiIndex + 1 << " :," << resultName << ",";
-	}
-	ss << std::endl;
-
-	for ( size_t i = 0; i < stripOut._c2cROIOutputs[0]._input->_colors.size(); i++)
-	{
-		ss << stripOut._c2cROIOutputs[0]._input->_colors[i]._colorName;
-		for (const auto& out : stripOut._c2cROIOutputs)
-		{
-			ss << "," << out._colorCenters[i]._x << "," << out._colorCenters[i]._y;
-		}
-		ss << std::endl;
-	}
-
-	auto const& fPath = QString::fromStdString(fmt::format("{0}\\{1}.csv"
-	, _csvFolder
-	, _frameIndex ));
-
-	QFile fout (fPath);
-
-	const auto & res = fout.open(QFile::WriteOnly | QFile::Text);
-
-	const std::string& textOut = ss.str();
-	fout.write(textOut.c_str(), textOut.size());
-
-/*
-Cyan,8563,-124,160654,-70,312784,-75,464889,-274,617626,-332
-Black,8561,2987,160641,3042,312759,3038,464889,2851,617576,2792
-Yellow,11614,-293,163704,-247,315777,-253,467938,-439,620625,-492
-Magenta,11611,2906,163720,2956,315809,2954,467939,2767,620661,2717
-*/
-}
-
-std::string abstractAlgoHandler::getBatchRootFolder()
-{
-	return fmt::format("{0}", _processParameters->JobID());
-}
-
-std::string abstractAlgoHandler::getFrameFolderName()
-{
-	return fmt::format("frame_#{2}", _frameIndex);
-}
-
-void abstractAlgoHandler::createCSVFolder()
-{
-	auto rootPath = _processParameters->RootOutputFolder().toStdString();
-	if (rootPath.empty())
-	{
-		rootPath = DEFAULT_OUT_FOLDER;
-	}
-
-	const fs::path p{ 
-		fmt::format("{0}\\{1}\\RawResults"
-		, rootPath
-		, _processParameters->JobID() )
-	};
-	
-	if (!is_directory(p) || !exists(p))
-	{
-		try
-		{
-			create_directories(p); // create CSV folder
-		}
-		catch (fs::filesystem_error& er)
-		{
-
-		}
-	}
-
-	_csvFolder = p.string();
-}
-
-void abstractAlgoHandler::copyRegions(CV_COPY_REGION_LIST& regionList)
+void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 {
 	// performs actual deep copy of selected regions
 	if (_bParallelizeCalculations)
@@ -253,24 +336,23 @@ void abstractAlgoHandler::copyRegions(CV_COPY_REGION_LIST& regionList)
 			regionList.end(),
 			[&futureCopyRegionsList, &pool](auto &in)
 		{
-			futureCopyRegionsList.emplace_back(TaskThreadPools::postJob(pool, CV_COPY_REGION::performCopy, std::ref(in)));
+			futureCopyRegionsList.emplace_back(TaskThreadPools::postJob(pool, ImageRegion::performCopy, std::ref(in)));
 		}
 		);
 
 		// run first copy regions on this thread
-		CV_COPY_REGION::performCopy(regionList.front());
+		ImageRegion::performCopy(regionList.front());
 
 		// wait for previous ROIs to complete
 		WAIT_ALL(futureCopyRegionsList);
 	}
 	else
 	{
-		std::for_each(regionList.begin(), regionList.end(), CV_COPY_REGION::performCopy);
+		std::for_each(regionList.begin(), regionList.end(), ImageRegion::performCopy);
 	}
 }
 
-
-void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV_COPY_REGION_LIST& regionList) const
+void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
 	auto& inputStripLeft = input._stripInputParamLeft;
 	generateStripRegions(inputStripLeft, regionList);
@@ -282,15 +364,11 @@ void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, CV
 	}
 }
 
-void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, CV_COPY_REGION_LIST& regionList) const
+void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
 	const auto dumpStrip = (input._side == LEFT) ? 
 		_processParameters->DumpLeftStrip() 
 	  : _processParameters->DumpRightStrip();
-
-	const std::string name = (input._side == LEFT) 
-		? "strip_[LEFT]" 
-		: "strip_[RIGHT]";
 
 	const auto& stripRect = (input._side == LEFT) 
 		? _processParameters->LeftStripRect() 
@@ -298,14 +376,14 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, CV
 
 	// add strip region
 	regionList.emplace_back(
-		CV_COPY_REGION
+		ImageRegion
 		(
 			*_frameContainer
 			, input._paperEdgeInput._stripImageSource
 			, _processParameters
 			, qrect2cvrect(stripRect)
 			, _frameIndex
-			, name
+			, generateFullPathForElement<PARAMS_C2C_STRIP_INPUT>(input, "bmp")
 			, dumpStrip
 		)
 	);
@@ -329,57 +407,50 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, CV
 	}
 }
 
-void abstractAlgoHandler::generateI2SRegions(PARAMS_I2S_INPUT& input, CV_COPY_REGION_LIST& regionList) const
+void abstractAlgoHandler::generateI2SRegions(PARAMS_I2S_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
-	const std::string name = (input._side == LEFT)
-		? "I2S_[LEFT]"
-		: "I2S_[RIGHT]";
-
 	regionList.emplace_back(
-		CV_COPY_REGION
+		ImageRegion
 		(
 			*_frameContainer
 			, input._triangleImageSource
 			, _processParameters
 			, roirect2cvrect(input._approxTriangeROI)
 			, _frameIndex
-			, name
+			, this->generateFullPathForElement<PARAMS_I2S_INPUT>(input, "bmp")
 			, _processParameters->DumpI2S()
 		)
 	);
 }
 
-void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, CV_COPY_REGION_LIST& regionList) const
+void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
-	const std::string name = (input._side == LEFT)
-		? "C2C_[LEFT]_{0}"
-		: "C2C_[RIGHT]_{0}";
-
 	auto& ROI = input;
 	ROI.setGenerateOverlay(input.GenerateOverlay());
 	regionList.emplace_back(
-		CV_COPY_REGION
+		ImageRegion
 		(
 			*_frameContainer
 			, ROI._ROIImageSource
 			, _processParameters
 			, roirect2cvrect(ROI._ROI)
 			, _frameIndex
-			, fmt::format(name, ROI._roiIndex)
+			, generateFullPathForElement<PARAMS_C2C_ROI_INPUT>(input, "bmp")
 			, _processParameters->DumpC2CROIs()
 		)
 	);
 }
 
-void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, CV_COPY_REGION_LIST& regionList)
+void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList)
 {
 
 }
 
-///////////////////////////////////////////////////
-////////////// WHOLE SHEET  FUNCTION //////////////
-///////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////
+/////////////////  Algorithm processing functions per object
 
+// ------------------------------------------------------
+//				WHOLE SHEET  FUNCTION 
 
 PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET_INPUT& sheetInput)
 {
@@ -424,9 +495,8 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 	return retVal;
 }
 
-///////////////////////////////////////////////////
-/////////////// SIDE STRIP FUNCTION ///////////////
-///////////////////////////////////////////////////
+// ------------------------------------------------------
+//				Strip processing  FUNCTION 
 
 PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, const bool detectEdge)
 {
@@ -506,6 +576,12 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		}
 		);
 	}
+
+	retVal._result = 
+		std::all_of(retVal._c2cROIOutputs.begin(), retVal._c2cROIOutputs.end(), [](auto& out) { return out._result == ALG_STATUS_SUCCESS; } )
+		? ALG_STATUS_SUCCESS
+		: ALG_STATUS_FAILED;
+
 	return retVal;
 }
 
@@ -520,6 +596,9 @@ void abstractAlgoHandler::initEdge(const INIT_PARAMETER& initParam) const
 		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "Function detect_edge_init has thrown exception";
 	}
 }
+
+// ------------------------------------------------------
+//				Edge processing  FUNCTION 
 
 PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_INPUT& input)
 {
@@ -537,7 +616,7 @@ PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	dumpOverlays(retVal._edgeOverlay, fmt::format("strip_[{0}]_OVERLAY.bmp", SIDE_NAMES[input._side]));
+	dumpOverlay<PARAMS_PAPEREDGE_OUTPUT>(retVal);
 	return std::move(retVal);
 }
 
@@ -553,9 +632,8 @@ void abstractAlgoHandler::shutdownEdge() const
 	}
 }
 
-///////////////////////////////////////////////////
-////////////////// I2S FUNCTION ///////////////////
-///////////////////////////////////////////////////
+// ------------------------------------------------------
+//				I2S processing  FUNCTION 
 
 void abstractAlgoHandler::initI2S(const INIT_PARAMETER& initParam) const
 {
@@ -585,7 +663,7 @@ PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	dumpOverlays(retVal._triangleOverlay, fmt::format("I2S_[{0}]_OVERLAY.bmp", SIDE_NAMES[input._side]));
+	dumpOverlay<PARAMS_I2S_OUTPUT>(retVal);
 	return std::move(retVal);
 }
 
@@ -601,10 +679,6 @@ void abstractAlgoHandler::shutdownI2S() const
 	}
 }
 
-
-///////////////////////////////////////////////////
-/////////////// C2C ONE ROI FUNCTION //////////////
-///////////////////////////////////////////////////
 
 
 void abstractAlgoHandler::initC2CRoi(const INIT_PARAMETER& initParam) const
@@ -623,6 +697,9 @@ void abstractAlgoHandler::initC2CRoi(const INIT_PARAMETER& initParam) const
 		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "Function detect_c2c_roi_init has thrown exception";
 	}
 }
+
+// ------------------------------------------------------
+//				C2C 1 ROI processing  FUNCTION 
 
 PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_INPUT& input)
 {
@@ -647,11 +724,7 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	// double check for saving overlays to avoid unnecessary array iteration
-	if (!_processParameters->DisableAllROISaving() && input.GenerateOverlay())
-	{
-		dumpOverlays(retVal._colorOverlay, fmt::format("C2C_[{0}]_{1}_OVERLAY.bmp", SIDE_NAMES[input._side], input._roiIndex));
-	}
+	dumpOverlay<PARAMS_C2C_ROI_OUTPUT>(retVal);
 	return retVal;
 }
 
@@ -670,6 +743,9 @@ void abstractAlgoHandler::shutdownC2CRoi() const
 void abstractAlgoHandler::initWave(const INIT_PARAMETER& initParam)
 {
 }
+
+// ------------------------------------------------------
+//				Wave processing  FUNCTION 
 
 PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& input)
 {

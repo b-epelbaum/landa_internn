@@ -104,7 +104,7 @@ void fullPageHandler::process(const FrameRef * frame)
 	fillSheetProcessParameters(input);
 
 	// generate ROIs for all required elements
-	CV_COPY_REGION_LIST regionList;
+	IMAGE_REGION_LIST regionList;
 	generateSheetRegions(input, regionList);
 
 	// and perform a deep copy

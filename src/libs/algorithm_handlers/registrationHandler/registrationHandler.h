@@ -26,6 +26,8 @@ namespace LandaJune
 			QString getName() const override;
 			QString getDescription() const override;
 
+			std::string getFrameFolderName() const override;
+
 			void init(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 			void cleanup() override;
 			void process(const Core::FrameRef * frame) override;
@@ -38,7 +40,8 @@ namespace LandaJune
 
 		private :
 
-			std::string _sourceFrameImageName;
+			std::string _sourceFrameNumber;
+			SHEET_SIDE _regSide = LEFT;
 		};
 	}
 }

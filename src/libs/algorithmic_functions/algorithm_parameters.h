@@ -6,8 +6,9 @@
 
 #include "common/june_errors.h"
 #include "opencv/cv.h"
+#include "../formatLib/include/format.h"
 
-#define DECLARE_INPUT_PARAMETER(x,type,initval) type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; }
+#define DECLARE_INPUT_PARAMETER(x,type,initval) public: type _##x = initval; public: type x() const { return _##x; } public: void set##x(const type val) { _##x = val; }
 
 namespace LandaJune {
 	namespace Core {
@@ -28,171 +29,151 @@ namespace LandaJune
 		//		Init Functions parameters
 		//------------------------------------------
 
-		struct INIT_PARAMETER
+		class INIT_PARAMETER
 		{
+		public:
 			ROIRect _roiRect;
 		};
 
-		struct C2C_ROI_INIT_PARAMETER : INIT_PARAMETER
+		class C2C_ROI_INIT_PARAMETER : INIT_PARAMETER
 		{
-			C2C_ROI_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
+		public:
 
+			C2C_ROI_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
 			cv::Mat	_templateImage;
 		};
 
-
-
-		//------------------------------------------
-		//		Paper Edge detection parameters
-		//------------------------------------------
-
-		struct ABSTRACT_INPUT
-		{
-			explicit ABSTRACT_INPUT(const Core::FrameRef * frame) : _frame(frame) {}
-
-			const Core::FrameRef * _frame = nullptr;
-
-
-			// other parameters
-			DECLARE_INPUT_PARAMETER (Pixel2MM_X, double, 0.0)
-			DECLARE_INPUT_PARAMETER (Pixel2MM_Y, double, 0.0)
-			DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, false)
-		};
-
-
-		// Input
-		struct PARAMS_PAPEREDGE_INPUT : ABSTRACT_INPUT
-		{
-			PARAMS_PAPEREDGE_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
-				: ABSTRACT_INPUT(frame )
-				, _side(side)
-			{}
-
-			SHEET_SIDE					_side = LEFT;
-			uint32_t					_approxDistanceFromEdgeX = -1;
-			uint32_t					_triangeApproximateY = -1;
-			cv::Mat						_stripImageSource;
-		};
-
-		// output
-		struct PARAMS_PAPEREDGE_OUTPUT
-		{
-			OUT_STATUS					_result = ALG_STATUS_FAILED;
-			uint32_t					_exactDistanceFromEdgeX = -1;
-			cv::Mat						_edgeOverlay;
-
-			///
-			std::optional<PARAMS_PAPEREDGE_INPUT>		_input;
-		};
-
+		////////////////////////////////////////////////
+		////////////    INPUT CLASSES  /////////////////
+		////////////////////////////////////////////////
 
 		//------------------------------------------
-		//		I2S detection parameters
+		//		Abstract Input  class
 		//------------------------------------------
 
-		// Input
-		struct PARAMS_I2S_INPUT :  ABSTRACT_INPUT
+		class ABSTRACT_INPUT
 		{
-			explicit PARAMS_I2S_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
-				: ABSTRACT_INPUT(frame)
-				, _side(side)
-			{}
+			public:
+				explicit ABSTRACT_INPUT(const Core::FrameRef * frame) : _frame(frame){}
+				virtual ~ABSTRACT_INPUT() = default;
 
-			SHEET_SIDE					_side = LEFT;
-			// ref color ?
-			ROIRect						_approxTriangeROI {};
-			cv::Mat						_triangleImageSource;
+				virtual std::string getElementName() const  = 0;
+
+				// other parameters
+				DECLARE_INPUT_PARAMETER (Pixel2MM_X, double, 0.0)
+				DECLARE_INPUT_PARAMETER (Pixel2MM_Y, double, 0.0)
+				DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, false)
+				
+				const Core::FrameRef * _frame = nullptr;
+				std::weak_ptr<ABSTRACT_INPUT> _parent;
 		};
-
-		// output
-		struct PARAMS_I2S_OUTPUT
-		{
-			OUT_STATUS		_result = ALG_STATUS_FAILED;
-			APOINT						_triangeCorner {};
-			cv::Mat						_triangleOverlay;
-
-			//
-			std::optional<PARAMS_I2S_INPUT>		_input;
-		};
-
 
 		//------------------------------------------
-		//		C2C ROI detection parameters
+		//		Frame I2S detection Input  class
+		//------------------------------------------
+
+		class PARAMS_I2S_INPUT :   public ABSTRACT_INPUT
+		{
+			public:
+				explicit PARAMS_I2S_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
+					: ABSTRACT_INPUT(frame)
+					, _side(side)
+					{}
+
+				std::string getElementName() const  override
+				{
+					return fmt::format("I2S_{0}", SIDE_NAMES[_side]);
+				}
+
+				SHEET_SIDE					_side = LEFT;
+				// ref color ?
+				ROIRect						_approxTriangeROI {};
+				cv::Mat						_triangleImageSource;
+		};
+
+		//------------------------------------------
+		//		C2C ROI detection Input parameters
 		//------------------------------------------
 
 		// Input
-		struct PARAMS_C2C_ROI_INPUT : ABSTRACT_INPUT
+		class PARAMS_C2C_ROI_INPUT :  public ABSTRACT_INPUT
 		{
-			explicit PARAMS_C2C_ROI_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side, std::vector<HSV> hsvs, const ROIRect& roi, int roiIndex)
-				: ABSTRACT_INPUT(frame)
-				, _side(side)
-				, _colors(std::move(hsvs))
-				, _ROI(roi)
-				, _roiIndex(roiIndex)
-			{}
+			public:
+				explicit PARAMS_C2C_ROI_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side, std::vector<HSV> hsvs, const ROIRect& roi, int roiIndex)
+					: ABSTRACT_INPUT(frame)
+					, _side(side)
+					, _colors(std::move(hsvs))
+					, _ROI(roi)
+					, _roiIndex(roiIndex)
+				{}
 
+				SHEET_SIDE				_side = LEFT;
+				// scanner side
+				std::vector<HSV>		_colors;
+				ROIRect					_ROI;
+				cv::Mat					_ROIImageSource;
+				uint32_t				_roiIndex = -1;
 
-			SHEET_SIDE				_side = LEFT;
-			// scanner side
-
-			std::vector<HSV>		_colors;
-			ROIRect					_ROI;
-			cv::Mat					_ROIImageSource;
-			uint32_t				_roiIndex = -1;
+				std::string getElementName() const  override
+				{
+					return fmt::format("C2C_{0}_{1}_[{2},{3}]", SIDE_NAMES[_side], _roiIndex, _ROI.left(), _ROI.top());
+				}
 		};
-
-
-		// Output
-		struct PARAMS_C2C_ROI_OUTPUT
-		{
-			OUT_STATUS					_result = ALG_STATUS_FAILED;
-			std::vector<OUT_STATUS>		_colorStatuses;
-			std::vector<APOINT>			_colorCenters;
-			cv::Mat						_colorOverlay;
-
-			///
-			std::optional<PARAMS_C2C_ROI_INPUT>		_input;
-		};
-
 
 		//------------------------------------------
-		//		WAVE detection parameters
+		//		Edge detection Input parameters
+		//------------------------------------------
+
+		class PARAMS_PAPEREDGE_INPUT : public ABSTRACT_INPUT
+		{
+			public:
+				PARAMS_PAPEREDGE_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
+					: ABSTRACT_INPUT(frame )
+					, _side(side)
+					{}
+
+					std::string getElementName() const  override
+					{
+						return fmt::format("EDGE_{0}", SIDE_NAMES[_side]);
+					}
+
+					SHEET_SIDE					_side = LEFT;
+					uint32_t					_approxDistanceFromEdgeX = -1;
+					uint32_t					_triangeApproximateY = -1;
+					cv::Mat						_stripImageSource;
+
+					std::weak_ptr<ABSTRACT_INPUT> _parent;
+		};
+
+		//------------------------------------------
+		//		WAVE detection Input parameters
 		//------------------------------------------
 
 		// Input
-		struct PARAMS_WAVE_INPUT : ABSTRACT_INPUT
+		class PARAMS_WAVE_INPUT :  public ABSTRACT_INPUT
 		{
+			public:
 			explicit PARAMS_WAVE_INPUT(const Core::FrameRef * frame)
 				: ABSTRACT_INPUT(frame)
-			{}
+				{}
 
-			// image mat
+				std::string getElementName() const  override
+				{
+					return "WAVE";
+				}
+
+			cv::Mat						_waveImageSource;
 			// scanner side
 			std::vector<HSV>			_colors;
 			ROIRect						_setROI;
 		};
 
-
-		// Output
-		struct PARAMS_WAVE_OUTPUT
-		{
-			OUT_STATUS								_result = ALG_STATUS_FAILED;
-			std::vector<std::vector<OUT_STATUS>>	_colorDetectionResults;
-			std::vector<std::vector<APOINT>>		_colorCenters;
-			std::vector<cv::Mat>					_colorOverlays;
-			///
-			std::optional<PARAMS_WAVE_INPUT>		_input;
-		};
-
-
 		//------------------------------------------
-		//		C2C strip detection parameters
+		//		Frame Strip detection Input parameters
 		//------------------------------------------
-
-		// Input
-		struct PARAMS_C2C_STRIP_INPUT : ABSTRACT_INPUT
+		class PARAMS_C2C_STRIP_INPUT :  public ABSTRACT_INPUT
 		{
-
+			public:
 			explicit PARAMS_C2C_STRIP_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
 				: ABSTRACT_INPUT(frame)
 				, _side(side)
@@ -201,55 +182,190 @@ namespace LandaJune
 			{
 			}
 
+			std::string getElementName() const  override
+			{
+				return fmt::format("Strip_{0}", SIDE_NAMES[_side]);
+			}
+
 			SHEET_SIDE							_side = LEFT;
 			PARAMS_PAPEREDGE_INPUT				_paperEdgeInput;
 			PARAMS_I2S_INPUT					_i2sInput;
 			std::vector<PARAMS_C2C_ROI_INPUT>	_c2cROIInputs;
 		};
 
-
-		// Output
-		struct PARAMS_C2C_STRIP_OUTPUT
+		//------------------------------------------
+		//	Sheet detection Input parameters
+		//------------------------------------------
+		class PARAMS_C2C_SHEET_INPUT :  public ABSTRACT_INPUT
 		{
-			OUT_STATUS							_result = ALG_STATUS_FAILED;
-			PARAMS_PAPEREDGE_OUTPUT				_paperEdgeOutput;
-			PARAMS_I2S_OUTPUT					_i2sOutput;
-			std::vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
-			///
-			std::optional<PARAMS_C2C_STRIP_INPUT>		_input;
+			public:
+				explicit PARAMS_C2C_SHEET_INPUT(const Core::FrameRef * frame)
+					: ABSTRACT_INPUT(frame)
+					, _stripInputParamLeft(frame, LEFT)
+					, _stripInputParamRight(frame, RIGHT) {}
+
+				std::string getElementName() const  override
+				{
+					return "Frame";
+				}
+
+				PARAMS_C2C_STRIP_INPUT _stripInputParamLeft;
+				PARAMS_C2C_STRIP_INPUT _stripInputParamRight;
 		};
 
 
 
-		//------------------------------------------
-		//	C2C per sheet detection parameters
-		//------------------------------------------
+		//////////////////////////////////////////////////////////////////////////
+		///////////////////////////    OUTPUT CLASSES  ///////////////////////////
+		//////////////////////////////////////////////////////////////////////////
 
-		// Input
-
-		struct PARAMS_C2C_SHEET_INPUT : ABSTRACT_INPUT
+		//------------------------------------------
+		//		Abstract Output  class
+		//------------------------------------------
+		class ABSTRACT_OUTPUT
 		{
-			explicit PARAMS_C2C_SHEET_INPUT(const Core::FrameRef * frame)
-				: ABSTRACT_INPUT(frame)
-				, _stripInputParamLeft(frame, LEFT)
-				, _stripInputParamRight(frame, RIGHT)
-			{
+			public:
+				virtual ~ABSTRACT_OUTPUT() = default;
+				ABSTRACT_OUTPUT() = default;
+
+				virtual std::string getElementName() = 0;
+				virtual std::optional<cv::Mat> overlay() const  = 0;
+
+				OUT_STATUS	_result = ALG_STATUS_FAILED;
+		};
+
+		//------------------------------------------
+		//		Frame I2S detection Output  class
+		//------------------------------------------
+		class PARAMS_I2S_OUTPUT : public ABSTRACT_OUTPUT
+		{
+			public:
+				APOINT						_triangeCorner {};
+				cv::Mat						_triangleOverlay;
+
+				//
+				std::optional<PARAMS_I2S_INPUT>		_input;
+
+				std::string getElementName() override
+				{
+					return fmt::format("I2S_{0}_overlay", SIDE_NAMES[_input->_side]);
+				}
+			
+				std::optional<cv::Mat> overlay()  const override
+				{
+					return _triangleOverlay;
+				}
+		};
+		
+		//------------------------------------------
+		//		Frame EDGE detection Output  class
+		//------------------------------------------
+		class PARAMS_PAPEREDGE_OUTPUT : public ABSTRACT_OUTPUT
+		{
+			public:
+				uint32_t					_exactDistanceFromEdgeX = -1;
+				cv::Mat						_edgeOverlay;
+			
+				std::optional<PARAMS_PAPEREDGE_INPUT>		_input;
+				std::string getElementName() override
+				{
+					return fmt::format("Edge_{0}_overlay", SIDE_NAMES[_input->_side]);
+				}
 				
+				std::optional<cv::Mat> overlay() const override
+				{
+					return _edgeOverlay;
+				}
+		};
+
+		//------------------------------------------
+		//		C2C detection Output  class
+		//------------------------------------------
+		class PARAMS_C2C_ROI_OUTPUT : public ABSTRACT_OUTPUT
+		{
+			public:
+
+			std::vector<OUT_STATUS>		_colorStatuses;
+			std::vector<APOINT>			_colorCenters;
+			cv::Mat						_colorOverlay;
+
+			///
+			std::optional<PARAMS_C2C_ROI_INPUT>		_input;
+			std::string getElementName() override
+			{
+				return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[_input->_side], _input->_roiIndex, _input->_ROI.left(), _input->_ROI.top());
 			}
 
-			PARAMS_C2C_STRIP_INPUT _stripInputParamLeft;
-			PARAMS_C2C_STRIP_INPUT _stripInputParamRight;
+			std::optional<cv::Mat> overlay() const  override
+			{
+				return _colorOverlay;
+			}
+		};
+
+		//------------------------------------------
+		//		WAVE detection Output  class
+		//------------------------------------------
+		class PARAMS_WAVE_OUTPUT : public ABSTRACT_OUTPUT
+		{
+			public:
+				std::vector<std::vector<OUT_STATUS>>	_colorDetectionResults;
+				std::vector<std::vector<APOINT>>		_colorCenters;
+				std::vector<cv::Mat>					_colorOverlays;
+				///
+				std::optional<PARAMS_WAVE_INPUT>		_input;
+				std::string getElementName() override
+				{
+					return "Wave";
+				}
+
+				std::optional<cv::Mat> overlay()  const override
+				{
+					return std::nullopt;
+				}
+		};
+
+		//------------------------------------------
+		//		Strip detection Output  class
+		//------------------------------------------
+		class PARAMS_C2C_STRIP_OUTPUT : public ABSTRACT_OUTPUT
+		{
+			public:
+				PARAMS_PAPEREDGE_OUTPUT				_paperEdgeOutput;
+				PARAMS_I2S_OUTPUT					_i2sOutput;
+				std::vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
+				///
+				std::optional<PARAMS_C2C_STRIP_INPUT>		_input;
+				
+				std::string getElementName() override
+				{
+					return fmt::format("Strip_{0}_overlay", SIDE_NAMES[_input->_side]);
+				}
+				
+				std::optional<cv::Mat> overlay()  const override
+				{
+					return std::nullopt;
+				}
 		};
 
 
-		// Output
-		struct PARAMS_C2C_SHEET_OUTPUT
+		//------------------------------------------
+		//		Sheet detection Output  class
+		//------------------------------------------
+		class PARAMS_C2C_SHEET_OUTPUT : public ABSTRACT_OUTPUT
 		{
-			OUT_STATUS					_result = ALG_STATUS_FAILED;
-			PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterLeft;
-			PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterRight;
-			///
-			std::optional<PARAMS_C2C_SHEET_INPUT>		_input;
+			public:
+				PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterLeft;
+				PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterRight;
+				///
+				std::optional<PARAMS_C2C_SHEET_INPUT>		_input;
+				std::string getElementName() override
+				{
+					return "Frame_overlay";
+				}
+				std::optional<cv::Mat> overlay()  const override
+				{
+					return std::nullopt;
+				}
 		};
 	}
 }
