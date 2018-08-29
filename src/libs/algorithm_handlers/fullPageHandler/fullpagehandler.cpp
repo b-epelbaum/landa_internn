@@ -33,9 +33,7 @@ fullPageHandler::~fullPageHandler()
 
 std::unique_ptr<IAlgorithmHandler> fullPageHandler::clone()
 {
-	auto retVal = std::make_unique<fullPageHandler>();
-	retVal->_processParameters = _processParameters;
-	return std::move(retVal);
+	return std::move(std::make_unique<fullPageHandler>(*this));
 }
 
 QString fullPageHandler::getName() const
@@ -48,6 +46,13 @@ QString fullPageHandler::getDescription() const
 	return FULL_PAGE_HANDLER_DESC;
 }
 
+std::string fullPageHandler::getFrameFolderName()  const 
+{
+	//\\Frame_<FrameID>_<ImageIndex>_algo_name
+	return std::move(fmt::format("Frame_{0}_{1}_full_page", _frameIndex, _imageIndex));
+}
+
+
 std::shared_ptr<BaseParameter> fullPageHandler::getParameters() const
 {
 	return std::static_pointer_cast<BaseParameter>(_processParameters);
@@ -56,6 +61,8 @@ std::shared_ptr<BaseParameter> fullPageHandler::getParameters() const
 void fullPageHandler::init(std::shared_ptr<BaseParameter> parameters)
 {
 	validateProcessParameters(parameters);
+	createCSVFolder();
+
 	// template image ( temporary solution )
 	QFile templateTif(":/templates/Resources/Template1.tif");
 	
@@ -112,4 +119,25 @@ void fullPageHandler::process(const FrameRef * frame)
 
 	// process whole sheet
 	auto output = processSheet(input);
+
+	// dump C2C results to CSV
+	if (_processParameters->ProcessRightSide())
+	{
+		if (_bParallelizeCalculations)
+		{
+			TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullPageHandler::dumpRegistrationCSV, this, output._stripOutputParameterLeft );
+		}
+		else
+			dumpRegistrationCSV(output._stripOutputParameterLeft);
+	}
+
+	dumpRegistrationCSV(output._stripOutputParameterLeft);
+
+
+	// append I2S results to CSV
+	dumpPlacementCSV(output._stripOutputParameterLeft);
+	if (_processParameters->ProcessRightSide())
+	{
+		dumpPlacementCSV(output._stripOutputParameterRight);
+	}
 }

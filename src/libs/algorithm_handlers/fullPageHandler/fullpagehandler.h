@@ -14,7 +14,7 @@ namespace LandaJune
 
 		public:
 			fullPageHandler();
-			fullPageHandler(const fullPageHandler &) = delete;
+			fullPageHandler(const fullPageHandler &) = default;
 			fullPageHandler(fullPageHandler &&) = delete;
 			virtual ~fullPageHandler();
 
@@ -25,6 +25,8 @@ namespace LandaJune
 			std::unique_ptr<IAlgorithmHandler> clone() override;
 			QString getName() const override;
 			QString getDescription() const override;
+
+			std::string getFrameFolderName() const override;
 
 			void init(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 			void cleanup() override;

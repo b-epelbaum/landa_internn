@@ -14,7 +14,7 @@ namespace LandaJune
 
 		public:
 			registrationPageHandler();
-			registrationPageHandler(const registrationPageHandler &) = delete;
+			registrationPageHandler(const registrationPageHandler & other) = default;
 			registrationPageHandler(registrationPageHandler &&) = delete;
 			virtual ~registrationPageHandler();
 
@@ -39,6 +39,7 @@ namespace LandaJune
 			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
 
 		private :
+		
 
 			std::string _sourceFrameNumber;
 			SHEET_SIDE _regSide = LEFT;

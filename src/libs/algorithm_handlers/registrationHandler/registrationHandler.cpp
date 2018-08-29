@@ -2,7 +2,6 @@
 #include "applog.h"
 #include "util.h"
 
-
 using namespace LandaJune;
 using namespace Algorithms;
 using namespace Parameters;
@@ -34,10 +33,7 @@ registrationPageHandler::~registrationPageHandler()
 
 std::unique_ptr<IAlgorithmHandler> registrationPageHandler::clone()
 {
-	auto retVal = std::make_unique<registrationPageHandler>();
-	retVal->_processParameters = _processParameters;
-	retVal->_csvFolder = _csvFolder;
-	return std::move(retVal);
+	return std::move(std::make_unique<registrationPageHandler>(*this));
 }
 
 QString registrationPageHandler::getName() const
@@ -107,6 +103,8 @@ void registrationPageHandler::process(const FrameRef * frame)
 {
 	// call general process implementation of parent class
 	abstractAlgoHandler::process(frame);
+
+	// get source frame ID from custom parameter passed by provider
 	_sourceFrameNumber.clear();
 	try
 	{
@@ -136,6 +134,8 @@ void registrationPageHandler::process(const FrameRef * frame)
 		_frameIndex = std::stoi(_sourceFrameNumber);
 	
 	PARAMS_C2C_STRIP_INPUT input(_frame, LEFT);
+
+	// fill process parameters
 	fillStripProcessParameters(input, LEFT);
 
 	// generate ROIs for all required elements

@@ -88,6 +88,9 @@ std::string abstractAlgoHandler::generateFullPathForPlacementCSV(SHEET_SIDE side
 
 void abstractAlgoHandler::dumpRegistrationCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
 {
+	if (_processParameters->DisableAllCSVSaving())
+		return;
+
 	std::string resultName = (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
 
 	std::ostringstream ss;
@@ -132,6 +135,9 @@ void abstractAlgoHandler::dumpRegistrationCSV(const PARAMS_C2C_STRIP_OUTPUT& str
 
 void abstractAlgoHandler::dumpPlacementCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
 {
+	if (_processParameters->DisableAllCSVSaving())
+		return;
+
 	const auto& i2sOut = stripOut._i2sOutput;
 	static const std::string colons = ",,,,,,,";
 
@@ -207,6 +213,8 @@ void abstractAlgoHandler::process(const FrameRef* frame)
 	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
 	_imageIndex = _frameIndex % _processParameters->PanelCount();
+	if ( _imageIndex == 0 && _frameIndex != 0 )
+		_imageIndex = _processParameters->PanelCount();
 }
 
 void abstractAlgoHandler::validateProcessParameters(std::shared_ptr<BaseParameter> parameters)

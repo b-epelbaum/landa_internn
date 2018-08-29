@@ -42,7 +42,16 @@ namespace LandaJune
 
 		public:
 			abstractAlgoHandler() = default;
-			abstractAlgoHandler(const abstractAlgoHandler &) = delete;
+			abstractAlgoHandler(const abstractAlgoHandler & other)
+				: _frame (other._frame)
+				, _frameIndex (other._frameIndex)
+				, _imageIndex (other._imageIndex)
+				, _csvFolder (other._csvFolder)
+				, _processParameters (other._processParameters)
+				, _bParallelizeCalculations (other._bParallelizeCalculations)
+			{
+			}
+
 			abstractAlgoHandler(abstractAlgoHandler &&) = delete;
 			virtual ~abstractAlgoHandler() = default;
 
