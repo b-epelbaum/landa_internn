@@ -153,29 +153,32 @@ void abstractAlgoHandler::dumpOverlays(const cv::Mat& img, const std::string& fi
 
 void abstractAlgoHandler::dumpFrameCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
 {
-	std::ostringstream ss;
-	ss << "Pattern Type :,Registration\r\n\r\n"
-	<< "Job Id :," << _processParameters->JobID() << "\r\n"
-	<< "Flat Id :," << _frameIndex << "\r\n"
-	<< "ImageIndex ID :," << _imageIndex << "\r\n"
-	<< "Registration Side :" << SIDE_NAMES[stripOut._input->_side] << "\r\n"
-	<< "Registration Overall Status :," << (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-	ss << "\r\nInk\\Sets,";
+	std::string resultName = (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
 
+	std::ostringstream ss;
+	ss << "Pattern Type :,Registration" << std::endl << std::endl
+	<< "Job Id :," << _processParameters->JobID() << std::endl
+	<< "Flat ID :," << _frameIndex << std::endl
+	<< "ImageIndex ID :," << _imageIndex << std::endl
+	<< "Registration Side :" << SIDE_NAMES[stripOut._input->_side] << std::endl
+	<< "Registration Overall Status :," << resultName << std::endl
+	<< "Ink\\Sets,";
+	
 	for (const auto& out : stripOut._c2cROIOutputs)
 	{
-		ss << "Set #" << out._input->_roiIndex << " :," << (out._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+		resultName =  (out._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+		ss << "Set #" << out._input->_roiIndex + 1 << " :," << resultName << ",";
 	}
-	ss << "\r\n";
+	ss << std::endl;
 
-	for ( int i = 0; i  <  stripOut._c2cROIOutputs[0]._input->_colors.size(); i++)
+	for ( size_t i = 0; i < stripOut._c2cROIOutputs[0]._input->_colors.size(); i++)
 	{
 		ss << stripOut._c2cROIOutputs[0]._input->_colors[i]._colorName;
 		for (const auto& out : stripOut._c2cROIOutputs)
 		{
 			ss << "," << out._colorCenters[i]._x << "," << out._colorCenters[i]._y;
 		}
-		ss << "\r\n";
+		ss << std::endl;
 	}
 
 	auto const& fPath = QString::fromStdString(fmt::format("{0}\\{1}.csv"

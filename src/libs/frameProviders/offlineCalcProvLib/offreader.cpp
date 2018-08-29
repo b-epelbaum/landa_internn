@@ -108,7 +108,7 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 			try
 			{
 				auto pImage = std::move(std::any_cast<cv::Mat>(unknownData));
-				//delete pImage;
+				pImage.release();
 			}
 			catch (const std::bad_any_cast& e)
 			{

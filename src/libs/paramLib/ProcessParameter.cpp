@@ -90,10 +90,10 @@ void ProcessParameter::recalculate()
 
 
 	_ColorArray
-		<< COLOR_TRIPLET{ color1_min, color1_max, "cyan" }
-		<< COLOR_TRIPLET{ color2_min, color2_max, "yellow" }
-		<< COLOR_TRIPLET{ color3_min, color3_max, "magenta" }
-		<< COLOR_TRIPLET{ color4_min, color4_max, "black" };
+		<< COLOR_TRIPLET{ color1_min, color1_max, "Cyan" }
+		<< COLOR_TRIPLET{ color2_min, color2_max, "Yellow" }
+		<< COLOR_TRIPLET{ color3_min, color3_max, "Magenta" }
+		<< COLOR_TRIPLET{ color4_min, color4_max, "Black" };
 
 	// C2c ROIs
 	_C2CDistanceBetweenDots_px = toPixelsY(_C2CDistanceBetweenDots_um / 1000);
