@@ -97,8 +97,13 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(TestSingleTriplet, COLOR_TRIPLET_SINGLE, {}, true)
 
 			DECLARE_PARAM_PROPERTY(Wave, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
+			DECLARE_PARAM_PROPERTY(WaveTriangleApproximateX_um, double, 510230, true)
+			DECLARE_PARAM_PROPERTY(WaveTriangleApproximateY_um, double, 4223, true)
+			DECLARE_PARAM_PROPERTY(WaveImageMarginX_um, double, 2000, true)
 			DECLARE_PARAM_PROPERTY(WaveCircleDiameter_um, double, 1016, true)
+			DECLARE_PARAM_PROPERTY(WaveDistanceBetweenDotsX_um, double, 2709.3, true)
 			DECLARE_PARAM_PROPERTY(WaveDistanceBetweenDotsY_um, double, 3048, true)
+			DECLARE_PARAM_PROPERTY(WaveDistanceBetweenTriangleAndFirstRow_um, double, 9687, true)
 
 
 			//-------------------------------------------------------
@@ -142,7 +147,10 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROIArrayRight, QVector<QRect>, {}, false)
 
 			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
-			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false)
+			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false) // 367
+			DECLARE_PARAM_PROPERTY(WaveTriangleROIRect, int, 0, false) 
+			DECLARE_PARAM_PROPERTY(WaveROIY_px, int, 0, false) 
+			DECLARE_PARAM_PROPERTY(WaveROIHeight_px, int, 0, false)
 			
 	
 		private slots:

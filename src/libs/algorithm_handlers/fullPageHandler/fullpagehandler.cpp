@@ -14,6 +14,12 @@ static const QString FULL_PAGE_HANDLER_DESC = "Full Scanned Page Algorithm Set";
 #define FULLPAGE_HANDLER_SCOPED_ERROR PRINT_ERROR << "[fullPageHandler] : "
 #define FULLPAGE_HANDLER_SCOPED_WARNING PRINT_WARNING << "[fullPageHandler] : "
 
+// naming convention
+// source : JobID, Frame ID, ImageIndex (%11)
+// target folder <root_folder>\JobID\\Frame_<FrameID>_<ImageIndex>_algo_name
+// file name : <Frame_ID>_<ImageIndex>_EDGE_LEFT
+// file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
+
 
 fullPageHandler::fullPageHandler()
 {

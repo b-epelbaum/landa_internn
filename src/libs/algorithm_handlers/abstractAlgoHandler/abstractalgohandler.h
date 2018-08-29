@@ -319,6 +319,8 @@ namespace LandaJune
 			const Core::FrameRef* _frame = nullptr;;
 			std::unique_ptr<cv::Mat> _frameContainer;
 			int _frameIndex = 0;
+			int _imageIndex = 0;
+			std::string _csvFolder;
 			std::shared_ptr<Parameters::ProcessParameter> _processParameters;
 			bool _bParallelizeCalculations = false;
 		};

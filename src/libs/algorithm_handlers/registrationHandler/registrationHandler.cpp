@@ -15,6 +15,11 @@ static const QString REGISTRATION_HANDLER_DESC = "Processes offline registration
 #define REGISTRATION_HANDLER_SCOPED_ERROR PRINT_ERROR << "[registrationPageHandler] : "
 #define REGISTRATION_HANDLER_SCOPED_WARNING PRINT_WARNING << "[registrationPageHandler] : "
 
+// naming convention
+// source : c:\Temp\offline\offline\11_781_Registration\GeometricRegInf85_13\GeometricRegInf85_13layoutImg.bmp 
+// target folder <root_folder>\11_Reg_Left
+// file name : <Frame_ID>_<ImageIndex>_EDGE_LEFT
+// file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
 
 registrationPageHandler::registrationPageHandler()
 {
@@ -30,6 +35,7 @@ std::unique_ptr<IAlgorithmHandler> registrationPageHandler::clone()
 {
 	auto retVal = std::make_unique<registrationPageHandler>();
 	retVal->_processParameters = _processParameters;
+	retVal->_csvFolder = _csvFolder;
 	return std::move(retVal);
 }
 
@@ -113,5 +119,7 @@ void registrationPageHandler::process(const FrameRef * frame)
 	// and perform a deep copy
 	copyRegions(regionList);
 
-	auto output = processStrip(input, true);
+	auto output = std::move(processStrip(input, true));
+
+	dumpFrameCSV(processStrip(input, true));
 }

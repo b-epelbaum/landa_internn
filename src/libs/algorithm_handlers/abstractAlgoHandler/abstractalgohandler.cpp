@@ -34,6 +34,7 @@ void abstractAlgoHandler::process(const FrameRef* frame)
 
 	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
+	_imageIndex = _frameIndex % _processParameters->PanelCount();
 }
 
 void abstractAlgoHandler::validateProcessParameters(std::shared_ptr<BaseParameter> parameters)
@@ -152,7 +153,48 @@ void abstractAlgoHandler::dumpOverlays(const cv::Mat& img, const std::string& fi
 
 void abstractAlgoHandler::dumpFrameCSV(const PARAMS_C2C_STRIP_OUTPUT& stripOut)
 {
-	
+	std::ostringstream ss;
+	ss << "Pattern Type :,Registration\r\n\r\n"
+	<< "Job Id :," << _processParameters->JobID() << "\r\n"
+	<< "Flat Id :," << _frameIndex << "\r\n"
+	<< "ImageIndex ID :," << _imageIndex << "\r\n"
+	<< "Registration Side :" << SIDE_NAMES[stripOut._input->_side] << "\r\n"
+	<< "Registration Overall Status :," << (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+	ss << "\r\nInk\\Sets,";
+
+	for (const auto& out : stripOut._c2cROIOutputs)
+	{
+		ss << "Set #" << out._input->_roiIndex << " :," << (out._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+	}
+	ss << "\r\n";
+
+	for ( int i = 0; i  <  stripOut._c2cROIOutputs[0]._input->_colors.size(); i++)
+	{
+		ss << stripOut._c2cROIOutputs[0]._input->_colors[i]._colorName;
+		for (const auto& out : stripOut._c2cROIOutputs)
+		{
+			ss << "," << out._colorCenters[i]._x << "," << out._colorCenters[i]._y;
+		}
+		ss << "\r\n";
+	}
+
+	auto const& fPath = QString::fromStdString(fmt::format("{0}\\{1}.csv"
+	, _csvFolder
+	, _frameIndex ));
+
+	QFile fout (fPath);
+
+	const auto & res = fout.open(QFile::WriteOnly | QFile::Text);
+
+	const std::string& textOut = ss.str();
+	fout.write(textOut.c_str(), textOut.size());
+
+/*
+Cyan,8563,-124,160654,-70,312784,-75,464889,-274,617626,-332
+Black,8561,2987,160641,3042,312759,3038,464889,2851,617576,2792
+Yellow,11614,-293,163704,-247,315777,-253,467938,-439,620625,-492
+Magenta,11611,2906,163720,2956,315809,2954,467939,2767,620661,2717
+*/
 }
 
 std::string abstractAlgoHandler::getBatchRootFolder()
@@ -190,6 +232,8 @@ void abstractAlgoHandler::createCSVFolder()
 
 		}
 	}
+
+	_csvFolder = p.string();
 }
 
 void abstractAlgoHandler::copyRegions(CV_COPY_REGION_LIST& regionList)
@@ -374,9 +418,6 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
 
-	dumpFrameCSV(retVal._stripOutputParameterLeft);
-	if (_processParameters->ProcessRightSide())
-		dumpFrameCSV(retVal._stripOutputParameterRight);
 	return retVal;
 }
 
@@ -387,20 +428,6 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, const bool detectEdge)
 {
 	PARAMS_C2C_STRIP_OUTPUT retVal;
-
-	// allocate array of C2C outputs
-	const auto& roiCount = stripInput._c2cROIInputs.size();
-
-	retVal._c2cROIOutputs.resize(roiCount);
-
-	for (auto& roiOut : retVal._c2cROIOutputs)
-	{
-		roiOut._result = ALG_STATUS_FAILED;
-		roiOut._colorStatuses = { roiCount, ALG_STATUS_FAILED };
-		roiOut._colorCenters = { roiCount, {0,0} };
-		roiOut._colorOverlays.resize(roiCount);
-	}
-
 	retVal._input = stripInput;
 
 	if (_bParallelizeCalculations)
@@ -599,6 +626,13 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 	PARAMS_C2C_ROI_OUTPUT retVal;
 	retVal._input = input;
 
+	// allocate array of C2C outputs
+	const auto& hsvCount = input._colors.size();
+
+	retVal._result = ALG_STATUS_FAILED;
+	retVal._colorStatuses = { hsvCount, ALG_STATUS_FAILED };
+	retVal._colorCenters = { hsvCount, {0,0} };
+	
 	ABSTRACTALGO_HANDLER_SCOPED_LOG << "C2C Detection [side : " << input._side << "; index : " << input._roiIndex << "] runs in thread #" << GetCurrentThreadId();
 	try
 	{
@@ -613,12 +647,7 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 	// double check for saving overlays to avoid unnecessary array iteration
 	if (!_processParameters->DisableAllROISaving() && input.GenerateOverlay())
 	{
-		std::for_each(retVal._colorOverlays.begin(), retVal._colorOverlays.end()
-			, [&input, this](auto overlay)
-		{
-			dumpOverlays(overlay, fmt::format("C2C_[{0}]_{1}_OVERLAY.bmp", SIDE_NAMES[input._side], input._roiIndex));
-		}
-		);
+		dumpOverlays(retVal._colorOverlay, fmt::format("C2C_[{0}]_{1}_OVERLAY.bmp", SIDE_NAMES[input._side], input._roiIndex));
 	}
 	return retVal;
 }

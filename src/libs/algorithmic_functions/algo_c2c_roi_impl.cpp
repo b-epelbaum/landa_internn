@@ -195,17 +195,13 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 	// define and clear overlay image
 	if (input._GenerateOverlay) {
-		output._colorOverlays.resize (iColor_Num) ;
-		for (iCnt = 0 ; iCnt < iColor_Num; iCnt ++) {
-			output._colorOverlays[iCnt].create(input._ROIImageSource.rows, input._ROIImageSource.cols, CV_8UC3);
-			output._colorOverlays[iCnt].setTo(0);
-			// output._colorOverlays[iCnt] = input._ROIImageSource.clone() ;
-		}
+		output._colorOverlay.create(input._ROIImageSource.rows, input._ROIImageSource.cols, CV_8UC3);
+		output._colorOverlay.setTo(0);
 	}
 
 	// size of color centers
-	output._colorCenters.resize(iColor_Num);
-	output._colorStatuses.resize(iColor_Num);
+	// output._colorCenters.resize(iColor_Num);
+	// output._colorStatuses.resize(iColor_Num);
 
 	// convert part to gray levels and HSV
 	cvtColor(input._ROIImageSource, g_imPart_GL, CV_RGB2GRAY);
@@ -219,9 +215,9 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 	// use to determine H, S and V of circels
 	// somehow it is different than regulat RGB to HSV formula
-//	imwrite("e:\\temp\\a1_h.tif", g_aimHSV[0]);
-//	imwrite("e:\\temp\\a1_s.tif", g_aimHSV[1]);
-//	imwrite("e:\\temp\\a1_v.tif", g_aimHSV[2]);
+	//mwrite("c:\\temp\\a1_h.tif", g_aimHSV[0]);
+	//mwrite("c:\\temp\\a1_s.tif", g_aimHSV[1]);
+	//mwrite("c:\\temp\\a1_v.tif", g_aimHSV[2]);
 
 
 	int iFail = 0;
@@ -318,14 +314,14 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 			for (float fAng = 0 ;fAng < 2 * 3.14159; fAng += 0.03) {
 				float fPos_X = afX[iCnt] + 13 * cosf (fAng) ;
 				float fPos_Y = afY[iCnt] + 13 * sinf (fAng);
-				Draw_Point (output._colorOverlays[iCnt], fPos_X, fPos_Y, tRGB.at<Vec3b>(0)[2], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[0]) ;
+				Draw_Point (output._colorOverlay, fPos_X, fPos_Y, tRGB.at<Vec3b>(0)[2], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[0]) ;
 			}
 		}
 
-		//char sOvl_Name [256] ;
-		//sprintf_s (sOvl_Name, "e:\\temp\\cc_%03d.jpg", iSeq) ;
-		//imwrite (sOvl_Name, output._colorOverlays[iCnt]) ;
-		//iSeq ++ ;
+//		char sOvl_Name [256] ;
+//		sprintf_s (sOvl_Name, "c:\\temp\\cc_%03d.jpg", iSeq) ;
+//		imwrite (sOvl_Name, output._colorOverlay) ;
+//		iSeq ++ ;
 	}
 }
 

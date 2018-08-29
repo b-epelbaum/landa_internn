@@ -60,6 +60,7 @@ FRAME_PROVIDER_ERROR OfflineReader::prepareData(FrameRef* frameRef)
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
@@ -78,19 +79,19 @@ FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
-	auto newImage = new cv::Mat(std::move(tempObject));
+	//auto newImage = new cv::Mat(std::move(tempObject));
 	OFFREADER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
 	++_lastAcquiredImage;
 	
-	const auto w = newImage->cols;
-	const auto h = newImage->rows;
-	const auto s = newImage->step[0] * newImage->rows;
+	const auto w = tempObject.cols;
+	const auto h = tempObject.rows;
+	const auto s = tempObject.step[0] * tempObject.rows;
 
 	// push bits to frameRef object
-	frameRef->setBits(++_lastAcquiredImage, w, h, s, newImage->data);
+	frameRef->setBits(++_lastAcquiredImage, w, h, s, tempObject.data);
 
 	// attach a created new image to unknown data
-	frameRef->setUnknownData(newImage);
+	frameRef->setUnknownData(std::move(tempObject));
 
 	// pass source image path to frame
 	frameRef->setNamedParameter("srcPath", stdPath);
@@ -106,8 +107,8 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 		{
 			try
 			{
-				const auto pImage = std::any_cast<cv::Mat*>(unknownData);
-				delete pImage;
+				auto pImage = std::move(std::any_cast<cv::Mat>(unknownData));
+				//delete pImage;
 			}
 			catch (const std::bad_any_cast& e)
 			{

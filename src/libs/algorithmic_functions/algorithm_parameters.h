@@ -148,7 +148,7 @@ namespace LandaJune
 			OUT_STATUS					_result = ALG_STATUS_FAILED;
 			std::vector<OUT_STATUS>		_colorStatuses;
 			std::vector<APOINT>			_colorCenters;
-			std::vector<cv::Mat>		_colorOverlays;
+			cv::Mat						_colorOverlay;
 
 			///
 			std::optional<PARAMS_C2C_ROI_INPUT>		_input;

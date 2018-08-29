@@ -27,7 +27,7 @@ void ProcessParameter::recalculate()
 
 	// general parameters
 
-	_ReferenceColorTriplet = { 0,0,0,"black" };
+	_ReferenceColorTriplet = { 0,0,0,"Black" };
 	// sheet dimensions
 	_SubstrateWidth_px = toPixelsX(_SubstrateWidth_mm + _OffsetFromLeftEdge_mm * 2 );
 	_SubstrateHeight_px = toPixelsY(_SubstrateHeight_mm);
@@ -73,15 +73,15 @@ void ProcessParameter::recalculate()
 	_I2SApproximateTriangleRectRight = _I2SApproximateTriangleRectLeft.translated(_OffsetBetweenTriangles_px, 0);
 
 	// ROI colors
-	COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 0, "cyan" };
-	COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 0, "yellow" };
-	COLOR_TRIPLET_SINGLE color3_min = { 110, 170, 0, "magenta" };
-	COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "black" };
+	COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 50, "Cyan" };
+	COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 50, "Yellow" };
+	COLOR_TRIPLET_SINGLE color3_min = { 115, 170, 50, "Magenta" };
+	COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "Black" };
 
-	COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "cyan" };
-	COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "yellow" };
-	COLOR_TRIPLET_SINGLE color3_max = { 140, 255, 255, "magenta" };
-	COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "black" };
+	COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "Cyan" };
+	COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "Yellow" };
+	COLOR_TRIPLET_SINGLE color3_max = { 150, 255, 255, "Magenta" };
+	COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "Black" };
 
 	_TestSingleTriplet = color3_min;
 	_TestTriplet._colorName = "Cyan";
