@@ -9,7 +9,17 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 
 	QApplication a(argc, argv);
-	a.setStyle(new DarkStyle);
+
+	QFile lightStyle(QStringLiteral(":/JuneUIWnd/Resources/theme/qss/QApplication.css"));
+	if (lightStyle.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+    // set stylesheet
+	  const QString qsStylesheet = QString::fromLatin1(lightStyle.readAll());
+    a.setStyleSheet(qsStylesheet);
+    lightStyle.close();
+  }
+
+	//a.setStyle(new DarkStyle);
 
 	QPixmap pixmap(":/JuneUIWnd/Resources/landa_logo.png");
 	QSplashScreen splash(pixmap);

@@ -6,7 +6,7 @@
 
 namespace LandaJune {
 	namespace Parameters {
-		class ProcessParameter;
+		class ProcessParameters;
 	}
 }
 

@@ -33,7 +33,7 @@ namespace LandaJune
 			const std::list<FrameProviderPtr>& getFrameProviderList() const override;
 			const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const override;
 
-			ProcessParameterPtr getProcessParameters() override;
+			std::shared_ptr<Parameters::BaseParameters> getProcessParameters() override;
 
 			void selectFrameProvider(FrameProviderPtr provider) override;
 			FrameProviderPtr getSelectedFrameProvider() const override;
@@ -72,7 +72,7 @@ namespace LandaJune
 			FrameProviderPtr	_currentFrameProvider;
 			AlgorithmHandlerPtr	_currentAlgorithmHandler;
 
-			ProcessParameterPtr	_processParameters;
+			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
 		};
 	}
 }

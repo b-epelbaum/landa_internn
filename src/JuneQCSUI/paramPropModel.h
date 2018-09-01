@@ -31,6 +31,8 @@ public:
 	
 	void setupModelData(LandaJune::IPropertyList, bool readOnly );
 
+	QModelIndexList getPersistentIndexList() const { return persistentIndexList(); }
+
     QVariant data(const QModelIndex &index, int role) const override;
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const override;
@@ -57,11 +59,17 @@ public:
     bool removeRows(int position, int rows,
                     const QModelIndex &parent = QModelIndex()) override;
 
+	void copyParam(const QModelIndex &index);
+	void removeParam(const QModelIndex &index);
+
 signals:
 
 	void propChanged(QString propName, const QVariant& newVal);
+	void propAdd(const QString &propName, const QVariant &newVal);
+	void propRemoved(const QString &propName);
 
 private:
+	void setupProp(ParamPropItem *rootItem, const LandaJune::IPropertyTuple &propTuple);
 	LandaJune::IPropertyTuple propertyValue(ParamPropItem *child) const noexcept;
 
 	QPoint createQPoint(ParamPropItem *item) const noexcept;
@@ -74,6 +82,7 @@ private:
 	
 	// Setup custom type
 	void setupQPoint(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupQRectVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupQRect(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
@@ -84,10 +93,10 @@ private:
 	ParamPropItem *_rootItem;
 	ParamPropItem * _currentRoot;
 
-	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData, _iconColors;
+	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData, _iconColors, _iconColorArray;
 
 	bool _readOnlyView = true;
 
 };
 
-Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Parameters::ProcessParameter>)
+Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Parameters::BaseParameters>)

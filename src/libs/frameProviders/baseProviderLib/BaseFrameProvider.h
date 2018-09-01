@@ -30,7 +30,7 @@ namespace LandaJune
 
 			bool warnAboutDroppedFrames() override { return true; }
 
-			std::shared_ptr<Parameters::BaseParameter>  getProviderParameters() const override { return _providerParameters;  }
+			std::shared_ptr<Parameters::BaseParameters>  getProviderParameters() const override { return _providerParameters;  }
 
 			int32_t getFrameDropDelayTimeout() const override {
 				return _DropFrameWaitTimeout;
@@ -56,11 +56,11 @@ namespace LandaJune
 				return _lastAcquiredImage;
 			}
 
-			virtual void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
+			virtual void validateParameters(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 			
 			bool _busy = false;
 			int64_t _lastAcquiredImage = 0;
-			std::shared_ptr<Parameters::BaseParameter> _providerParameters;
+			std::shared_ptr<Parameters::BaseParameters> _providerParameters;
 
 			QString _name;
 			QString _description;

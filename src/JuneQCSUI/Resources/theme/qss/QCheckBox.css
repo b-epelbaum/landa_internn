@@ -1,0 +1,44 @@
+QCheckBox:disabled {
+    color: #939393;
+}
+
+QCheckBox::indicator {
+    width: 12px;
+    height: 12px;
+}
+
+QCheckBox::indicator:unchecked {
+    border: 1px solid #bcbebf;
+}
+
+QCheckBox::indicator:unchecked:hover {
+     border: 1px solid #1c7cd9;  
+}
+
+QCheckBox::indicator:checked {
+    border: 1px solid #1c7cd9;
+    background-color: #1c7cd9;
+    image: url(:/JuneUIWnd/Resources/theme/images/QCheckBox/indicator-check.png);
+}
+
+QCheckBox::indicator:checked:hover {
+    border: 1px solid #4895e0;
+    background-color: #4895e0;
+}
+
+QCheckBox::indicator:indeterminate {
+    border: 1px solid #bcbebf;
+    background-color: #f6f8f9;
+    image: url(:/JuneUIWnd/Resources/theme/images/QCheckBox/indicator-indeterminate.png);
+}
+
+QCheckBox::indicator:indeterminate:hover {
+    border: 1px solid #1c7cd9;
+}
+
+
+QCheckBox::indicator:checked:disabled {
+    border: 1px solid #adafb0;
+    background-color: #adafb0;
+    image: url(:/JuneUIWnd/Resources/theme/images/QCheckBox/indicator-check.png);
+}

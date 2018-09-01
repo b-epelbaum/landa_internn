@@ -65,7 +65,7 @@ ParamPropModel::ParamPropModel(QObject *parent)
     : QAbstractItemModel(parent)
 {
     QVector<QVariant> rootData;
-	rootData << "Property" << "Value";
+	rootData << "Parameter Name" << "Value";
 
 	_rootItem = new ParamPropItem(rootData);
 
@@ -76,6 +76,7 @@ ParamPropModel::ParamPropModel(QObject *parent)
 	_iconLiteral = QIcon(":/JuneUIWnd/Resources/literal.png");
 	_iconData = QIcon(":/JuneUIWnd/Resources/data.png");
 	_iconColors = QIcon(":/JuneUIWnd/Resources/colors.png");
+	_iconColorArray = QIcon(":/JuneUIWnd/Resources/color_arr.png");
 }
 
 ParamPropModel::~ParamPropModel()
@@ -112,7 +113,7 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if (tName == GROUP_CLASS_NAME)
 		{
-			return QColor(190, 190, 190);
+			return QColor(110, 110, 110);
 		}
 	}
 
@@ -120,12 +121,12 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if (tName == GROUP_CLASS_NAME)
 		{
-			return QColor(55, 72, 55);
+			return QColor(255, 255, 255);
 		}
 
 		if (index.column() == 0 )
 		{
-			return QColor(180, 180, 180);
+			return QColor(0, 0, 0);
 		}
 	}
 
@@ -133,7 +134,7 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 	{
 		if ( tName == GROUP_CLASS_NAME)
 		{
-			return QVariant();
+			return _iconData;
 		}
 		if (tName == "bool")
 		{
@@ -159,6 +160,10 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 		{
 			return _iconColors;
 		}
+		if (tName == "QVector<LandaJune::Parameters::COLOR_TRIPLET>")
+		{
+			return _iconColorArray;
+		}
 		return _iconData;
 	}
 
@@ -176,9 +181,9 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 													, QString::number(rect.width()), QString::number(rect.height()));
 		}
 		if (var.canConvert<COLOR_TRIPLET>())
-			return var.value<COLOR_TRIPLET>().toString();
+			return var.value<COLOR_TRIPLET>().toDisplayString();
 		if (var.canConvert<COLOR_TRIPLET_SINGLE>())
-			return var.value<COLOR_TRIPLET_SINGLE>().toString();
+			return var.value<COLOR_TRIPLET_SINGLE>().toDisplayString();
 	}
 
 	const auto pItem = getItem(index);
@@ -299,6 +304,32 @@ bool ParamPropModel::removeRows(int position, int rows, const QModelIndex &paren
     return success;
 }
 
+void ParamPropModel::copyParam(const QModelIndex &index)
+{
+	if (index.isValid()) {
+		if (const auto item = getItem(index)) {
+			const auto data = item->data(1);
+			const auto name = item->data(0).toString();
+			setupProp(item->parent(), { name, data, true });
+			emit dataChanged({}, {});
+			emit propAdd(name, data);
+		}
+	}
+	
+}
+
+void ParamPropModel::removeParam(const QModelIndex &index)
+{
+	if (index.isValid()) {
+		if (const auto item = getItem(index)) {
+			auto itemParent = item->parent();
+			itemParent->removeChildren(item->childNumber(), item->childCount());
+//			emit dataChanged(, {});
+			emit propRemoved(item->data(0).toString());
+		}
+	}
+}
+
 int ParamPropModel::rowCount(const QModelIndex &parent) const
 {
     return getItem(parent)->childCount();
@@ -365,24 +396,36 @@ void ParamPropModel::setupModelData(LandaJune::IPropertyList propList, bool read
 			continue;
 		}
 
-		if (var.canConvert<QPoint>()) {
-			setupQPoint(_currentRoot, propTuple);
-		}
-		else if (var.canConvert<QRect>()) {
-			setupQRect(_currentRoot, propTuple);
-		}
-		else if (var.canConvert<QVector<COLOR_TRIPLET>>()) {
-			setupColorTripletVector(_currentRoot, propTuple);
-		}
-		else if (var.canConvert<COLOR_TRIPLET>()) {
-			setupColorTriplet(_currentRoot, propTuple);
-		} 
-		else if (var.canConvert<COLOR_TRIPLET_SINGLE>()) {
-			setupColorTripletSingle(_currentRoot, propTuple);
-		}
-		else {
-			insertChild(_currentRoot, name, var);
-		}
+		setupProp(_currentRoot, propTuple);
+	}
+}
+
+void ParamPropModel::setupProp(ParamPropItem *rootItem, const LandaJune::IPropertyTuple &propTuple)
+{
+	if (!rootItem)
+		return;
+
+	const auto&[name, var, editable] = propTuple;
+	if (var.canConvert<QPoint>()) {
+		setupQPoint(rootItem, propTuple);
+	}
+	else if (var.canConvert<QVector<QRect>>()) {
+		setupQRectVector(rootItem, propTuple);
+	}
+	else if (var.canConvert<QRect>()) {
+		setupQRect(rootItem, propTuple);
+	}
+	else if (var.canConvert<QVector<COLOR_TRIPLET>>()) {
+		setupColorTripletVector(rootItem, propTuple);
+	}
+	else if (var.canConvert<COLOR_TRIPLET>()) {
+		setupColorTriplet(rootItem, propTuple);
+	}
+	else if (var.canConvert<COLOR_TRIPLET_SINGLE>()) {
+		setupColorTripletSingle(rootItem, propTuple);
+	}
+	else {
+		insertChild(rootItem, name, var);
 	}
 }
 
@@ -461,7 +504,7 @@ COLOR_TRIPLET ParamPropModel::createColorTriplet(ParamPropItem *item) const noex
 	const auto min = createColorTripletSingle(item->child(0));
 	const auto max = createColorTripletSingle(item->child(1));
 
-	const auto val = COLOR_TRIPLET{ min, max, item->data(0).toString().toStdString() };
+	const auto val = COLOR_TRIPLET{ min, max, item->data(0).toString()};
 	item->setData(1, QVariant::fromValue(val));
 
 	return val;
@@ -473,7 +516,7 @@ COLOR_TRIPLET_SINGLE ParamPropModel::createColorTripletSingle(ParamPropItem *ite
 	const auto s = item->child(1)->data(1).toInt();
 	const auto v = item->child(2)->data(1).toInt();
 
-	const auto val = COLOR_TRIPLET_SINGLE{ h, s, v };
+	const auto val = COLOR_TRIPLET_SINGLE{ h, s, v, item->data(0).toString() };
 	item->setData(1, QVariant::fromValue(val));
 
 	return val;
@@ -523,6 +566,19 @@ void ParamPropModel::setupQRect(ParamPropItem *parent, const LandaJune::IPropert
 	insertChild(child, "Height", rect.height());
 }
 
+void ParamPropModel::setupQRectVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
+{
+	const auto&[name, _colorVar, editable] = prop;
+
+	const auto qRectVector = _colorVar.value<QVector<QRect>>();
+	auto child = insertChild(parent, name, _colorVar);
+
+	for (int i = 0, size = qRectVector.size(); i < size; ++i)
+	{
+		setupQRect(child, { QString("[%1]").arg(i) , QVariant::fromValue(qRectVector[i]), editable });
+	}
+}
+
 void ParamPropModel::setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
 {
 	const auto&[name, _colorVar, editable] = prop;
@@ -530,9 +586,9 @@ void ParamPropModel::setupColorTripletSingle(ParamPropItem *parent, const LandaJ
 	const auto color = _colorVar.value<COLOR_TRIPLET_SINGLE>();
 	auto child = insertChild(parent, name, _colorVar);
 
-	insertChild(child, "H", color._iH);
-	insertChild(child, "S", color._iS);
-	insertChild(child, "V", color._iV);
+	insertChild(child, "H", color.H());
+	insertChild(child, "S", color.S());
+	insertChild(child, "V", color.V());
 }
 
 void ParamPropModel::setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
@@ -540,10 +596,10 @@ void ParamPropModel::setupColorTriplet(ParamPropItem *parent, const LandaJune::I
 	const auto&[name, _colorVar, editable] = prop;
 
 	const auto colorTriplet = _colorVar.value<COLOR_TRIPLET>();
-	auto child = insertChild(parent, QString::fromStdString(colorTriplet._colorName), _colorVar);
+	auto child = insertChild(parent, colorTriplet.ColorName(), _colorVar);
 
-	setupColorTripletSingle(child, { "Min", QVariant::fromValue(colorTriplet._min), editable });
-	setupColorTripletSingle(child, { "Max", QVariant::fromValue(colorTriplet._max), editable });
+	setupColorTripletSingle(child, { "Min", QVariant::fromValue(colorTriplet.Min()), editable });
+	setupColorTripletSingle(child, { "Max", QVariant::fromValue(colorTriplet.Max()), editable });
 }
 
 void ParamPropModel::setupColorTripletVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept

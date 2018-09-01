@@ -1,0 +1,7 @@
+/* Horizontal rule. */
+QFrame
+{
+    border-width: 1;
+    border-style: solid;
+    border-color: #d6d6d6;
+}

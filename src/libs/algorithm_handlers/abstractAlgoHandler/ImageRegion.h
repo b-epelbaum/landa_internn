@@ -1,5 +1,5 @@
 #pragma once
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 #include "saveFunc.h"
 #include <opencv/cv.h> 
 #include "common/june_exceptions.h"
@@ -15,7 +15,7 @@ namespace LandaJune
 			ImageRegion(
 				const cv::Mat&									srcMat						// source data
 				, cv::Mat&										targetMat					// target MAT objects
-				, std::shared_ptr<Parameters::ProcessParameter> params
+				, std::shared_ptr<Parameters::ProcessParameters> params
 				, const cv::Rect&								srcRect						// rectangle of the source data to copy
 				, int											frameIndex
 				, const std::string&							saveFilePath				// ROI Name
@@ -48,7 +48,7 @@ namespace LandaJune
 				cv::Rect										_srcNormalizedRect;
 				bool											_bNeedSaving;
 				std::string										_fullSavePath;
-				std::shared_ptr<Parameters::ProcessParameter>	_params;
+				std::shared_ptr<Parameters::ProcessParameters>	_params;
 				bool											_bParallelize = false;
 
 			

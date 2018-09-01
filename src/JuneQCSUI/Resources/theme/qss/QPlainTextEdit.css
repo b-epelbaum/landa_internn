@@ -1,0 +1,10 @@
+QPlainTextEdit
+{
+    min-height: 24px;
+	border: 1px solid #1c7cd9;
+}
+
+QPlainTextEdit:disabled
+{
+	color: #7A7A7F;
+}

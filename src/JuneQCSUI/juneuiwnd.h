@@ -3,6 +3,9 @@
 #include "ui_juneuiwnd.h"
 #include "paramPropModel.h"
 
+#include <QProgressBar>
+#include <QTimer>
+
 namespace LandaJune
 {
 	namespace UI
@@ -38,7 +41,16 @@ namespace LandaJune
 
 			void onProviderPropChanged(QString propName, const QVariant& newVal);
 			void onBatchPropChanged(QString propName, const QVariant& newVal);
+
+			void onUpdateProcessParams();
 			void onUpdateCalculatedParams();
+	                void onBtnAddPropClicked() noexcept;
+			void onBtnRemovePropClicked() noexcept;
+
+			void onSaveConfig();
+			void onLoadConfig();
+
+			void onTimerTick();
 
 		signals :
 
@@ -52,11 +64,16 @@ namespace LandaJune
 			void createActions();
 			void createStatusBar();
 
-			void enumerateFrameProviders() const;
-			void enumerateAlgoHandlers() const;
+			void enumerateFrameProviders() ;
+			void enumerateAlgoHandlers() ;
 			void enableUIForProcessing(bool bEnable);
 
 			void initBatchParameters() const;
+
+			void saveExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel ) const;
+			void restoreExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel) const;
+			void saveExpandedState(QSet<int>& nodes, QTreeView * view) const;
+			void restoreExpandedState(QSet<int>& nodes, QTreeView * view) const;
 
 			std::unique_ptr<ParamPropModel> _providerParamModel;
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
@@ -70,12 +87,21 @@ namespace LandaJune
 			QAction * startAct = nullptr;
 			QAction * stopAct = nullptr;
 
+			QAction * loadConfig = nullptr;
+			QAction * saveConfig = nullptr;
+
 			bool _bRunning = false;
 
 			QLabel *_imageBox = nullptr;
 			QScrollArea *_scrollArea = nullptr;
 			double _scaleFactor = 1.0;
 			QTimer * _updateStatsTimer = nullptr;
+
+			QStringList _processParamsExpandedStatesList;
+
+			QLabel * statusGeneral, *statusFrameProv, *statusAlgoHandler, *statusFramesHandled, * statusFramesDropped;
+			QProgressBar *statusProgressBar;
+			QTimer _progressBarTimer;
 		};
 	}
 }

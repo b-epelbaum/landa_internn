@@ -4,7 +4,7 @@
 
 #include "util.h"
 #include "frameRef.h"
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 
 
 #ifdef _DEBUG
@@ -79,7 +79,7 @@ void FGSimulator::releaseData(FrameRef* frameRef)
 {
 }
 
-void FGSimulator::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+void FGSimulator::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	validateParameters(parameters);
 	_providerParameters = parameters;
@@ -109,12 +109,12 @@ FRAME_PROVIDER_ERROR FGSimulator::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-void FGSimulator::validateParameters(std::shared_ptr<BaseParameter> parameters)
+void FGSimulator::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	// TODO : query BaseParameter for named parameters
+	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
 	
-	auto _processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameter>(parameters);
+	auto _processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameters>(parameters);
 	_SourceFolderPath = _processParameters->FGS_SourceFolderPath();
 	_SourceFilePath = _processParameters->FGS_SourceFilePath();
 	_FrameFrequencyInMSec = _processParameters->FGS_FrameFrequencyInMSec();

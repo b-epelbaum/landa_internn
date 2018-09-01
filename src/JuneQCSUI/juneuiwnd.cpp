@@ -12,11 +12,13 @@
 #include "interfaces/ICore.h"
 #include "interfaces/IFrameProvider.h"
 #include "interfaces/IAlgorithmHandler.h"
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
-
+#include <QJsonDocument>
+#include <QSettings>
+#include <qstandardpaths.h>
 
 
 using namespace LandaJune::UI;
@@ -50,6 +52,11 @@ void JuneUIWnd::init()
 	enumerateFrameProviders();
 	enumerateAlgoHandlers();
 	initBatchParameters();
+
+	connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
+	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoHandlerComboChanged);
+
+
 }
 
 void JuneUIWnd::initUI()
@@ -65,11 +72,14 @@ void JuneUIWnd::initUI()
 	_scrollArea->setBackgroundRole(QPalette::Dark);
 	_scrollArea->setWidget(_imageBox);
 	
-	connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
-	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoHandlerComboChanged);
-
 	createActions();
 	createStatusBar();
+
+	ui.tabWidget->tabBar()->setFixedHeight(36);
+	ui.tabWidget->tabBar()->setIconSize(QSize(24,24));
+	ui.tabWidget->tabBar()->setTabIcon(0,  QIcon(":/JuneUIWnd/Resources/proc_params.png"));
+	ui.tabWidget->tabBar()->setTabIcon(1,  QIcon(":/JuneUIWnd/Resources/scan.png"));
+	ui.tabWidget->tabBar()->setTabIcon(2,  QIcon(":/JuneUIWnd/Resources/algo.png"));
 
 	connect(qApp, &QCoreApplication::aboutToQuit, this, &JuneUIWnd::onAboutToQuit);
 	
@@ -87,6 +97,14 @@ void JuneUIWnd::initUI()
 
 	_processParamModelCalculated = std::make_unique<ParamPropModel>(this);
 	ui.processParamViewCalculated->setModel(_processParamModelCalculated.get());
+
+	connect(ui.btnAddProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnAddPropClicked);
+	connect(ui.btnRemoveProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnRemovePropClicked);
+
+	_progressBarTimer.setSingleShot(false);
+	_progressBarTimer.setInterval(300);
+
+	connect(&_progressBarTimer, &QTimer::timeout, this, &JuneUIWnd::onTimerTick);
 }
 
 void JuneUIWnd::initCore()
@@ -102,7 +120,7 @@ void JuneUIWnd::initCore()
 	//}
 }
 
-void JuneUIWnd::enumerateFrameProviders() const
+void JuneUIWnd::enumerateFrameProviders() 
 {
 	ui.frameSourceCombo->clear();
 	//try
@@ -113,14 +131,26 @@ void JuneUIWnd::enumerateFrameProviders() const
 			ui.frameSourceCombo->addItem(provider->getName(), QVariant::fromValue(provider));
 		}
 		listOfProviders.empty() ? ui.frameSourceCombo->setCurrentIndex(-1) : ui.frameSourceCombo->setCurrentIndex(0);
+		QSettings settings("Landa Corp", "June QCS");
+		auto lastFrameProvider = settings.value("UIClient/lastSelectedProvider").toString();
+
+		if ( !lastFrameProvider.isEmpty() )
+		{
+			if ( ui.frameSourceCombo->findText(lastFrameProvider) != - 1 )
+				ui.frameSourceCombo->setCurrentText(lastFrameProvider);
+		}
+
+		this->onFrameProviderComboChanged (ui.frameSourceCombo->currentIndex());
+
 	//}
 	//catch ( CoreEngineException& ex)
 	//{
 		
 	//}
+
 }
 
-void JuneUIWnd::enumerateAlgoHandlers() const
+void JuneUIWnd::enumerateAlgoHandlers()
 {
 	ui.algoHandlerCombo->clear();
 	//try
@@ -131,6 +161,19 @@ void JuneUIWnd::enumerateAlgoHandlers() const
 			ui.algoHandlerCombo->addItem(algo->getName(), QVariant::fromValue(algo));
 		}
 		listOfAlgo.empty() ? ui.algoHandlerCombo->setCurrentIndex(-1) : ui.algoHandlerCombo->setCurrentIndex(0);
+
+		QSettings settings("Landa Corp", "June QCS");
+		auto lastAlgoHandler = settings.value("UIClient/lastSelectedAlgorithm").toString();
+
+		if ( !lastAlgoHandler.isEmpty() )
+		{
+			if ( ui.algoHandlerCombo->findText(lastAlgoHandler) != - 1 )
+				ui.algoHandlerCombo->setCurrentText(lastAlgoHandler);
+		}
+
+		onAlgoHandlerComboChanged (ui.algoHandlerCombo->currentIndex());
+
+
 	//}
 	//catch (CoreEngineException& ex)
 	//{
@@ -145,9 +188,11 @@ void JuneUIWnd::initBatchParameters() const
 	//{
 		const auto batchParams = ICore::get()->getProcessParameters();
 
-		connect(batchParams.get(), &BaseParameter::bulkChanged, this, &JuneUIWnd::onUpdateCalculatedParams);
-		_processParamModelEditable->setupModelData(batchParams->getPropertyList(), false);
-		_processParamModelCalculated->setupModelData(batchParams->getPropertyList(), true);
+		connect(batchParams.get(), &BaseParameters::loaded, this, &JuneUIWnd::onUpdateProcessParams);
+		connect(batchParams.get(), &BaseParameters::updateCalculated, this, &JuneUIWnd::onUpdateCalculatedParams);
+
+		_processParamModelEditable->setupModelData(batchParams->getEditablePropertyList(), false);
+		_processParamModelCalculated->setupModelData(batchParams->getReadOnlyPropertyList(), true);
 
 		ui.batchParamView->header()->resizeSection(0, 280);
 		ui.providerPropView->header()->resizeSection(0, 280);
@@ -155,6 +200,19 @@ void JuneUIWnd::initBatchParameters() const
 
 		ui.batchParamView->expandToDepth(1);
 		ui.processParamViewCalculated->expandToDepth(1);
+
+		QSettings settings("Landa Corp", "June QCS");
+		auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+
+		if ( !lastConfigFile.isEmpty())
+		{
+			QFile jsonFile(lastConfigFile);
+			jsonFile.open(QFile::ReadOnly);
+			QJsonDocument doc;
+			QString strError;
+			auto const bRes = ICore::get()->getProcessParameters()->fromJson(doc.fromJson(jsonFile.readAll()).object(), strError);
+		}
+
 	//}
 	//catch (CoreEngineException& ex)
 	//{
@@ -244,6 +302,15 @@ void JuneUIWnd::createStatusBar()
 	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start"), this);
 	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop"), this);
 
+	loadConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_open.png"), tr("&Load"), this);
+	saveConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_save.png"), tr("&Save"), this);
+
+	connect(saveConfig, &QAction::triggered, this, &JuneUIWnd::onSaveConfig);
+	connect(loadConfig, &QAction::triggered, this, &JuneUIWnd::onLoadConfig);
+
+	ui.saveConfigButt->setDefaultAction(saveConfig);
+	ui.loadConfigButt->setDefaultAction(loadConfig);
+
 	stopAct->setEnabled(false);
 
 	connect(startAct, &QAction::triggered, this, &JuneUIWnd::start);
@@ -251,36 +318,28 @@ void JuneUIWnd::createStatusBar()
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
 	ui.mainToolBar->setIconSize(QSize(48, 48));
-}
 
-/*
-void JuneUIWnd::browseForFolder()
-{
-	const auto btn = dynamic_cast<QAbstractButton*>(sender());
-	const auto sType = btn->property("browseType");
+
+	statusGeneral = new QLabel(this);
+	statusFrameProv = new QLabel(this);
+	statusAlgoHandler = new QLabel(this);
+	statusFramesHandled = new QLabel(this);
+	statusFramesDropped = new QLabel(this);
+
+	statusGeneral->setMinimumWidth(200);
+	statusGeneral->setText("Idle");
 	
-	QString strTitle = "Select Images Source Folder";
-	QString startFolder = _imageSourceFolder;
-	QString * pTargetString = &_imageSourceFolder;
-	if (sType == "trg")
-	{
-		strTitle = "Select Images Target Folder";
-		startFolder = _imageTargetFolder;
-		pTargetString = &_imageTargetFolder;
-	}
+	statusProgressBar = new QProgressBar(this);
+	statusProgressBar->setMaximumWidth(200);
 
-	if (startFolder.isEmpty())
-		startFolder = QDir::currentPath();
+	statusProgressBar->setTextVisible(false);
 
-	auto strFolder = QFileDialog::getExistingDirectory(this, strTitle, startFolder);
-	if (strFolder.isEmpty())
-		return;
-
-	*pTargetString = strFolder;
-	recreateIPParams();
+    // add the two controls to the status bar
+    ui.statusBar->addPermanentWidget(statusGeneral);
+    ui.statusBar->addPermanentWidget(statusProgressBar,1);
+	ui.statusBar->addPermanentWidget(statusFrameProv,2);
+	ui.statusBar->addPermanentWidget(statusAlgoHandler,3);
 }
-*/
-
 
 void JuneUIWnd::zoomIn()
 {
@@ -381,8 +440,11 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 		return;
 	}
 
+	QSettings settings("Landa Corp", "June QCS");
+	settings.setValue("UIClient/lastSelectedProvider",selectedProvider->getName() );
+
 	ICore::get()->selectFrameProvider(selectedProvider);
-	ui.frameProvideDesc->setText(selectedProvider->getDescription());
+	ui.providerDescEdit->document()->setPlainText(selectedProvider->getDescription());
 	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), true);
 }
 
@@ -395,7 +457,10 @@ void JuneUIWnd::onAlgoHandlerComboChanged(int index)
 		return;
 	}
 
-	ui.algoHandlerDesc->setText(selectedAlgo->getDescription());
+	QSettings settings("Landa Corp", "June QCS");
+	settings.setValue("UIClient/lastSelectedAlgorithm",selectedAlgo->getName() );
+
+	ui.algoDescEdit->document()->setPlainText(selectedAlgo->getDescription());
 }
 
 
@@ -425,10 +490,127 @@ void JuneUIWnd::onBatchPropChanged(QString propName, const QVariant& newVal)
 
 }
 
+void JuneUIWnd::saveExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel ) const
+{
+	iLevel++;
+    if(view->isExpanded(index)) 
+	{
+        if(index.isValid())
+            nodes.insert(iLevel * 100 + index.row());
+        for(int row = 0; row < view->model()->rowCount(index); ++row)
+            saveExpandedOnLevel(index.child(row,0), nodes, view, iLevel );
+    }
+	iLevel--;
+}
+
+void JuneUIWnd::restoreExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel) const
+{
+	iLevel++;
+    if(nodes.contains(iLevel * 100 + index.row())) 
+	{
+        view->setExpanded(index, true);
+        for(int row = 0; row < view->model()->rowCount(index); ++row)
+            restoreExpandedOnLevel(index.child(row,0), nodes, view, iLevel);
+    }
+	iLevel--;
+}
+
+void JuneUIWnd::saveExpandedState(QSet<int>& nodes, QTreeView * view) const
+{
+	int iLevel = 0;
+	for(int row = 0; row < view->model()->rowCount(); ++row)
+        saveExpandedOnLevel(view->model()->index(row,0), nodes, view, iLevel);
+}
+
+void JuneUIWnd::restoreExpandedState(QSet<int>& nodes, QTreeView * view) const
+{
+    view->setUpdatesEnabled(false);
+	int iLevel = 0;
+    for(int row = 0; row < view->model()->rowCount(); ++row)
+        restoreExpandedOnLevel(view->model()->index(row,0), nodes, view, iLevel);
+
+    view->setUpdatesEnabled(true);
+}
+
+void JuneUIWnd::onUpdateProcessParams()
+{
+	QSet<int> nodes;
+	saveExpandedState(nodes, ui.batchParamView );
+	QModelIndex idx = ui.batchParamView->selectionModel()->currentIndex();
+
+	_processParamModelEditable->setupModelData(ICore::get()->getProcessParameters()->getEditablePropertyList(), false);
+
+	restoreExpandedState(nodes, ui.batchParamView);
+	if ( idx.isValid())
+	{
+		 ui.batchParamView->selectionModel()->setCurrentIndex(ui.batchParamView->model()->index(idx.row(), idx.column()), QItemSelectionModel::Select);
+	}
+}
+
 void JuneUIWnd::onUpdateCalculatedParams()
 {
-	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getPropertyList(), true);
+	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
 	ui.processParamViewCalculated->expandToDepth(1);
+}
+
+void JuneUIWnd::onSaveConfig()
+{
+	QSettings settings("Landa Corp", "June QCS");
+	auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+
+	if ( lastConfigFile.isEmpty() )
+	{
+		auto docRoot = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
+		docRoot += "/Landa Corp/QCS Configuration";
+		lastConfigFile = docRoot;
+		(void)QDir().mkpath(lastConfigFile);
+		lastConfigFile += "/default.jconfig";
+	}
+
+
+	auto fileName = QFileDialog::getSaveFileName(this,
+    tr("Save configuration file as..."), lastConfigFile, tr("QCS Config Files (*.qconfig)"));
+
+	if (fileName.isEmpty())
+		return;
+
+	settings.setValue("UIClient/lastConfigFile", fileName);
+	
+	auto const jObj = ICore::get()->getProcessParameters()->toJson();
+	QFile jsonFile(fileName);
+    jsonFile.open(QFile::WriteOnly);
+
+	QJsonDocument doc(jObj);
+    jsonFile.write(doc.toJson(QJsonDocument::Indented));
+}
+
+void JuneUIWnd::onLoadConfig()
+{
+	QSettings settings("Landa Corp", "June QCS");
+	auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+
+	if ( lastConfigFile.isEmpty() )
+	{
+		auto docRoot = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
+		docRoot += "/Landa Corp/QCS Configuration";
+		lastConfigFile = docRoot;
+		(void)QDir().mkpath(lastConfigFile);
+	}
+
+
+	auto fileName = QFileDialog::getOpenFileName(this,
+    tr("Load configuration file"), lastConfigFile, tr("QCS Config Files (*.qconfig)"));
+
+	if (fileName.isEmpty())
+		return;
+
+	settings.setValue("UIClient/lastConfigFile", fileName);
+	
+	QFile jsonFile(lastConfigFile);
+	jsonFile.open(QFile::ReadOnly);
+	QJsonDocument doc;
+	QString strError;
+	auto const bRes = ICore::get()->getProcessParameters()->fromJson(doc.fromJson(jsonFile.readAll()).object(), strError);
 }
 
 
@@ -441,5 +623,36 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 	startAct->setEnabled(bEnable);
 	stopAct->setEnabled(!bEnable);
 	ui.dockWidgetContents->setEnabled(bEnable);
+
+	if (!bEnable)
+	{
+		_progressBarTimer.start();
+	}
+	else
+	{
+		_progressBarTimer.stop();
+		statusProgressBar->setValue(0);
+	}
 }
 
+void JuneUIWnd::onBtnAddPropClicked() noexcept
+{
+	const auto list = ui.batchParamView->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		_processParamModelEditable->copyParam(list.first());
+	}
+}
+
+void JuneUIWnd::onBtnRemovePropClicked() noexcept
+{
+	const auto list = ui.batchParamView->selectionModel()->selectedIndexes();
+	if (!list.isEmpty()) {
+		_processParamModelEditable->removeParam(list.first());
+	}
+}
+
+void JuneUIWnd::onTimerTick()
+{
+	auto const& val = statusProgressBar->value();
+	statusProgressBar->setValue(val == 100 ? 0 : val + 1);
+}

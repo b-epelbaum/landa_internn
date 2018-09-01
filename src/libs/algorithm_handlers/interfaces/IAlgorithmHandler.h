@@ -7,7 +7,7 @@
 
 namespace LandaJune {
 	namespace Parameters {
-		class BaseParameter;
+		class BaseParameters;
 	}
 }
 
@@ -36,12 +36,12 @@ namespace LandaJune
 			virtual QString getName() const = 0;
 			virtual QString getDescription() const = 0;
 			
-			virtual void init(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
+			virtual void init(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 			virtual void cleanup() = 0;
 			
 			virtual void process(const Core::FrameRef * frame) = 0;
 
-			virtual std::shared_ptr<Parameters::BaseParameter> getParameters() const = 0;
+			virtual std::shared_ptr<Parameters::BaseParameters> getParameters() const = 0;
 
 			static std::list<std::shared_ptr<IAlgorithmHandler>> enumerateAlgorithmSets();
 

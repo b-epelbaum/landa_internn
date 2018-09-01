@@ -53,12 +53,12 @@ std::string fullPageHandler::getFrameFolderName()  const
 }
 
 
-std::shared_ptr<BaseParameter> fullPageHandler::getParameters() const
+std::shared_ptr<BaseParameters> fullPageHandler::getParameters() const
 {
-	return std::static_pointer_cast<BaseParameter>(_processParameters);
+	return std::static_pointer_cast<BaseParameters>(_processParameters);
 }
 
-void fullPageHandler::init(std::shared_ptr<BaseParameter> parameters)
+void fullPageHandler::init(std::shared_ptr<BaseParameters> parameters)
 {
 	validateProcessParameters(parameters);
 	createCSVFolder();
@@ -95,9 +95,9 @@ void fullPageHandler::cleanup()
 	shutdownWave();
 }
 
-void fullPageHandler::validateProcessParameters(std::shared_ptr<BaseParameter> parameters)
+void fullPageHandler::validateProcessParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	_processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	_processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 }
 
 void fullPageHandler::process(const FrameRef * frame)

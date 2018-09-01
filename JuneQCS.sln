@@ -128,6 +128,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "abstractAlgoHandler", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "frameProviders", "frameProviders", "{1B904684-A96B-4260-8703-E2FCB3C4526A}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "waveHandler", "src\libs\algorithm_handlers\waveHandler\waveHandler.vcxproj", "{1507D632-03CC-4FB2-B088-A66C7B771085}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -210,6 +212,10 @@ Global
 		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Debug|x64.Build.0 = Debug|x64
 		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Release|x64.ActiveCfg = Release|x64
 		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3}.Release|x64.Build.0 = Release|x64
+		{1507D632-03CC-4FB2-B088-A66C7B771085}.Debug|x64.ActiveCfg = Debug|x64
+		{1507D632-03CC-4FB2-B088-A66C7B771085}.Debug|x64.Build.0 = Debug|x64
+		{1507D632-03CC-4FB2-B088-A66C7B771085}.Release|x64.ActiveCfg = Release|x64
+		{1507D632-03CC-4FB2-B088-A66C7B771085}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -236,6 +242,7 @@ Global
 		{74E573FA-04D1-4592-9BAC-6443784A562D} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
 		{B9894468-D5D8-4B80-87AE-957329414CAC} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
 		{A2179045-15C2-4ACC-A4D5-5AF9C841D2F3} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
+		{1507D632-03CC-4FB2-B088-A66C7B771085} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {86760CC3-BF26-4AE0-B27D-24F54426E658}

@@ -1,0 +1,15 @@
+QToolBox::tab {
+    min-height:36px;
+    background: #1c7cd9;
+    color: #fff;
+    border-bottom: 1px solid #0e5fae; 
+}
+
+QToolBox::tab:hover { 
+    background: #1672cc;
+}
+
+QToolBox::tab:selected,
+QToolBox::tab:last { 
+    border-bottom: none;
+}

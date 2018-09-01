@@ -1,0 +1,41 @@
+QRadioButton:disabled
+{
+    color: #939393;
+}
+
+QRadioButton::indicator
+{
+    width: 12px;
+    height: 12px;
+   
+}
+
+QRadioButton::indicator:unchecked
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/unchecked.png);
+}
+
+QRadioButton::indicator:unchecked:hover
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/unchecked_hover.png);
+}
+
+QRadioButton::indicator:checked
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/checked.png);
+}
+
+QRadioButton::indicator:checked:hover
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/checked_hover.png);
+}
+
+QRadioButton::indicator:unchecked:disabled
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/unchecked_disabled.png);
+}
+
+QRadioButton::indicator:checked:disabled
+{
+    image: url(:/JuneUIWnd/Resources/theme/images/QRadioButton/checked_disabled.png);
+}

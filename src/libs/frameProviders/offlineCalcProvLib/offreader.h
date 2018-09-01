@@ -36,7 +36,7 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void setProviderParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 
 			FRAME_PROVIDER_ERROR init() override;
 			FRAME_PROVIDER_ERROR cleanup() override;
@@ -46,7 +46,7 @@ namespace LandaJune
 
 		protected:
 
-			void validateParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void validateParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 
 		private :
 

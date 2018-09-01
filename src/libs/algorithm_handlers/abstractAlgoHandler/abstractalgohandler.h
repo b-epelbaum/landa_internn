@@ -3,7 +3,7 @@
 #include "../interfaces/IAlgorithmHandler.h"
 
 #include "algorithm_parameters.h"
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 #include "frameRef.h"
 #include "TaskThreadPool.h"
 #include "typeConverters.hpp"
@@ -58,14 +58,14 @@ namespace LandaJune
 			const abstractAlgoHandler & operator = (const abstractAlgoHandler &) = delete;
 			abstractAlgoHandler & operator = (abstractAlgoHandler &&) = delete;
 
-			void init(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			void process(const Core::FrameRef * frame) override;
 
-			std::shared_ptr<Parameters::BaseParameter> getParameters() const override { return _processParameters; }
+			std::shared_ptr<Parameters::BaseParameters> getParameters() const override { return _processParameters; }
 
 		protected:
 
-			virtual void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
+			virtual void validateProcessParameters(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 
 			virtual void fillCommonProcessParameters(ABSTRACT_INPUT& input);
 			virtual void fillSheetProcessParameters(PARAMS_C2C_SHEET_INPUT& input);
@@ -138,7 +138,7 @@ namespace LandaJune
 			int _frameIndex = 0;
 			int _imageIndex = 0;
 			std::string _csvFolder;
-			std::shared_ptr<Parameters::ProcessParameter> _processParameters;
+			std::shared_ptr<Parameters::ProcessParameters> _processParameters;
 			bool _bParallelizeCalculations = false;
 		};
 	}

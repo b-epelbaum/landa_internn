@@ -28,15 +28,15 @@ namespace LandaJune
 
 			std::string getFrameFolderName() const override;
 
-			void init(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			void cleanup() override;
 			void process(const Core::FrameRef * frame) override;
 
-			std::shared_ptr<Parameters::BaseParameter> getParameters() const override;
+			std::shared_ptr<Parameters::BaseParameters> getParameters() const override;
 
 		protected:
 
-			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameter> parameters) override;
+			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 
 		private :
 		

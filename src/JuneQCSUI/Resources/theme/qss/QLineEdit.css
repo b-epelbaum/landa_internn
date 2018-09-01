@@ -1,0 +1,12 @@
+QLineEdit
+{
+    /*min-height: 23px;*/
+    /*max-height: 23px;*/
+    background-color: #f2f2f2;
+    border: 1px solid #d6d6d6;
+}
+
+QLineEdit:disabled
+{
+    color: #939393;
+}

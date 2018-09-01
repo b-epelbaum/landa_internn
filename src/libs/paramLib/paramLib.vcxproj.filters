@@ -34,10 +34,7 @@
     <ClCompile Include="baseparam.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ProcessParameter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="abstractserializeableparameter.cpp">
+    <ClCompile Include="ProcessParameters.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -45,10 +42,7 @@
     <QtMoc Include="baseparam.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="ProcessParameter.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="abstractserializeableparameter.h">
+    <QtMoc Include="ProcessParameters.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

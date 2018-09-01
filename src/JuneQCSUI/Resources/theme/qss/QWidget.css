@@ -1,0 +1,13 @@
+QWidget
+{
+   color: #222222;
+   font-family: Open Sans;
+   /*font-size: 12px;*/
+
+}
+
+QWidget:disabled
+{
+    color: #939393;
+}
+

@@ -1,0 +1,130 @@
+QScrollBar:horizontal {
+    border: none;
+    background: #e5e5e5;
+    height: 16px;
+    margin: 0px 16px 0 16px;
+}
+
+QScrollBar::handle:horizontal {
+    background: #bcc1c8;
+    min-width: 10px;
+}
+
+QScrollBar::handle:horizontal:hover {
+        background: #a0a7b1;
+}
+
+QScrollBar::handle:horizontal:pressed {
+        background: #afb7c3;
+}
+
+QScrollBar::handle:horizontal:disabled {
+        background: #afb7c3;
+}
+
+QScrollBar::add-line:horizontal {
+    background: #e5e5e5;
+    width: 16px;
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/horizontal/right_arrow.png);
+    subcontrol-position: right;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:horizontal:hover {
+    background: #d9d9d9;
+}
+
+QScrollBar::add-line:horizontal:pressed {
+    background: #cdcdcd;
+}
+
+QScrollBar::add-line:horizontal:disabled {
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/horizontal/right_arrow_disabled.png);
+}
+
+QScrollBar::sub-line:horizontal {
+    background: #e5e5e5;
+    width: 16px;
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/horizontal/left_arrow.png);
+    subcontrol-position: left;
+    subcontrol-origin: margin;
+}
+
+
+QScrollBar::sub-line:horizontal:hover {
+    background: #d9d9d9;
+}
+
+QScrollBar::sub-line:horizontal:pressed {
+    background: #cdcdcd;
+}
+
+QScrollBar::sub-line:horizontal:disabled {
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/horizontal/left_arrow_disabled.png);
+}
+/**********vertical**********/
+
+QScrollBar:vertical {
+    border: none;
+    background: #e5e5e5;
+    width: 16px;
+    margin: 16px 0px 16 0px;
+}
+
+QScrollBar::handle:vertical {
+    background: #bcc1c8;
+    min-height: 10px;
+}
+
+QScrollBar::handle:vertical:hover {
+        background: #a0a7b1;
+}
+
+QScrollBar::handle:vertical:pressed {
+        background: #afb7c3;
+}
+
+QScrollBar::handle:vertical:disabled {
+        background: #afb7c3;
+}
+
+QScrollBar::add-line:vertical {
+    background: #e5e5e5;
+    height: 16px;
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/vertical/down_arrow.png);
+    subcontrol-position: bottom;
+    subcontrol-origin: margin;
+}
+
+QScrollBar::add-line:vertical:hover {
+    background: #d9d9d9;
+}
+
+QScrollBar::add-line:vertical:pressed {
+    background: #cdcdcd;
+}
+
+QScrollBar::add-line:vertical:disabled {
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/vertical/down_arrow_disabled.png);
+}
+
+QScrollBar::sub-line:vertical {
+    background: #e5e5e5;
+    height: 16px;
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/vertical/up_arrow.png);
+    subcontrol-position: top;
+    subcontrol-origin: margin;
+}
+
+
+QScrollBar::sub-line:vertical:hover {
+    background: #d9d9d9;
+}
+
+QScrollBar::sub-line:vertical:pressed {
+    background: #cdcdcd;
+}
+
+QScrollBar::sub-line:vertical:disabled {
+    image: url(:/JuneUIWnd/Resources/theme/images/QScrollBar/vertical/up_arrow_disabled.png);
+}

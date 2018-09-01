@@ -23,7 +23,7 @@ using namespace Core;
 #define ABSTRACTALGO_HANDLER_SCOPED_ERROR PRINT_ERROR << "[abstractAlgoHandler] : "
 #define ABSTRACTALGO_HANDLER_SCOPED_WARNING PRINT_WARNING << "[abstractAlgoHandler] : "
 
-void abstractAlgoHandler::init(std::shared_ptr<BaseParameter> parameters)
+void abstractAlgoHandler::init(std::shared_ptr<BaseParameters> parameters)
 {
 	createCSVFolder();
 	validateProcessParameters(parameters);
@@ -217,9 +217,9 @@ void abstractAlgoHandler::process(const FrameRef* frame)
 		_imageIndex = _processParameters->PanelCount();
 }
 
-void abstractAlgoHandler::validateProcessParameters(std::shared_ptr<BaseParameter> parameters)
+void abstractAlgoHandler::validateProcessParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	_processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	_processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 }
 
 

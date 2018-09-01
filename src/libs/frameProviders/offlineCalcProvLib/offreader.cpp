@@ -4,7 +4,7 @@
 #include "util.h"
 #include "frameRef.h"
 
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 #include <thread>
 
 #ifdef _DEBUG
@@ -118,18 +118,18 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 	}
 }
 
-void OfflineReader::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+void OfflineReader::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	validateParameters(parameters);
 	_providerParameters = parameters;
 }
 
-void OfflineReader::validateParameters(std::shared_ptr<BaseParameter> parameters)
+void OfflineReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	// TODO : query BaseParameter for named parameters
+	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
 
-	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 	_SourceFolderPath = _processParameters->Off_SourceFolderPath();
 	_ImageMaxCount = _processParameters->Off_ImageMaxCount();
 }

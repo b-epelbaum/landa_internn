@@ -54,12 +54,12 @@ std::string registrationPageHandler::getFrameFolderName()  const
 
 
 
-std::shared_ptr<BaseParameter> registrationPageHandler::getParameters() const
+std::shared_ptr<BaseParameters> registrationPageHandler::getParameters() const
 {
-	return std::static_pointer_cast<BaseParameter>(_processParameters);
+	return std::static_pointer_cast<BaseParameters>(_processParameters);
 }
 
-void registrationPageHandler::init(std::shared_ptr<BaseParameter> parameters)
+void registrationPageHandler::init(std::shared_ptr<BaseParameters> parameters)
 {
 	validateProcessParameters(parameters);
 	createCSVFolder();
@@ -94,9 +94,9 @@ void registrationPageHandler::cleanup()
 	shutdownC2CRoi();
 }
 
-void registrationPageHandler::validateProcessParameters(std::shared_ptr<BaseParameter> parameters)
+void registrationPageHandler::validateProcessParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	_processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	_processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 }
 
 void registrationPageHandler::process(const FrameRef * frame)

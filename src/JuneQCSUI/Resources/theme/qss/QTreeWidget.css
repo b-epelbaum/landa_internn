@@ -1,0 +1,10 @@
+QTreeWidget
+{
+    background-color: #f2f2f2;
+}
+
+QTreeView:item:selected 
+{ 
+	color: #295C17  ; 
+	background-color: #e9e9e9; 
+}

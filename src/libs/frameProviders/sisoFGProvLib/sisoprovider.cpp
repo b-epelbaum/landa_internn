@@ -1,7 +1,7 @@
 #include "sisoprovider.h"
 #include "util.h"
 #include "frameRef.h"
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 
 #include <QDirIterator>
 
@@ -355,18 +355,18 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-void SiSoProvider::setProviderParameters(std::shared_ptr<BaseParameter> parameters)
+void SiSoProvider::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	validateParameters(parameters);
 	_providerParameters = parameters;
 }
 
-void SiSoProvider::validateParameters(std::shared_ptr<BaseParameter> parameters)
+void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
-	// TODO : query BaseParameter for named parameters
+	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
 
-	auto _processParameters = std::dynamic_pointer_cast<ProcessParameter>(parameters);
+	auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 	setAppletFilePath (_processParameters->SISO_AppletFilePath() );
 	setConfigurationFilePath (_processParameters->SISO_ConfigurationFilePath());
 	setOutputImageFormat(_processParameters->SISO_OutputImageFormat());

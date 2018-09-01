@@ -11,14 +11,9 @@
 #include "TaskThreadPool.h"
 #include "BackgroundThreadPool.h"
 #include "functions.h"
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 
 #include "FrameRefPool.h"
-
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QJsonParseError>
-
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -98,7 +93,7 @@ const std::list<AlgorithmHandlerPtr>& BaseCore::getAlgorithmHandlerList() const
 	return _algorithmHandlerList;
 }
 
-ProcessParameterPtr BaseCore::getProcessParameters()
+std::shared_ptr<Parameters::BaseParameters> BaseCore::getProcessParameters()
 {
 	CHECK_IF_INITED
 	return _processParameters;
@@ -259,7 +254,7 @@ void BaseCore::saveConfiguration()
 
 void BaseCore::initGlobalParameters()
 {
-	_processParameters = std::make_shared<ProcessParameter>();
+	_processParameters = std::make_shared<ProcessParameters>();
 }
 
 void BaseCore::initFramePool() const

@@ -1,57 +1,179 @@
 #include "baseparam.h"
 #include <QMetaProperty>
-#include <QJsonDocument>
+#include <QJsonArray>
+#include <qjsonarray.h>
+#include "applog.h"
+
+#define PARAM_SCOPED_LOG PRINT_INFO7 << "[BaseParameters] : "
+#define PARAM_SCOPED_ERROR PRINT_ERROR << "[BaseParameters] : "
+#define PARAM_SCOPED_WARNING PRINT_WARNING << "[BaseParameters] : "
+
 
 using namespace LandaJune;
 using namespace Parameters;
 
-std::string BaseSerializeableParam::serialize()
+using serializeFunction = std::function<QString(BaseParameters*)>;
+
+static std::map<int, serializeFunction> typesMap;
+
+BaseParameters::BaseParameters()
 {
-	PROP_LIST propList;
+	if (_metaTypeRegistered )
+		return;
+
+	qRegisterMetaType<BaseParameters>("BaseParameters");
+	qRegisterMetaType<PARAM_GROUP_HEADER>("PARAM_GROUP_HEADER");
+	qRegisterMetaType<COLOR_TRIPLET>("COLOR_TRIPLET");
+	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
+	
+	qRegisterMetaType<QVector<QRect>>("QVector<QRect>");
+	qRegisterMetaType<QVector<COLOR_TRIPLET>>("QVector<COLOR_TRIPLET>");
+	_metaTypeRegistered = true;
+
+}
+BaseParameters::BaseParameters(const QJsonObject& obj)
+{
+}
+
+BaseParameters::BaseParameters(const BaseParameters& other)
+{
+	const auto metaobject = other.metaObject();
+	const auto count = metaobject->propertyCount();
+	for (auto i = 0; i<count; ++i)
+	{
+		auto metaproperty = metaobject->property(i);
+		const auto name = metaproperty.name();
+		setProperty(name, other.property(name));
+	}
+}
+
+QJsonObject BaseParameters::toJson()
+{
+	QJsonObject retVal;
 	const auto metaobject = metaObject();
 	const auto count = metaobject->propertyCount();
 	for (auto i = 0; i<count; ++i)
 	{
 		auto metaproperty = metaobject->property(i);
 		const auto name = metaproperty.name();
-
-		if (strcmp(name, "objectName") != 0)
+		const auto& var = property(name); 
+		if (strcmp(name, "objectName") != 0 && metaproperty.isUser() )
 		{
-			propList.emplace_back( PROP_PAIR{ std::string(name), property(name) });
+			if (var.userType() > 100 ) // user custom type
+		{
+			if (var.canConvert<COLOR_TRIPLET_SINGLE>())
+			{
+				retVal[name] = var.value<COLOR_TRIPLET_SINGLE>().toJson();
+			}
+			else if (var.canConvert<COLOR_TRIPLET>())
+			{
+				retVal[name] = var.value<COLOR_TRIPLET>().toJson();
+			}
+			else if (var.canConvert<QVector<COLOR_TRIPLET>>())
+			{
+				QJsonArray arr;
+				auto colorArray = var.value<QVector<COLOR_TRIPLET>>();
+				for(auto color: colorArray)
+				{
+					arr.append(color.toJson());
+				}
+				retVal[name] = arr;
+			}
+		}
+		else
+			retVal[name] = var.toJsonValue();
+			
+		}
+	}
+	return retVal;
+}
+
+bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
+{
+	const auto metaobject = metaObject();
+	const auto count = metaobject->propertyCount();
+	for (auto i = 0; i<count; ++i)
+	{
+		const auto propName = metaobject->property(i).name();
+		const auto typeName = metaobject->property(i).typeName();
+		if (strcmp(propName, "objectName") == 0 || !metaobject->property(i).isUser() )
+			continue;
+			
+		if ( !obj.contains(propName) && strcmp(typeName, "PARAM_GROUP_HEADER") != 0 )
+		{
+			PARAM_SCOPED_WARNING << "Required parameter " << propName << " has not been found";
+			continue;
+		}
+
+		const auto& paramObj = obj[propName].toObject();
+		if (strcmp(typeName, "COLOR_TRIPLET_SINGLE") == 0 )
+		{
+			COLOR_TRIPLET_SINGLE t;
+			if ( t.fromJson(paramObj, error) )
+			{
+				(void)setProperty(propName, QVariant::fromValue(t));
+			}
+			else
+			{
+				PARAM_SCOPED_ERROR << "Error while parsing parameter"  << propName;
+			}
+		}
+		else if (strcmp(typeName, "COLOR_TRIPLET" ) == 0 )
+		{
+			COLOR_TRIPLET t;
+			if ( t.fromJson(paramObj, error) )
+			{
+				(void)setProperty(propName, QVariant::fromValue(t));
+			}
+			else
+			{
+				PARAM_SCOPED_ERROR << "Error while parsing parameter"  << propName;
+			}
+		}
+		else if (strcmp(typeName, "QVector<COLOR_TRIPLET>") == 0 )
+		{
+			auto arr = obj[propName].toArray();
+			QVector<COLOR_TRIPLET> t;
+			for ( auto j = 0; j < arr.count(); j++ )
+			{
+				COLOR_TRIPLET color;
+				if ( color.fromJson(arr.at(j).toObject(), error) )
+				{
+					t << color;
+				}
+				else
+				{
+					PARAM_SCOPED_ERROR << "Error while parsing parameter"  << propName;
+				}
+			}
+			(void)setProperty(propName, QVariant::fromValue(t));
+		}
+		else
+		{
+			auto srcVar = obj[propName].toVariant();
+			if ( !srcVar.isNull() )
+			{
+				setProperty(propName, srcVar);
+			}
 		}
 	}
 
-	QJsonDocument doc(serialize(propList));
-	return QString(doc.toJson(QJsonDocument::Indented)).toStdString();
-}
-
-bool BaseSerializeableParam::deserialize(const QJsonObject& obj)
-{
+	emit loaded();
+	recalculate();
 	return true;
 }
 
-QJsonObject BaseSerializeableParam::serialize(const PROP_LIST& propList) const
+IPropertyList BaseParameters::getEditablePropertyList() const
 {
-	auto retObj = QJsonObject();
-	std::for_each(propList.begin(), propList.end(), 
-		[&retObj] (auto valPair)
-	{
-		retObj[QString::fromStdString(valPair.first)] = valPair.second.toJsonValue();
-	});
-
-	return std::move(retObj);
+	return getPropertyList(false);
 }
 
-BaseParameter::BaseParameter()
+IPropertyList BaseParameters::getReadOnlyPropertyList() const
 {
-	qRegisterMetaType<PARAM_GROUP_HEADER>("PARAM_GROUP_HEADER");
-	qRegisterMetaType<COLOR_TRIPLET>("COLOR_TRIPLET");
-	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
-	qRegisterMetaType<QVector<QRect>>("QVector<QRect>");
-	qRegisterMetaType<QVector<COLOR_TRIPLET>>("QVector<COLOR_TRIPLET>");
+	return getPropertyList(true);
 }
 
-IPropertyList BaseParameter::getPropertyList() const
+IPropertyList BaseParameters::getPropertyList(bool bReadOnly) const
 {
 	IPropertyList retVal;
 	const auto metaobject = metaObject();
@@ -60,18 +182,18 @@ IPropertyList BaseParameter::getPropertyList() const
 	{
 		auto metaproperty = metaobject->property(i);
 		const auto name = metaproperty.name();
-		if (strcmp(name, "objectName") != 0)
+		if (strcmp(name, "objectName") != 0 && metaproperty.isUser() != bReadOnly)
 			retVal.push_back(IPropertyTuple(name, property(name), metaproperty.isUser()));
 	}
 	return retVal;
 }
 
-bool BaseParameter::setPropertyList(const IPropertyList& vals)
+bool BaseParameters::setPropertyList(const IPropertyList& vals)
 {
 	return false;
 }
 
-QVariant BaseParameter::getParamProperty(const QString& strValName) const
+QVariant BaseParameters::getParamProperty(const QString& strValName) const
 {
 	QVariant retVal;
 	const auto metaobject = metaObject();
@@ -86,7 +208,7 @@ QVariant BaseParameter::getParamProperty(const QString& strValName) const
 	return QVariant{};
 }
 
-bool BaseParameter::setParamProperty(const QString& strValName, const QVariant& val)
+bool BaseParameters::setParamProperty(const QString& strValName, const QVariant& val)
 {
 	const auto metaobject = metaObject();
 	const auto count = metaobject->propertyCount();
@@ -99,8 +221,7 @@ bool BaseParameter::setParamProperty(const QString& strValName, const QVariant& 
 			const auto retVal = setProperty(name, val);
 			if (retVal)
 			{
-				emit propertyChanged(name);
-				//saveConfiguration();
+				recalculate();
 				return retVal;
 			}
 		}

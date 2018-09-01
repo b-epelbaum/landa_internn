@@ -18,9 +18,10 @@ namespace LandaJune {
 
 namespace LandaJune {
 	namespace Parameters {
-		class ProcessParameter;
+		class BaseParameters;
 	}
 }
+
 
 namespace LandaJune
 {
@@ -44,7 +45,7 @@ namespace LandaJune
 			virtual const std::list<FrameProviderPtr>& getFrameProviderList() const = 0;
 			virtual const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const = 0;
 					
-			virtual ProcessParameterPtr getProcessParameters() = 0;
+			virtual std::shared_ptr<Parameters::BaseParameters> getProcessParameters() = 0;
 
 			virtual void selectFrameProvider(FrameProviderPtr provider) = 0;
 			virtual FrameProviderPtr getSelectedFrameProvider() const = 0;

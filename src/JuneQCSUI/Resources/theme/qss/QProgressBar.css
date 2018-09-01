@@ -1,0 +1,26 @@
+QProgressBar:horizontal
+{
+    min-height: 4px;
+    max-height: 4px;
+    height:4px;
+    border: none;
+    border-radius: 4px;
+    background: qlineargradient(x1:1, y1:1, x2:1, y2:0, stop:0 #1d2022, stop:1 #1d2022);
+}
+
+QProgressBar:horizontal:disabled
+{
+    background: #2d3338;
+}
+
+QProgressBar::chunk:horizontal
+{
+    min-height: 4px;
+    max-height: 4px;
+    padding: 0;
+    margin: 0;
+    spacing: 0;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    background: #edcd4d;
+}

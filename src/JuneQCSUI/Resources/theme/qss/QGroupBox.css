@@ -1,0 +1,50 @@
+QGroupBox
+{
+    border-bottom: 1px solid #d6d6d6;
+    border-radius: 0px;
+    margin-top: 20px; /* Leave space at the top for the title. */
+}
+QGroupBox::title
+{
+    margin-top: 10px;
+    font-size: 13px;
+    color: #222222;
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+}
+
+QGroupBox::indicator
+{
+    width: 12px;
+    height: 12px;
+}
+
+QGroupBox::indicator:unchecked
+{
+    border: 1px solid #bcbebf;
+}
+
+QGroupBox::indicator:unchecked:hover
+{
+     border: 1px solid #1c7cd9;  
+}
+
+QGroupBox::indicator:checked
+{
+    border: 1px solid #1c7cd9;
+    background-color: #1c7cd9;
+    image: url(:/JuneUIWnd/Resources/theme/images/QCheckBox/indicator-check.png);
+}
+
+QGroupBox::indicator:checked:hover
+{
+    border: 1px solid #4895e0;
+    background-color: #4895e0;
+}
+
+QGroupBox::indicator:checked:disabled
+{
+    border: 1px solid #adafb0;
+    background-color: #adafb0;
+    image: url(:/JuneUIWnd/Resources/theme/images/QCheckBox/indicator-check.png);
+}

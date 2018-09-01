@@ -1,4 +1,4 @@
-#include "ProcessParameter.h"
+#include "ProcessParameters.h"
 #include <opencv2/imgcodecs.hpp>
 #include <thread>
 
@@ -6,28 +6,26 @@
 
 using namespace LandaJune::Parameters;
 
-ProcessParameter::ProcessParameter()
+ProcessParameters::ProcessParameters()
 {
-	connect(this, &BaseParameter::propertyChanged, this, &ProcessParameter::onPropertyChanged);
-	recalculate();
+	_recalculate();
 }
 
-void ProcessParameter::onPropertyChanged(QString strPropName)
+ProcessParameters::ProcessParameters(const QJsonObject& obj)
 {
-	(void)strPropName;
-	recalculate();
 }
 
-void ProcessParameter::recalculate()
+void ProcessParameters::_recalculate()
 {
 	// cleanup 
-	_ColorArray.clear();
-	_C2CROIArrayLeft.clear();
-	_C2CROIArrayRight.clear();
+	setColorArray ({});
+	setC2CROIArrayLeft({});
+	setC2CROIArrayRight({});
 
 	// general parameters
 
-	_ReferenceColorTriplet = { 0,0,0,"Black" };
+	setReferenceColorTriplet ( {0,0,0,"Black"});
+
 	// sheet dimensions
 	_SubstrateWidth_px = toPixelsX(_SubstrateWidth_mm + _OffsetFromLeftEdge_mm * 2 );
 	_SubstrateHeight_px = toPixelsY(_SubstrateHeight_mm);
@@ -73,21 +71,15 @@ void ProcessParameter::recalculate()
 	_I2SApproximateTriangleRectRight = _I2SApproximateTriangleRectLeft.translated(_OffsetBetweenTriangles_px, 0);
 
 	// ROI colors
-	COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 50, "Cyan" };
-	COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 50, "Yellow" };
-	COLOR_TRIPLET_SINGLE color3_min = { 115, 170, 50, "Magenta" };
-	COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "Black" };
+	const COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 50, "Cyan" };
+	const COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 50, "Yellow" };
+	const COLOR_TRIPLET_SINGLE color3_min = { 115, 170, 50, "Magenta" };
+	const COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "Black" };
 
-	COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "Cyan" };
-	COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "Yellow" };
-	COLOR_TRIPLET_SINGLE color3_max = { 150, 255, 255, "Magenta" };
-	COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "Black" };
-
-	_TestSingleTriplet = color3_min;
-	_TestTriplet._colorName = "Cyan";
-	_TestTriplet._min = color1_min;
-	_TestTriplet._max = color1_max;
-
+	const COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "Cyan" };
+	const COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "Yellow" };
+	const COLOR_TRIPLET_SINGLE color3_max = { 150, 255, 255, "Magenta" };
+	const COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "Black" };
 
 	_ColorArray
 		<< COLOR_TRIPLET{ color1_min, color1_max, "Cyan" }
@@ -119,5 +111,5 @@ void ProcessParameter::recalculate()
 		_C2CROIArrayRight << _C2CROIArrayLeft[i].translated(_OffsetBetweenTriangles_px, 0);
 	}
 
-	emit bulkChanged();
+	emit updateCalculated();
 }

@@ -16,7 +16,7 @@ namespace LandaJune {
 
 namespace LandaJune {
 	namespace Parameters {
-		class BaseParameter;
+		class BaseParameters;
 	}
 }
 
@@ -40,8 +40,8 @@ namespace LandaJune
 			virtual QString getDescription() const = 0;
 			virtual int getRecommendedFramePoolSize() = 0;
 			
-			virtual void setProviderParameters(std::shared_ptr<Parameters::BaseParameter> parameters) = 0;
-			virtual std::shared_ptr<Parameters::BaseParameter> getProviderParameters() const = 0;
+			virtual void setProviderParameters(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
+			virtual std::shared_ptr<Parameters::BaseParameters> getProviderParameters() const = 0;
 
 			virtual FRAME_PROVIDER_ERROR prepareData(Core::FrameRef* frameRef) = 0;
 			virtual FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) = 0;

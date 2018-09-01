@@ -1,0 +1,10 @@
+QListWidget
+{
+    background-color: #f2f2f2;
+}
+
+QListView:item:selected 
+{ 
+	color: #295C17  ; 
+	background-color: #e9e9e9; 
+}

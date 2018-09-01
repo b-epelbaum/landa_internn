@@ -12,7 +12,7 @@ namespace LandaJune {
 
 namespace LandaJune {
 	namespace Parameters {
-		class ProcessParameter;
+		class ProcessParameters;
 	}
 }
 
@@ -45,18 +45,18 @@ inline ROIRect toROIRect(const QRect& qrc)
 inline HSV_SINGLE colorSingle2HSVSingle(const LandaJune::Parameters::COLOR_TRIPLET_SINGLE& color)
 {
 	HSV_SINGLE out;
-	out._iH = color._iH;
-	out._iS = color._iS;
-	out._iV = color._iV;
+	out._iH = color.H();
+	out._iS = color.S();
+	out._iV = color.V();
 	return std::move(out);
 }
 
 inline HSV color2HSV(const LandaJune::Parameters::COLOR_TRIPLET& color)
 {
 	HSV out;
-	out._min = colorSingle2HSVSingle(color._min);
-	out._max = colorSingle2HSVSingle(color._max);
-	out._colorName = color._colorName;
+	out._min = colorSingle2HSVSingle(color.Min());
+	out._max = colorSingle2HSVSingle(color.Max());
+	out._colorName = color.ColorName().toStdString();
 	return std::move(out);
 }
 
