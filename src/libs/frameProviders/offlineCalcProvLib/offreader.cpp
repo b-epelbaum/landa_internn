@@ -118,12 +118,6 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 	}
 }
 
-void OfflineReader::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
-{
-	validateParameters(parameters);
-	_providerParameters = parameters;
-}
-
 void OfflineReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	// TODO : query BaseParameters for named parameters

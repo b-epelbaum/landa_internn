@@ -30,6 +30,7 @@ namespace LandaJune
 
 			bool warnAboutDroppedFrames() override { return true; }
 
+			void setProviderParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			std::shared_ptr<Parameters::BaseParameters>  getProviderParameters() const override { return _providerParameters;  }
 
 			int32_t getFrameDropDelayTimeout() const override {
@@ -49,6 +50,10 @@ namespace LandaJune
 			}
 
 			DECLARE_PROVIDER_PROPERTY(DropFrameWaitTimeout, int, 50)
+
+		public slots:
+
+			void onUpdateParameters();
 
 		protected :
 			

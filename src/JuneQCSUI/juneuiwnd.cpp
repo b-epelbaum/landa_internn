@@ -552,7 +552,8 @@ void JuneUIWnd::onUpdateProcessParams()
 void JuneUIWnd::onUpdateCalculatedParams()
 {
 	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
-	ui.processParamViewCalculated->expandToDepth(1);
+	onFrameProviderComboChanged(ui.frameSourceCombo->currentIndex());
+	//ui.processParamViewCalculated->expandToDepth(1);
 }
 
 void JuneUIWnd::onSaveConfig()

@@ -164,8 +164,9 @@ namespace LandaJune
 
 			cv::Mat						_waveImageSource;
 			// scanner side
-			std::vector<HSV>			_colors;
-			ROIRect						_setROI;
+			HSV							_circleColor;
+			ROIRect						_waveROI;
+			int32_t						_circlesCount = 0;
 		};
 
 		//------------------------------------------

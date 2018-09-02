@@ -355,12 +355,6 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-void SiSoProvider::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
-{
-	validateParameters(parameters);
-	_providerParameters = parameters;
-}
-
 void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	// TODO : query BaseParameters for named parameters

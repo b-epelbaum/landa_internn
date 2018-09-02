@@ -79,7 +79,7 @@ namespace LandaJune
 			virtual void generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateI2SRegions(PARAMS_I2S_INPUT& input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_REGION_LIST& regionList) const;
-			virtual void generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList);
+			virtual void generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList, bool dumpWave);
 
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
 

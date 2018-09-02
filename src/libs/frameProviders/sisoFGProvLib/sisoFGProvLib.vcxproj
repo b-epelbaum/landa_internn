@@ -145,6 +145,9 @@
     <ProjectReference Include="..\..\logLib\appLog.vcxproj">
       <Project>{f3851e08-5036-4057-81d8-cf94de101cb3}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\..\paramLib\paramLib.vcxproj">
+      <Project>{aee565b3-8822-46e6-8e39-eb574b3bc447}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\..\utilLib\utilLib.vcxproj">
       <Project>{2cd8058e-0ec4-4486-8129-03e874b756da}</Project>
     </ProjectReference>

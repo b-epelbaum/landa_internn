@@ -122,21 +122,26 @@ void wavePageHandler::process(const FrameRef * frame)
 		_sourceFrameNumber = std::to_string(_frameIndex);
 	else
 		_frameIndex = std::stoi(_sourceFrameNumber);
-	
-	PARAMS_WAVE_INPUT input(_frame);
 
-	// fill process parameters
-	fillWaveProcessParameters(input);
-
-	// generate ROIs for all required elements
+	std::vector<PARAMS_WAVE_INPUT> waveInputs;
 	IMAGE_REGION_LIST regionList;
-	generateWaveRegions(input, regionList);
+
+	for (const auto& color : _processParameters->ColorArray() )
+	{
+		PARAMS_WAVE_INPUT input(_frame);
+		fillWaveProcessParameters(input);
+		input._circleColor = color2HSV(color);
+		
+		generateWaveRegions(input, regionList, _processParameters->DumpWaveROI() && waveInputs.empty());
+		waveInputs.emplace_back(std::move(input));
+	}
 
 	// and perform a deep copy
 	copyRegions(regionList);
 
-	//process the whole strip
-	const auto output = std::move(processWave(input));
+	//process wave ROI n times ( n = number of colors )
+	for (const auto& wave : waveInputs )
+	const auto output = std::move(processWave(wave));
 
 	// dump C2C results to CSV
 	//dumpwaveCSV(output);

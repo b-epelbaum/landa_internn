@@ -33,6 +33,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(DumpRightStrip, bool, false, true)
 			DECLARE_PARAM_PROPERTY(DumpI2S, bool, true, true)
 			DECLARE_PARAM_PROPERTY(DumpC2CROIs, bool, true, true)
+			DECLARE_PARAM_PROPERTY(DumpWaveROI, bool, true, true)
 
 			DECLARE_PARAM_PROPERTY(AlgorithmParams, PARAM_GROUP_HEADER, { "Algorithm parameters" }, true)
 			DECLARE_PARAM_PROPERTY(ProcessRightSide, bool, true, true)

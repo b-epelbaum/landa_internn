@@ -325,7 +325,8 @@ void abstractAlgoHandler::fillC2CProcessParameters(PARAMS_C2C_ROI_INPUT& input, 
 void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 {
 	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
-	input._setROI = toROIRect(_processParameters->WaveROI());
+	input._waveROI = toROIRect(_processParameters->WaveROI());
+	input._circlesCount = _processParameters->NumberOfColorDotsPerLine();
 }
 
 
@@ -451,7 +452,7 @@ void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_
 	);
 }
 
-void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList)
+void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList, bool dumpWave )
 {
 	auto& ROI = input;
 	ROI.setGenerateOverlay(input.GenerateOverlay());
@@ -461,10 +462,10 @@ void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_RE
 			*_frameContainer
 			, ROI._waveImageSource
 			, _processParameters
-			, roirect2cvrect(ROI._setROI)
+			, roirect2cvrect(ROI._waveROI)
 			, _frameIndex
 			, generateFullPathForElement<PARAMS_WAVE_INPUT>(input, "bmp")
-			, _processParameters->DumpC2CROIs()
+			, dumpWave
 		)
 	);
 }
@@ -478,13 +479,13 @@ void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_RE
 PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET_INPUT& sheetInput)
 {
 	PARAMS_C2C_SHEET_OUTPUT retVal;
-	retVal._input = sheetInput;
 	retVal._result = ALG_STATUS_SUCCESS;
 
 	if (_processParameters->DisableAllAlgorithmProcessing())
 	{
 		ABSTRACTALGO_HANDLER_SCOPED_LOG << " ---- All algorithm processing is disabled. Skipping calculations";
-		return retVal;
+		retVal._input = std::move(sheetInput);
+		return std::move(retVal);
 	}
 
 	if (_bParallelizeCalculations)
@@ -515,7 +516,8 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
 
-	return retVal;
+	retVal._input = std::move(sheetInput);
+	return std::move(retVal);
 }
 
 // ------------------------------------------------------
@@ -524,7 +526,6 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP_INPUT& stripInput, const bool detectEdge)
 {
 	PARAMS_C2C_STRIP_OUTPUT retVal;
-	retVal._input = stripInput;
 
 	// TODO : change processing to make I2S and C2C parallel
 
@@ -564,7 +565,8 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 	if (roiInputs.empty())
 	{
 		ABSTRACTALGO_HANDLER_SCOPED_LOG << "No C2C ROI defined in input parameters.";
-		return retVal;
+		retVal._input = std::move(stripInput);
+		return std::move(retVal);
 	}
 
 	if (_bParallelizeCalculations)
@@ -608,7 +610,8 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		: ALG_STATUS_FAILED;
 
 	// TODO : update C2C rectangles with I2S offset
-	return retVal;
+	retVal._input = std::move(stripInput);
+	return std::move(retVal);
 }
 
 void abstractAlgoHandler::initEdge(const INIT_PARAMETER& initParam) const
@@ -629,7 +632,6 @@ void abstractAlgoHandler::initEdge(const INIT_PARAMETER& initParam) const
 PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_INPUT& input)
 {
 	PARAMS_PAPEREDGE_OUTPUT retVal;
-	retVal._input = input;
 	ABSTRACTALGO_HANDLER_SCOPED_LOG << "Edge detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 
 	try
@@ -643,6 +645,7 @@ PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_
 	}
 
 	dumpOverlay<PARAMS_PAPEREDGE_OUTPUT>(retVal);
+	retVal._input = std::move(input);
 	return std::move(retVal);
 }
 
@@ -676,7 +679,6 @@ void abstractAlgoHandler::initI2S(const INIT_PARAMETER& initParam) const
 PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 {
 	PARAMS_I2S_OUTPUT retVal;
-	retVal._input = input;
 
 	ABSTRACTALGO_HANDLER_SCOPED_LOG << "I2S detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 	try
@@ -690,6 +692,7 @@ PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 	}
 
 	dumpOverlay<PARAMS_I2S_OUTPUT>(retVal);
+	retVal._input = std::move(input);
 	return std::move(retVal);
 }
 
@@ -730,8 +733,6 @@ void abstractAlgoHandler::initC2CRoi(const INIT_PARAMETER& initParam) const
 PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_INPUT& input)
 {
 	PARAMS_C2C_ROI_OUTPUT retVal;
-	retVal._input = input;
-
 	// allocate array of C2C outputs
 	const auto& hsvCount = input._colors.size();
 
@@ -751,7 +752,8 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 	}
 
 	dumpOverlay<PARAMS_C2C_ROI_OUTPUT>(retVal);
-	return retVal;
+	retVal._input = std::move(input);
+	return std::move(retVal);
 }
 
 void abstractAlgoHandler::shutdownC2CRoi() const
@@ -775,8 +777,12 @@ void abstractAlgoHandler::initWave(const INIT_PARAMETER& initParam)
 
 PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& input)
 {
-	PARAMS_WAVE_OUTPUT out;
-	return out;
+	PARAMS_WAVE_OUTPUT retVal;
+
+	// implement wave calculations
+
+	retVal._input = std::move(input);
+	return std::move(retVal);
 }
 
 void abstractAlgoHandler::shutdownWave()
