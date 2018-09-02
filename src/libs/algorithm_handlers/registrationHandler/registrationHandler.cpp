@@ -108,7 +108,7 @@ void registrationPageHandler::process(const FrameRef * frame)
 	_sourceFrameNumber.clear();
 	try
 	{
-		auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
+		const auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
 		
 		//c:/temp/offline/10_780_Registration/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
 

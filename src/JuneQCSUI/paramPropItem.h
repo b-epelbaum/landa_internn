@@ -6,7 +6,7 @@
 class ParamPropItem
 {
 public:
-    explicit ParamPropItem(const QVector<QVariant> &data, ParamPropItem *parent = 0);
+    explicit ParamPropItem(QVector<QVariant> data, ParamPropItem *parent = 0);
     ~ParamPropItem();
 
 	ParamPropItem *child(int number) const;

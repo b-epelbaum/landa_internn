@@ -76,7 +76,7 @@ void WinLogConsole::Output(const wchar_t* szOutput, ...) const
 	// process arguments
 	else
 	{
-        WriteConsoleW(hConsole, szOutput, wcslen(szOutput) ,&dwWritten, nullptr);
+        WriteConsoleW(hConsole, szOutput, static_cast<DWORD>(wcslen(szOutput)) ,&dwWritten, nullptr);
 	}		
 }
 

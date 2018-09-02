@@ -111,5 +111,30 @@ void ProcessParameters::_recalculate()
 		_C2CROIArrayRight << _C2CROIArrayLeft[i].translated(_OffsetBetweenTriangles_px, 0);
 	}
 
+	//wave
+	// wave I2S
+	setWaveTriangleROIRect(QRect(
+		 toPixelsX(_WaveTriangleApproximateX_um / 1000 - _I2SMarginX_mm)
+		,toPixelsY(_WaveTriangleApproximateY_um / 1000 - _I2SMarginY_mm )
+		, _I2SROIWidth_px
+		, _I2SROIHeight_px )
+	);
+
+	const int32_t waveROILeft = toPixelsX(_OffsetFromLeftEdge_mm + _WaveImageMarginX_um / 1000 - _I2SMarginX_mm);
+	const int32_t waveROIRight = toPixelsX(_OffsetFromLeftEdge_mm + _SubstrateWidth_mm - _I2SMarginX_mm);
+
+	const int32_t waveRegHeight = toPixelsY((_WaveDistanceBetweenDotsY_um * ( _ColorArray.size() - 1 ) ) / 1000 + (2 * _I2SMarginY_mm));
+	
+	setWaveROI (QRect(
+		waveROILeft
+		, _WaveTriangleROIRect.top() + toPixelsY(_WaveDistanceBetweenTriangleAndFirstRow_um / 1000 )
+		, waveROIRight - waveROILeft
+		, waveRegHeight
+	)
+	);
+
+	// wave dots count
+	_NumberOfColorDotsPerLine = (_SubstrateWidth_mm- 2 * _WaveImageMarginX_um / 1000) / (_WaveDistanceBetweenDotsX_um / 1000 );
+
 	emit updateCalculated();
 }

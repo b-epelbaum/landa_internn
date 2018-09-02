@@ -44,7 +44,7 @@ namespace LandaJune
 
 			void onUpdateProcessParams();
 			void onUpdateCalculatedParams();
-	                void onBtnAddPropClicked() noexcept;
+	        void onBtnAddPropClicked() noexcept;
 			void onBtnRemovePropClicked() noexcept;
 
 			void onSaveConfig();

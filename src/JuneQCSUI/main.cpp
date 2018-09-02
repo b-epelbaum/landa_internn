@@ -12,12 +12,12 @@ int main(int argc, char *argv[])
 
 	QFile lightStyle(QStringLiteral(":/JuneUIWnd/Resources/theme/qss/QApplication.css"));
 	if (lightStyle.open(QIODevice::ReadOnly | QIODevice::Text))
-  {
-    // set stylesheet
-	  const QString qsStylesheet = QString::fromLatin1(lightStyle.readAll());
-    a.setStyleSheet(qsStylesheet);
-    lightStyle.close();
-  }
+	{
+		// set stylesheet
+		const QString qsStylesheet = QString::fromLatin1(lightStyle.readAll());
+		a.setStyleSheet(qsStylesheet);
+		lightStyle.close();
+	}
 
 	//a.setStyle(new DarkStyle);
 

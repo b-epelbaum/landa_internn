@@ -75,11 +75,13 @@ void JuneUIWnd::initUI()
 	createActions();
 	createStatusBar();
 
-	ui.tabWidget->tabBar()->setFixedHeight(36);
-	ui.tabWidget->tabBar()->setIconSize(QSize(24,24));
-	ui.tabWidget->tabBar()->setTabIcon(0,  QIcon(":/JuneUIWnd/Resources/proc_params.png"));
-	ui.tabWidget->tabBar()->setTabIcon(1,  QIcon(":/JuneUIWnd/Resources/scan.png"));
-	ui.tabWidget->tabBar()->setTabIcon(2,  QIcon(":/JuneUIWnd/Resources/algo.png"));
+	auto const pTabBar = ui.tabWidget->tabBar();
+
+	pTabBar->setFixedHeight(36);
+	pTabBar->setIconSize(QSize(24,24));
+	pTabBar->setTabIcon(0,  QIcon(":/JuneUIWnd/Resources/proc_params.png"));
+	pTabBar->setTabIcon(1,  QIcon(":/JuneUIWnd/Resources/scan.png"));
+	pTabBar->setTabIcon(2,  QIcon(":/JuneUIWnd/Resources/algo.png"));
 
 	connect(qApp, &QCoreApplication::aboutToQuit, this, &JuneUIWnd::onAboutToQuit);
 	
@@ -98,8 +100,8 @@ void JuneUIWnd::initUI()
 	_processParamModelCalculated = std::make_unique<ParamPropModel>(this);
 	ui.processParamViewCalculated->setModel(_processParamModelCalculated.get());
 
-	connect(ui.btnAddProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnAddPropClicked);
-	connect(ui.btnRemoveProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnRemovePropClicked);
+	//connect(ui.btnAddProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnAddPropClicked);
+	//connect(ui.btnRemoveProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnRemovePropClicked);
 
 	_progressBarTimer.setSingleShot(false);
 	_progressBarTimer.setInterval(300);

@@ -139,7 +139,7 @@ FRAME_PROVIDER_ERROR OfflineReader::init()
 	_lastAcquiredImage = -1;
 	_imagePaths.clear();
 
-	const auto imageFolder = _SourceFolderPath;
+	const auto imageFolder = "c:\\Temp\\Wave";//_SourceFolderPath;
 	if ( !QFileInfo(imageFolder).exists())
 	{
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;

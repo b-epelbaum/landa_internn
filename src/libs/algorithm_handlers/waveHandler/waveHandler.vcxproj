@@ -85,7 +85,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;REGISTRATIONHANDLER_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;WAVEHANDLER_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;$(SolutionDir)src\libs\algorithm_handlers\abstractAlgoHandler;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -100,7 +100,7 @@
       <AdditionalDependencies>qtmain.lib;Qt5Core.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <QtMoc>
-      <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;REGISTRATIONHANDLER_LIB;%(PreprocessorDefinitions)</Define>
+      <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;WAVEHANDLER_LIB;%(PreprocessorDefinitions)</Define>
       <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;$(SolutionDir)src\libs\algorithm_handlers\abstractAlgoHandler</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>

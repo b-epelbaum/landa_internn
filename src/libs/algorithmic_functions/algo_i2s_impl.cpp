@@ -141,6 +141,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		if (input.GenerateOverlay())
 			Draw_Point(output._triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
 
+		float ff = input.Pixel2MM_X() ;
 		// set output data
 		output._triangeCorner._x = (int)round((fTriangle_X + input._approxTriangeROI.left()) * input.Pixel2MM_X());
 		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y());

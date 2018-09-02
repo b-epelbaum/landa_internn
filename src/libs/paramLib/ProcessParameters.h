@@ -149,10 +149,9 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROIArrayRight, QVector<QRect>, {}, false)
 
 			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
+			DECLARE_PARAM_PROPERTY(WaveROI, QRect, {}, false) 
 			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false) // 367
 			DECLARE_PARAM_PROPERTY(WaveTriangleROIRect, QRect, {}, false) 
-			DECLARE_PARAM_PROPERTY(WaveROIY_px, int, 0, false) 
-			DECLARE_PARAM_PROPERTY(WaveROIHeight_px, int, 0, false)
 
 		protected:
 

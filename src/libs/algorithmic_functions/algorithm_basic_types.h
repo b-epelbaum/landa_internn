@@ -10,8 +10,8 @@ namespace LandaJune
 		
 		static std::string SIDE_NAMES[] =
 		{
-			  "LEFT"
-			, "RIGHT"
+			  "Left"
+			, "Right"
 		};
 
 		enum GRABBER_SIDE { FRONT = 0, BACK };

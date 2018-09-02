@@ -474,7 +474,7 @@ void ConsoleLog::AddOther (const QtMsgType type, const copyableContext& context,
 }
 
 
-void ConsoleLog::AddLine (const int dwStatus, QString msg, copyableContext context)
+void ConsoleLog::AddLine (const int dwStatus, const QString& msg, const copyableContext& context)
 {
 	if (_logLevel == LOG_LEVEL_NONE)
 		return;

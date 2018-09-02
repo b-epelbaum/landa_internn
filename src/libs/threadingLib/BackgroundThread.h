@@ -30,7 +30,7 @@ namespace LandaJune
 			void stop();
 			bool join();
 
-			void setErrorHandler(const std::function<void(std::exception &)> handler)
+			void setErrorHandler(const std::function<void(std::exception &)>& handler)
 			{
 				autolock l(_mutex);
 				_error_handler = handler;

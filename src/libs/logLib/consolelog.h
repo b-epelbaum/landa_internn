@@ -166,7 +166,7 @@ namespace LandaJune
 
 		private slots:
 
-			void AddLine(int dwStatus, QString msg, copyableContext context);
+			void AddLine(int dwStatus, const QString& msg, const copyableContext& context);
 
 		protected:
 

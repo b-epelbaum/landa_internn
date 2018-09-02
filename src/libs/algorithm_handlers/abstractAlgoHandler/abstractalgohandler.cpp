@@ -324,6 +324,8 @@ void abstractAlgoHandler::fillC2CProcessParameters(PARAMS_C2C_ROI_INPUT& input, 
 
 void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 {
+	fillCommonProcessParameters(static_cast<ABSTRACT_INPUT&>(input));
+	input._setROI = toROIRect(_processParameters->WaveROI());
 }
 
 
@@ -409,9 +411,9 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IM
 
 	///////////////////////
 	////////// C2C ROIs
-	for (auto i = 0; i < input._c2cROIInputs.size(); i++)
+	for (auto& _c2cROIInput : input._c2cROIInputs)
 	{
-		generateC2CRegions(input._c2cROIInputs[i], regionList);
+		generateC2CRegions(_c2cROIInput, regionList);
 	}
 }
 
@@ -451,7 +453,20 @@ void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_
 
 void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList)
 {
-
+	auto& ROI = input;
+	ROI.setGenerateOverlay(input.GenerateOverlay());
+	regionList.emplace_back(
+		ImageRegion
+		(
+			*_frameContainer
+			, ROI._waveImageSource
+			, _processParameters
+			, roirect2cvrect(ROI._setROI)
+			, _frameIndex
+			, generateFullPathForElement<PARAMS_WAVE_INPUT>(input, "bmp")
+			, _processParameters->DumpC2CROIs()
+		)
+	);
 }
 
 /////////////////////////////////////////////////////////////////
@@ -510,6 +525,8 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 {
 	PARAMS_C2C_STRIP_OUTPUT retVal;
 	retVal._input = stripInput;
+
+	// TODO : change processing to make I2S and C2C parallel
 
 	if (_bParallelizeCalculations)
 	{
@@ -590,6 +607,7 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		? ALG_STATUS_SUCCESS
 		: ALG_STATUS_FAILED;
 
+	// TODO : update C2C rectangles with I2S offset
 	return retVal;
 }
 

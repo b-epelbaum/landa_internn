@@ -1,10 +1,11 @@
 #include <QStringList>
+#include <utility>
 #include "paramPropItem.h"
 
-ParamPropItem::ParamPropItem(const QVector<QVariant> &data, ParamPropItem *parent)
+ParamPropItem::ParamPropItem(QVector<QVariant> data, ParamPropItem *parent)
+	: itemData(std::move(data))
+	, parentItem(parent)
 {
-    parentItem = parent;
-    itemData = data;
 }
 
 
