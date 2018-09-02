@@ -84,7 +84,9 @@ void fullPageHandler::init(std::shared_ptr<BaseParameters> parameters)
 	{
 		FULLPAGE_HANDLER_SCOPED_WARNING << "No C2C ROI defined !";
 	}
-	initWave(INIT_PARAMETER{});
+
+	const INIT_PARAMETER waveInitParam{ toROIRect(_processParameters->WaveROI()) };
+	initWave(waveInitParam);
 }
 
 void fullPageHandler::cleanup()

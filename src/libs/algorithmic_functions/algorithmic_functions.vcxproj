@@ -14,6 +14,7 @@
     <ClCompile Include="algo_c2c_roi_impl.cpp" />
     <ClCompile Include="algo_edge_impl.cpp" />
     <ClCompile Include="algo_i2s_impl.cpp" />
+    <ClCompile Include="algo_wave_impl.cpp" />
     <ClCompile Include="Functions.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -22,6 +23,7 @@
     <ClInclude Include="algo_c2c_roi_impl.h" />
     <ClInclude Include="algo_edge_impl.h" />
     <ClInclude Include="algo_i2s_impl.h" />
+    <ClInclude Include="algo_wave_impl.h" />
     <ClInclude Include="cpu_load.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
