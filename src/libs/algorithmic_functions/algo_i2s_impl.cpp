@@ -49,7 +49,7 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 	// create and clear overlay
 	if (input.GenerateOverlay()) {
 		output._triangleOverlay.create(input._triangleImageSource.rows, input._triangleImageSource.cols, CV_8UC3);
-		output._triangleOverlay.setTo(0);
+		output._triangleOverlay.setTo(255);
 	}
 
 	// convert part to gray levels and HSV
@@ -141,10 +141,9 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		if (input.GenerateOverlay())
 			Draw_Point(output._triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
 
-		float ff = input.Pixel2MM_X() ;
 		// set output data
-		output._triangeCorner._x = (int)round((fTriangle_X + input._approxTriangeROI.left()) * input.Pixel2MM_X());
-		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y());
+		output._triangeCorner._x = (int)round((fTriangle_X + input._approxTriangeROI.left()) * input.Pixel2MM_X() * 1000);
+		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y() * 1000);
 		output._result = ALG_STATUS_SUCCESS;
 
 		//if (input.GenerateOverlay())

@@ -41,7 +41,7 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	// define and clear overlay image
 	if (input.GenerateOverlay()) {
 		output._edgeOverlay.create(input._stripImageSource.rows, input._stripImageSource.cols, CV_8UC3);
-		output._edgeOverlay.setTo(0);
+		output._edgeOverlay.setTo(255);
 	}
 
 	int iEstimated_X = input._approxDistanceFromEdgeX ;
@@ -78,7 +78,7 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	float fPaper_A = fAx / 50;
 	float fPaper_B = fBx - 2;
 
-	output._exactDistanceFromEdgeX = round((fPaper_A * input._triangeApproximateY + fPaper_B) * input.Pixel2MM_X());
+	output._exactDistanceFromEdgeX = round((fPaper_A * input._triangeApproximateY + fPaper_B) * input.Pixel2MM_X() * 1000);
 	output._result = ALG_STATUS_SUCCESS;
 
 	//if (input.GenerateOverlay())
