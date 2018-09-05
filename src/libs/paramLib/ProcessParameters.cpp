@@ -8,6 +8,27 @@ using namespace LandaJune::Parameters;
 
 ProcessParameters::ProcessParameters()
 {
+	setReferenceColorTriplet ( {0,0,0,"Black"});
+
+	// ROI colors
+	const COLOR_TRIPLET_SINGLE color1_min = { 80, 90, 170, "Cyan" };
+	const COLOR_TRIPLET_SINGLE color2_min = { 10, 90, 170, "Yellow" };
+	const COLOR_TRIPLET_SINGLE color3_min = { 135, 90, 170, "Magenta" };
+	const COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "Black" };
+
+	const COLOR_TRIPLET_SINGLE color1_max = { 120, 255, 255, "Cyan" };
+	const COLOR_TRIPLET_SINGLE color2_max = { 40, 255, 255, "Yellow" };
+	const COLOR_TRIPLET_SINGLE color3_max = { 179, 255, 255, "Magenta" };
+	const COLOR_TRIPLET_SINGLE color4_max = { 255, 90, 140, "Black" };
+
+
+	_ColorArray
+		<< COLOR_TRIPLET{ color1_min, color1_max, "Cyan" }
+		<< COLOR_TRIPLET{ color2_min, color2_max, "Yellow" }
+		<< COLOR_TRIPLET{ color3_min, color3_max, "Magenta" }
+		<< COLOR_TRIPLET{ color4_min, color4_max, "Black" };
+
+
 	_recalculate();
 }
 
@@ -18,13 +39,8 @@ ProcessParameters::ProcessParameters(const QJsonObject& obj)
 void ProcessParameters::_recalculate()
 {
 	// cleanup 
-	setColorArray ({});
 	setC2CROIArrayLeft({});
 	setC2CROIArrayRight({});
-
-	// general parameters
-
-	setReferenceColorTriplet ( {0,0,0,"Black"});
 
 	// sheet dimensions
 	_SubstrateWidth_px = toPixelsX(_SubstrateWidth_mm + _OffsetFromLeftEdge_mm * 2 );
@@ -70,23 +86,7 @@ void ProcessParameters::_recalculate()
 
 	_I2SApproximateTriangleRectRight = _I2SApproximateTriangleRectLeft.translated(_OffsetBetweenTriangles_px, 0);
 
-	// ROI colors
-	const COLOR_TRIPLET_SINGLE color1_min = { 0, 170, 50, "Cyan" };
-	const COLOR_TRIPLET_SINGLE color2_min = { 80, 170, 50, "Yellow" };
-	const COLOR_TRIPLET_SINGLE color3_min = { 115, 170, 50, "Magenta" };
-	const COLOR_TRIPLET_SINGLE color4_min = { 0, 0, 0, "Black" };
-
-	const COLOR_TRIPLET_SINGLE color1_max = { 30, 255, 255, "Cyan" };
-	const COLOR_TRIPLET_SINGLE color2_max = { 110, 255, 255, "Yellow" };
-	const COLOR_TRIPLET_SINGLE color3_max = { 150, 255, 255, "Magenta" };
-	const COLOR_TRIPLET_SINGLE color4_max = { 255, 100, 128, "Black" };
-
-	_ColorArray
-		<< COLOR_TRIPLET{ color1_min, color1_max, "Cyan" }
-		<< COLOR_TRIPLET{ color2_min, color2_max, "Yellow" }
-		<< COLOR_TRIPLET{ color3_min, color3_max, "Magenta" }
-		<< COLOR_TRIPLET{ color4_min, color4_max, "Black" };
-
+	
 	// C2c ROIs
 	_C2CDistanceBetweenDots_px = toPixelsY(_C2CDistanceBetweenDots_um / 1000);
 	_C2CDistanceBetweenSets_px = toPixelsY(_C2CDistanceBetweenSets_um / 1000);

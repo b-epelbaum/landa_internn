@@ -10,6 +10,7 @@
 
 #include "typeConverters.hpp"
 #include <fstream>
+#include "algo_wave_impl.h"
 
 namespace fs = std::filesystem;
 
@@ -644,8 +645,9 @@ PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	dumpOverlay<PARAMS_PAPEREDGE_OUTPUT>(retVal);
 	retVal._input = std::move(input);
+	dumpOverlay<PARAMS_PAPEREDGE_OUTPUT>(retVal);
+
 	return std::move(retVal);
 }
 
@@ -691,8 +693,8 @@ PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	dumpOverlay<PARAMS_I2S_OUTPUT>(retVal);
 	retVal._input = std::move(input);
+	dumpOverlay<PARAMS_I2S_OUTPUT>(retVal);
 	return std::move(retVal);
 }
 
@@ -751,8 +753,10 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
-	dumpOverlay<PARAMS_C2C_ROI_OUTPUT>(retVal);
+	// move input parameters to output
 	retVal._input = std::move(input);
+
+	dumpOverlay<PARAMS_C2C_ROI_OUTPUT>(retVal);
 	return std::move(retVal);
 }
 
@@ -770,6 +774,19 @@ void abstractAlgoHandler::shutdownC2CRoi() const
 
 void abstractAlgoHandler::initWave(const INIT_PARAMETER& initParam)
 {
+	WAVE_INIT_PARAMETER waveInitParam(initParam);
+	const auto& buf = _processParameters->CircleTemplateBuffer().constData();
+	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBuffer().size());
+	waveInitParam._templateImage = std::move(cv::imdecode(cv::Mat(data), CV_LOAD_IMAGE_GRAYSCALE));
+
+	try
+	{
+		detect_wave_init(waveInitParam);
+	}
+	catch (...)
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "Function detect_wave_init has thrown exception";
+	}
 }
 
 // ------------------------------------------------------

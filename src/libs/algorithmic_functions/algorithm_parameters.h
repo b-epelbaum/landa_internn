@@ -43,6 +43,14 @@ namespace LandaJune
 			cv::Mat	_templateImage;
 		};
 
+		class WAVE_INIT_PARAMETER : INIT_PARAMETER
+		{
+		public:
+
+			WAVE_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
+			cv::Mat	_templateImage;
+		};
+
 		////////////////////////////////////////////////
 		////////////    INPUT CLASSES  /////////////////
 		////////////////////////////////////////////////
@@ -311,7 +319,7 @@ namespace LandaJune
 			public:
 				std::vector<std::vector<OUT_STATUS>>	_colorDetectionResults;
 				std::vector<std::vector<APOINT>>		_colorCenters;
-				std::vector<cv::Mat>					_colorOverlays;
+				cv::Mat									_colorOverlay;
 				///
 				std::optional<PARAMS_WAVE_INPUT>		_input;
 				std::string getElementName() override

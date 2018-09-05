@@ -65,7 +65,7 @@ void wavePageHandler::init(std::shared_ptr<BaseParameters> parameters)
 	createCSVFolder();
 
 	// template image ( temporary solution )
-	QFile templateTif(":/templates/Resources/Template1.tif");
+	QFile templateTif(":/templates/Resources/Wave_Template.tif");
 	
 	if (templateTif.open(QFile::ReadOnly))
 		_processParameters->setCircleTemplateBuffer(templateTif.readAll());
@@ -98,7 +98,7 @@ void wavePageHandler::process(const FrameRef * frame)
 	_sourceFrameNumber.clear();
 	try
 	{
-		auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
+		const auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
 		
 		//c:/temp/offline/10_780_wave/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
 

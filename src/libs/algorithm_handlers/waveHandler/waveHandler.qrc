@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/templates">
-        <file>Resources/Template1.tif</file>
+        <file>Resources/Wave_Template.tif</file>
     </qresource>
 </RCC>

@@ -4,7 +4,7 @@
 using namespace cv;
 using namespace LandaJune::Algorithms;
 
-void detect_wave_init(const INIT_PARAMETER& initParam)
+void detect_wave_init(const WAVE_INIT_PARAMETER& initParam)
 {
 	detect_wave_shutdown();
 }
