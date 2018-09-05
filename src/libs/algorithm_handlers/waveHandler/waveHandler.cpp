@@ -124,20 +124,21 @@ void wavePageHandler::process(const FrameRef * frame)
 		_frameIndex = std::stoi(_sourceFrameNumber);
 
 	std::vector<PARAMS_WAVE_INPUT> waveInputs;
-	IMAGE_REGION_LIST regionList;
-
+	
 	for (const auto& color : _processParameters->ColorArray() )
 	{
+		IMAGE_REGION_LIST regionList;
+
 		PARAMS_WAVE_INPUT input(_frame);
 		fillWaveProcessParameters(input);
 		input._circleColor = color2HSV(color);
 		
 		generateWaveRegions(input, regionList, _processParameters->DumpWaveROI() && waveInputs.empty());
+		// and perform a deep copy
+		copyRegions(regionList);
+
 		waveInputs.emplace_back(std::move(input));
 	}
-
-	// and perform a deep copy
-	copyRegions(regionList);
 
 	//process wave ROI n times ( n = number of colors )
 	for (const auto& wave : waveInputs )
