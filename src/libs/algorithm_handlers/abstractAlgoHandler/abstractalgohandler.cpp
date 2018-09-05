@@ -795,15 +795,41 @@ void abstractAlgoHandler::initWave(const INIT_PARAMETER& initParam)
 PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& input)
 {
 	PARAMS_WAVE_OUTPUT retVal;
+	// allocate array of wave outputs
+	const auto& circleCount = input._circlesCount;
 
-	// implement wave calculations
+	retVal._result = ALG_STATUS_FAILED;
+	retVal._colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
+	retVal._colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
+	
+	ABSTRACTALGO_HANDLER_SCOPED_LOG << "WAVE Detection [color : " << input._circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
+	try
+	{
+		detect_wave(input, retVal);
+	}
+	catch (...)
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "Function detect_wave has thrown exception";
+		retVal._result = ALG_STATUS_EXCEPTION_THROWN;
+	}
 
+	// move input parameters to output
 	retVal._input = std::move(input);
+
+	dumpOverlay<PARAMS_WAVE_OUTPUT>(retVal);
 	return std::move(retVal);
 }
 
 void abstractAlgoHandler::shutdownWave()
 {
+	try
+	{
+		detect_wave_shutdown();
+	}
+	catch (...)
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_ERROR << "Function detect_wave_shutdown has thrown exception";
+	}
 }
 
 

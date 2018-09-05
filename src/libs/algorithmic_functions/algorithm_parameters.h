@@ -317,14 +317,14 @@ namespace LandaJune
 		class PARAMS_WAVE_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				std::vector<std::vector<OUT_STATUS>>	_colorDetectionResults;
-				std::vector<std::vector<APOINT>>		_colorCenters;
+				std::vector<OUT_STATUS>					_colorDetectionResults;
+				std::vector<APOINT>						_colorCenters;
 				cv::Mat									_colorOverlay;
 				///
 				std::optional<PARAMS_WAVE_INPUT>		_input;
 				std::string getElementName() override
 				{
-					return "Wave";
+					return fmt::format("Wave_[{0}]", _input->_circleColor._colorName);
 				}
 
 				std::optional<cv::Mat> overlay()  const override
