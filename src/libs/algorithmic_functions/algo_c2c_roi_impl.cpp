@@ -16,6 +16,8 @@ typedef unsigned char byte;
 
 // function declarations
 void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, float fFactor = 1) ;
+void	Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, Mat& tCorr_Matrix, int iTemplate_X, int iTemplate_Y, int iHalf_iSearch_Size, float& fDx, float& fDy, float& fCorr, int iMode);
+Mat		H_Diff (const Mat& imH1, int iH) ;
 
 // global variables
 thread_local	Mat		g_imPart_GL, g_imPart_HSV, g_imPart_GL_Smooth;
@@ -31,144 +33,6 @@ thread_local	Mat		g_tCorr_Matrix(50, 50, CV_32F);
 				Mat		g_imTemplate_Smooth;				// template after smoothing
 thread_local	Mat		g_imDisplay;
 thread_local	Mat		g_imColor_Circle_Dil;
-
-
-
-Mat	H_Diff(const Mat& imH1, int iH)
-{
-	Mat	imDiff1 = abs(imH1 - iH);
-	Mat	imDiff2 = abs(imH1 - iH + 180);
-	Mat	imDiff3 = abs(imH1 - iH - 180);
-	Mat imDiff = min(min(imDiff1, imDiff2), imDiff2);
-
-	return imDiff;
-}
-
-
-
-// Correlate template in an image
-// Pixels are not tested if has different Z (not used now)
-// fCorrelation - the correlation
-// iMatch - number of matched pixels
-// iMode - what part to correlate (0 - all template) - currently it is the only used mode
-void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int iDy, float& fCorrelation, int& iMatch, int iMode)
-{
-	int iX, iY;
-	iMatch = 0;
-
-	float fSum_1 = 0;
-	float fSum_11 = 0;
-	float fSum_2 = 0;
-	float fSum_22 = 0;
-	float fSum_12 = 0;
-
-	for (iX = 0; iX < imTemplate.cols; iX++)
-		for (iY = 0; iY < imTemplate.cols; iY++) {
-
-			// out of image - correlatiion is minimum
-			if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1) {
-				fCorrelation = -1;
-				return;
-			}
-
-			float fVal1 = (float)imImage.at<byte>(iY + iDy, iX + iDx);
-			float fVal2 = (float)imTemplate.at<byte>(iY, iX);
-		
-			if (iMode == 1 && iX < imTemplate.cols / 2)
-				continue;
-			if (iMode == 2 && iX > imTemplate.cols / 2)
-				continue;
-			if (iMode == 3 && iY < imTemplate.rows / 2)
-				continue;
-			if (iMode == 4 && iY > imTemplate.rows / 2)
-				continue;
-
-			if (fVal2 > 0) {
-				fSum_1 += fVal1;
-				fSum_11 += fVal1 * fVal1;
-				fSum_2 += fVal2;
-				fSum_22 += fVal2 * fVal2;
-				fSum_12 += fVal1 * fVal2;
-				iMatch++;
-			}
-		}
-
-	if (iMatch > 0) {
-		fSum_1 /= iMatch;
-		fSum_11 /= iMatch;
-		fSum_2 /= iMatch;
-		fSum_22 /= iMatch;
-		fSum_12 /= iMatch;
-	}
-
-	float fDenom = sqrtf((fSum_11 - fSum_1 * fSum_1) * (fSum_22 - fSum_2 * fSum_2));
-	float fNomin = (fSum_12 - fSum_1 * fSum_2);
-
-	fCorrelation = (fDenom > 0) ? fNomin / fDenom : 0;
-}
-
-
-
-// return the estimated maximum using parabolic fit, assumin fV2 is the maximum
-float fParabolic_Estimation(float fV1, float fV2, float fV3)
-{
-	// parabolic coeficients Ax^2+Bx+C = 0
-	float	fA = (fV1 + fV3) / 2 - fV2;
-	float	fB = (fV3 - fV1) / 2;
-
-	if (fA == 0)
-		return 0;
-	else
-		return -fB / (2 * fA);
-}
-
-
-
-void Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, int iTemplate_X, int iTemplate_Y, int iHalf_iSearch_Size, float& fDx, float& fDy, float& fCorr, int iMode)
-{
-	const int iSearch_Size = iHalf_iSearch_Size * 2 + 1;
-
-	//	Mat		imTemplate1 ;
-
-		// correlation matrix
-	g_tCorr_Matrix.setTo(-1);
-
-	// match points should be above this value
-//	int iMatch_Threshold = imTemplate1.rows * imTemplate1.cols / 4 ;
-
-	for (int iY1 = -iHalf_iSearch_Size; iY1 <= iHalf_iSearch_Size; iY1++) {
-		for (int iX1 = -iHalf_iSearch_Size; iX1 <= iHalf_iSearch_Size; iX1++) {
-			float	fCorrelation;
-			int		iMatch;
-
-			Correlate_Templates(imImage, imTemplate, iX1 + iTemplate_X - imTemplate.cols / 2, iY1 + iTemplate_Y - imTemplate.rows / 2, fCorrelation, iMatch, iMode);
-
-			//			if (iMatch > iMatch_Threshold)
-			g_tCorr_Matrix.at<float>(iY1 + iHalf_iSearch_Size, iX1 + iHalf_iSearch_Size) = fCorrelation;
-		}
-	}
-
-	Point tMax_Pos, tMin_Pos;
-	double dMax_Val, dMin_Val;
-	minMaxLoc(g_tCorr_Matrix, &dMin_Val, &dMax_Val, &tMin_Pos, &tMax_Pos);
-
-	fCorr = (float)dMax_Val;
-
-	// clear data of at edge of correlation array
-	float	fSub_Pixel_X = 0;
-	float	fSub_Pixel_Y = 0;
-
-	// If edge of correlation matrix - failed
-	if (tMax_Pos.x == 0 || tMax_Pos.x >= iSearch_Size - 1 || tMax_Pos.y == 0 || tMax_Pos.y >= iSearch_Size - 1)
-		fCorr = 0;
-	else {	// assign parabolic distance
-		fSub_Pixel_X = fParabolic_Estimation(g_tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x - 1), g_tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x), g_tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x + 1));
-		fSub_Pixel_Y = fParabolic_Estimation(g_tCorr_Matrix.at<float>(tMax_Pos.y - 1, tMax_Pos.x), g_tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x), g_tCorr_Matrix.at<float>(tMax_Pos.y + 1, tMax_Pos.x));
-	}
-
-	fDx = tMax_Pos.x - iHalf_iSearch_Size + fSub_Pixel_X;
-	fDy = tMax_Pos.y - iHalf_iSearch_Size + fSub_Pixel_Y;
-}
 
 
 
@@ -218,14 +82,13 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 	// use to determine H, S and V of circels
 	// somehow it is different than regulat RGB to HSV formula
-	//mwrite("c:\\temp\\a1_h.tif", g_aimHSV[0]);
-	//mwrite("c:\\temp\\a1_s.tif", g_aimHSV[1]);
-	//mwrite("c:\\temp\\a1_v.tif", g_aimHSV[2]);
+	//imwrite("c:\\temp\\a1_h.tif", g_aimHSV[0]);
+	//imwrite("c:\\temp\\a1_s.tif", g_aimHSV[1]);
+	//imwrite("c:\\temp\\a1_v.tif", g_aimHSV[2]);
 
 
 	int iFail = 0;
 	int iFail_Circles = 0;
-
 
 	// loop on circles
 	for (iCircle = 0; iCircle < input._colors.size(); iCircle++) {
@@ -256,8 +119,9 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 							g_aimHSV[2] >= input._colors[iCircle]._min._iV & g_aimHSV[2] <= input._colors[iCircle]._max._iV ;
 
 		
+		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(5, 5, CV_8U));
 		erode(g_imColor_Circle, g_imColor_Circle, Mat::ones(9, 9, CV_8U));
-		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(9, 9, CV_8U));
+		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(5, 5, CV_8U));
 
 		// color for overlay
 		Mat tHSV (1, 1, CV_8UC3) ;
@@ -283,7 +147,7 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 			int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
 
 			// remove blbls - to small, too large, high aspect ratio
-			if (iSize < 80 || iSize > 400 || abs(iWH - iHT) > 10)
+			if (iSize < 80 || iSize > 400 || abs(iWH - iHT) > 12)
 				g_imColor_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
 		}
 
@@ -294,7 +158,7 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 			afY[iCircle] = (float)g_imCentroids.at<double>(3); // + (float)iStart_Y;
 
 			for (int iMode = 0; iMode < 1; iMode++)
-				Find_Template_In_Image(g_imPart_GL_Smooth, g_imTemplate_Smooth, (int)g_imCentroids.at<double>(2), (int)g_imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
+				Find_Template_In_Image(g_imPart_GL_Smooth, g_imTemplate_Smooth, g_tCorr_Matrix, (int)g_imCentroids.at<double>(2), (int)g_imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
 			//Find_Template_In_Image(imPart_GL, imTemplate, (int)imCentroids.at<double>(2), (int)imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
 
 			//qsort (afDx, 5, sizeof (afDx[0]), Compare_Float) ;
@@ -337,13 +201,13 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 //				float fPos_Y = afY[iCircle] + 13 * sinf (fAng);
 //				Draw_Point (output._colorOverlay, fPos_X, fPos_Y, tRGB.at<Vec3b>(0)[2], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[0]) ;
 //			}
-		}
 
-//		char sOvl_Name [256] ;
-//		sprintf_s (sOvl_Name, "c:\\temp\\cc_%03d.jpg", iSeq) ;
-//		imwrite (sOvl_Name, output._colorOverlay) ;
-//		iSeq ++ ;
+		}
 	}
+//	char sOvl_Name[256];
+//	sprintf_s(sOvl_Name, "c:\\temp\\cc_%03d.jpg", iSeq);
+//	imwrite(sOvl_Name, output._colorOverlay);
+//	iSeq++;
 }
 
 
