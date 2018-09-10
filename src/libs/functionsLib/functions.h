@@ -33,7 +33,8 @@ namespace LandaJune
 		void frameConsume(std::shared_ptr<Algorithms::IAlgorithmHandler> algorithmHandler);
 		void frameRunAlgorithms(Core::FrameRef *frame, const std::unique_ptr<Algorithms::IAlgorithmHandler>& algorithmHandler);
 		void frameProcessOutput();
-		void frameSaveImage(const cv::Mat& image, std::string pathName);
+		void frameSaveImage(cv::Mat image, std::string pathName);
+		void frameSaveImage(cv::Mat * pimage, std::string pathName);
 	}
 }
 

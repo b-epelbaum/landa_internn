@@ -1,8 +1,9 @@
 #include "baseparam.h"
 #include <QMetaProperty>
 #include <QJsonArray>
-#include <qjsonarray.h>
+#include <QFile>
 #include "applog.h"
+#include <QJsonDocument>
 
 #define PARAM_SCOPED_LOG PRINT_INFO7 << "[BaseParameters] : "
 #define PARAM_SCOPED_ERROR PRINT_ERROR << "[BaseParameters] : "
@@ -88,7 +89,7 @@ QJsonObject BaseParameters::toJson()
 	return retVal;
 }
 
-bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
+bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString& error )
 {
 	const auto metaobject = metaObject();
 	const auto count = metaobject->propertyCount();
@@ -109,7 +110,7 @@ bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
 		if (strcmp(typeName, "COLOR_TRIPLET_SINGLE") == 0 )
 		{
 			COLOR_TRIPLET_SINGLE t;
-			if ( t.fromJson(paramObj, error) )
+			if ( t.fromJson(paramObj, false, error) )
 			{
 				(void)setProperty(propName, QVariant::fromValue(t));
 			}
@@ -121,7 +122,7 @@ bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
 		else if (strcmp(typeName, "COLOR_TRIPLET" ) == 0 )
 		{
 			COLOR_TRIPLET t;
-			if ( t.fromJson(paramObj, error) )
+			if ( t.fromJson(paramObj, false, error) )
 			{
 				(void)setProperty(propName, QVariant::fromValue(t));
 			}
@@ -137,7 +138,7 @@ bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
 			for ( auto j = 0; j < arr.count(); j++ )
 			{
 				COLOR_TRIPLET color;
-				if ( color.fromJson(arr.at(j).toObject(), error) )
+				if ( color.fromJson(arr.at(j).toObject(), false, error) )
 				{
 					t << color;
 				}
@@ -158,8 +159,11 @@ bool BaseParameters::fromJson(const QJsonObject& obj, QString& error )
 		}
 	}
 
-	emit loaded();
-	recalculate();
+	if (bRootObject)
+	{
+		emit loaded();
+		recalculate();
+	}
 	return true;
 }
 
@@ -227,4 +231,25 @@ bool BaseParameters::setParamProperty(const QString& strValName, const QVariant&
 		}
 	}
 	return false;
+}
+
+bool BaseParameters::load(QString fileName, QString& error)
+{
+	QFile jsonFile(fileName);
+	if (!jsonFile.open(QFile::ReadOnly) )
+	{
+		error = jsonFile.errorString();
+		return false;
+	}
+
+	QJsonParseError pError;
+	auto const doc = QJsonDocument::fromJson(jsonFile.readAll(), &pError);
+	if (pError.error != QJsonParseError::NoError )
+	{
+		error = pError.errorString();
+		return false;
+	}
+
+	return fromJson(doc.object(), true, error);
+
 }

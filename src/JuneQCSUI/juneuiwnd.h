@@ -68,7 +68,7 @@ namespace LandaJune
 			void enumerateAlgoHandlers() ;
 			void enableUIForProcessing(bool bEnable);
 
-			void initBatchParameters() const;
+			void initProcessParameters() const;
 
 			void saveExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel ) const;
 			void restoreExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel) const;

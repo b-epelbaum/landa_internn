@@ -38,8 +38,9 @@ namespace LandaJune
 			virtual QVariant getParamProperty(const QString& strValName) const;
 			virtual bool setParamProperty(const QString& strValName, const QVariant& val);
 
+			virtual bool load (QString fileName, QString& error);
 			virtual QJsonObject toJson();
-			virtual bool fromJson(const QJsonObject& obj, QString& error );
+			virtual bool fromJson(const QJsonObject& obj, bool bRootObject, QString& error );
 
 			signals:
 

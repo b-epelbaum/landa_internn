@@ -91,7 +91,7 @@ namespace LandaJune
 				{
 					const auto& targetMat = out.overlay();
 					if ( targetMat != std::nullopt )
-						dumpMatFile(targetMat.value(), generateFullPathForElement<T>(out), false, _bParallelCalc);
+						dumpMatFile(targetMat.value(), generateFullPathForElement<T>(out), _bParallelCalc);
 				}
 			}
 

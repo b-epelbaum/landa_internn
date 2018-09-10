@@ -69,25 +69,16 @@ namespace LandaJune
 		return filePath;
 	}
 
-	static void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool bCloneImage, bool asyncWrite)
+	static void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool asyncWrite)
 	{
 #ifdef USE_PPL
 		if (asyncWrite)	
 		{
-			if (bCloneImage)
+			auto targetImg = new cv::Mat(std::move(img.clone()));
+			task<void> t([targetImg, filePath]()
 			{
-				task<void> t([&img, &filePath]()
-				{
-					 Functions::frameSaveImage(std::move(img.clone()), filePath);
-				});
-			}
-			else
-			{
-				task<void> t([&img, &filePath]()
-			    {
-			        Functions::frameSaveImage(std::move(img), filePath);
-			    });
-			}
+				 Functions::frameSaveImage(targetImg, filePath);
+			});
 		}
 		else
 		{

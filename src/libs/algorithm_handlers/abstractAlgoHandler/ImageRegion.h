@@ -116,7 +116,7 @@ namespace LandaJune
 				// dump input regions if needed
 				if (!rgn._params->DisableAllROISaving() && rgn._bNeedSaving && !rgn._fullSavePath.empty())
 				{
-					dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, true, rgn._bParallelize);
+					dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, rgn._bParallelize);
 				}
 			}
 		};
