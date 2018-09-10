@@ -49,7 +49,7 @@ namespace LandaJune
 				, _imageIndex (other._imageIndex)
 				, _csvFolder (other._csvFolder)
 				, _processParameters (other._processParameters)
-				, _bParallelizeCalculations (other._bParallelizeCalculations)
+				, _bParallelCalc (other._bParallelCalc)
 			{
 			}
 
@@ -91,7 +91,7 @@ namespace LandaJune
 				{
 					const auto& targetMat = out.overlay();
 					if ( targetMat != std::nullopt )
-						dumpMatFile(targetMat.value(), generateFullPathForElement<T>(out), false, _bParallelizeCalculations);
+						dumpMatFile(targetMat.value(), generateFullPathForElement<T>(out), false, _bParallelCalc);
 				}
 			}
 
@@ -146,7 +146,7 @@ namespace LandaJune
 			int _imageIndex = 0;
 			std::string _csvFolder;
 			std::shared_ptr<Parameters::ProcessParameters> _processParameters;
-			bool _bParallelizeCalculations = false;
+			bool _bParallelCalc = false;
 		};
 	}
 }

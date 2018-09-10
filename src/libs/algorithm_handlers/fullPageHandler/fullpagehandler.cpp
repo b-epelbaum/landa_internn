@@ -127,7 +127,7 @@ void fullPageHandler::process(const FrameRef * frame)
 	{
 		if (_processParameters->ProcessRightSide())
 		{
-			if (_bParallelizeCalculations)
+			if (_bParallelCalc)
 			{
 				TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullPageHandler::dumpRegistrationCSV, this, output._stripOutputParameterLeft );
 			}

@@ -218,7 +218,7 @@ void abstractAlgoHandler::process(const FrameRef* frame)
 	_frame = frame;
 	constructFrameContainer(frame, _processParameters->ScanBitDepth());
 
-	_bParallelizeCalculations = _processParameters->ParalellizeCalculations();
+	_bParallelCalc = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
 	_imageIndex = _frameIndex % _processParameters->PanelCount();
 	if ( _imageIndex == 0 && _frameIndex != 0 )
@@ -344,7 +344,7 @@ void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 {
 #ifdef USE_PPL
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		parallel_for_each (regionList.begin(), regionList.end(), [&](auto &in) 
 		{
@@ -357,7 +357,7 @@ void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 	}
 #else
 	// performs actual deep copy of selected regions
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		FUTURE_VECTOR<void> futureCopyRegionsList;
 		auto& pool = TaskThreadPools::algorithmsThreadPool();
@@ -388,7 +388,7 @@ void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
 #ifdef USE_PPL
-	if (_bParallelizeCalculations && _processParameters->ProcessRightSide() )
+	if (_bParallelCalc && _processParameters->ProcessRightSide() )
 	{
 		parallel_invoke(         
 			[&] { generateStripRegions(input._stripInputParamLeft, regionList); },
@@ -398,6 +398,8 @@ void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, IM
 	else
 	{
 		generateStripRegions(input._stripInputParamLeft, regionList);
+		if ( _processParameters->ProcessRightSide())
+			generateStripRegions(input._stripInputParamRight, regionList);
 	}
 
 #else
@@ -484,7 +486,7 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IM
 			});
 		};
 
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		parallel_invoke
 		( 
@@ -631,7 +633,7 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 	}
 
 #ifdef USE_PPL
-	if (_bParallelizeCalculations && _processParameters->ProcessRightSide() )
+	if (_bParallelCalc && _processParameters->ProcessRightSide() )
 	{
 		parallel_invoke(         
 			[&] { retVal._stripOutputParameterLeft = processStrip(sheetInput._stripInputParamLeft, true); },
@@ -645,7 +647,7 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
 #else
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		/////////////////////////////////////
 		/// calculate strip regions in parallel
@@ -711,7 +713,7 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 			});
 		};
 
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		parallel_invoke
 		( 
@@ -727,7 +729,7 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		calculateC2CfuncSec();
 	}
 #else
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		/////////////////////////////////////
 		/// calculate I2S and C2C regions in parallel
@@ -767,7 +769,7 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		return std::move(retVal);
 	}
 
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		// prepare vector of futures
 		FUTURE_VECTOR<PARAMS_C2C_ROI_OUTPUT> _futureROIList;
@@ -1022,7 +1024,7 @@ PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& inp
 concurrent_vector<PARAMS_WAVE_OUTPUT> abstractAlgoHandler::processWaves(const std::vector<PARAMS_WAVE_INPUT>& inputs)
 {
 	concurrent_vector<PARAMS_WAVE_OUTPUT> retVal;
-	if (_bParallelizeCalculations)
+	if (_bParallelCalc)
 	{
 		parallel_for_each (inputs.begin(), inputs.end(), [&](auto &in) 
 		{

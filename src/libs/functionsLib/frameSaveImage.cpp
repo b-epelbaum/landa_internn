@@ -15,7 +15,7 @@ namespace fs = std::filesystem;
 
 static std::mutex _createDirmutex;
 
-void Functions::frameSaveImage(const cv::Mat& image, const std::string& pathName)
+void Functions::frameSaveImage(const cv::Mat& image, const std::string pathName)
 {
 	//PRINT_INFO7 << "frameSaveImage [file " << pathName.c_str() << "] runs on thread #" << GetCurrentThreadId();
 

@@ -76,10 +76,9 @@ namespace LandaJune
 		{
 			if (bCloneImage)
 			{
-				cv::Mat * pImg = new cv::Mat(img.clone());
-				task<void> t([pImg, filePath]()
+				task<void> t([&img, &filePath]()
 				{
-					 Functions::frameSaveImage(*pImg, filePath);
+					 Functions::frameSaveImage(std::move(img.clone()), filePath);
 				});
 			}
 			else

@@ -31,10 +31,9 @@ namespace LandaJune
 	{
 		void frameGenerate(std::shared_ptr<FrameProviders::IFrameProvider> frameProvider);
 		void frameConsume(std::shared_ptr<Algorithms::IAlgorithmHandler> algorithmHandler);
-		void frameCreateRegions(const Core::FrameRef *frame);
 		void frameRunAlgorithms(Core::FrameRef *frame, const std::unique_ptr<Algorithms::IAlgorithmHandler>& algorithmHandler);
 		void frameProcessOutput();
-		void frameSaveImage(const cv::Mat& image, const std::string& pathName);
+		void frameSaveImage(const cv::Mat& image, std::string pathName);
 	}
 }
 

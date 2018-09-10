@@ -157,9 +157,6 @@
     <ClCompile Include="frameConsume.cpp">
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="frameCreateRegions.cpp">
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
-    </ClCompile>
     <ClCompile Include="frameGenerate.cpp">
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>
