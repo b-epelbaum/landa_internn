@@ -71,7 +71,7 @@ namespace LandaJune
 		struct HSV
 		{
 			HSV() = default;
-			HSV(HSV_SINGLE hsvMin, HSV_SINGLE hsvMax )
+			HSV(const HSV_SINGLE& hsvMin, const HSV_SINGLE& hsvMax )
 				: _min(hsvMin)
 				, _max(hsvMax)
 				, _colorName(hsvMin._colorName)

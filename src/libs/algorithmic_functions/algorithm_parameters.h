@@ -336,7 +336,7 @@ namespace LandaJune
 
 				std::optional<cv::Mat> overlay()  const override
 				{
-					return std::nullopt;
+					return _colorOverlay;
 				}
 		};
 

@@ -46,6 +46,11 @@ QString fullPageHandler::getDescription() const
 	return FULL_PAGE_HANDLER_DESC;
 }
 
+std::string fullPageHandler::parseSourceFrameIndexString(const std::string& strPath)
+{
+	return {};
+}
+
 std::string fullPageHandler::getFrameFolderName()  const 
 {
 	//\\Frame_<FrameID>_<ImageIndex>_algo_name

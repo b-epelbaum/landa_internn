@@ -46,10 +46,28 @@ QString registrationPageHandler::getDescription() const
 	return REGISTRATION_HANDLER_DESC;
 }
 
+std::string registrationPageHandler::parseSourceFrameIndexString(const std::string& strPath)
+{
+	std::string retVal;
+	//c:/temp/offline/10_780_Registration/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
+
+	auto splittedStrVec = Helpers::Utility::split_string (strPath, "\\/");
+	if ( splittedStrVec.size() >= 4 )
+	{
+		const auto& rawName = splittedStrVec[splittedStrVec.size() - 3];
+		auto splittedNameVec = Helpers::Utility::split_string (rawName, "_");
+		if ( splittedNameVec.size() > 1 )
+		{
+			retVal = splittedNameVec[0];
+		}
+	}
+	return retVal;
+}
+
 std::string registrationPageHandler::getFrameFolderName()  const 
 {
 	//11_Reg_Left
-	return std::move(fmt::format("{0}_Reg_{1}", _sourceFrameNumber, SIDE_NAMES[_regSide]));
+	return std::move(fmt::format("{0}_Reg_{1}", _sourceFrameIndexStr, SIDE_NAMES[_regSide]));
 }
 
 
@@ -104,35 +122,6 @@ void registrationPageHandler::process(const FrameRef * frame)
 	// call general process implementation of parent class
 	abstractAlgoHandler::process(frame);
 
-	// get source frame ID from custom parameter passed by provider
-	_sourceFrameNumber.clear();
-	try
-	{
-		const auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
-		
-		//c:/temp/offline/10_780_Registration/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
-
-		auto splittedStrVec = Helpers::Utility::split_string (framePath, "\\/");
-		if ( splittedStrVec.size() >= 4 )
-		{
-			const auto& rawName = splittedStrVec[splittedStrVec.size() - 3];
-			auto splittedNameVec = Helpers::Utility::split_string (rawName, "_");
-			if ( splittedNameVec.size() > 1 )
-			{
-				_sourceFrameNumber = splittedNameVec[0];
-			}
-		}
-	}
-	catch (const std::bad_any_cast& e)
-	{
-		REGISTRATION_HANDLER_SCOPED_ERROR << "Cannot retrieve source image file name. Error : " << e.what() << "; Resetting to default...";
-	}
-
-	if ( _sourceFrameNumber.empty())
-		_sourceFrameNumber = std::to_string(_frameIndex);
-	else
-		_frameIndex = std::stoi(_sourceFrameNumber);
-	
 	PARAMS_C2C_STRIP_INPUT input(_frame, LEFT);
 
 	// fill process parameters

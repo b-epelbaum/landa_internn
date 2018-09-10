@@ -84,6 +84,26 @@ std::string abstractAlgoHandler::generateFullPathForPlacementCSV(SHEET_SIDE side
 	return fmt::format("{0}\\ImagePlacement_{1}.csv", _csvFolder, SIDE_NAMES[side]);
 }
 
+void abstractAlgoHandler::getSourceFrameIndexString()
+{
+	std::pair<std::string,bool> retVal;
+
+	// get source frame ID from custom parameter passed by provider
+	_sourceFrameIndexStr.clear();
+	try
+	{
+		const auto framePath = std::any_cast<std::string>(_frame->getNamedParameter(NAMED_PROPERTY_SOURCE_PATH));
+		_sourceFrameIndexStr = parseSourceFrameIndexString(framePath);
+	}
+	catch (const std::bad_any_cast& e)
+	{
+	}
+
+	if ( _sourceFrameIndexStr.empty())
+		_sourceFrameIndexStr = std::to_string(_frameIndex);
+	else
+		_frameIndex = std::stoi(_sourceFrameIndexStr);
+}
 
 ////////////////////////////////////////////////////////
 /////////////////  file saving  functions
@@ -223,6 +243,8 @@ void abstractAlgoHandler::process(const FrameRef* frame)
 	_imageIndex = _frameIndex % _processParameters->PanelCount();
 	if ( _imageIndex == 0 && _frameIndex != 0 )
 		_imageIndex = _processParameters->PanelCount();
+
+	getSourceFrameIndexString();
 }
 
 void abstractAlgoHandler::validateProcessParameters(std::shared_ptr<BaseParameters> parameters)
@@ -1016,7 +1038,7 @@ PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& inp
 	// move input parameters to output
 	retVal._input = std::move(input);
 
-	//dumpOverlay<PARAMS_WAVE_OUTPUT>(retVal);
+	dumpOverlay<PARAMS_WAVE_OUTPUT>(retVal);
 	return retVal;
 }
 

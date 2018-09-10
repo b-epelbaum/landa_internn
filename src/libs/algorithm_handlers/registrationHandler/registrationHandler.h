@@ -25,6 +25,7 @@ namespace LandaJune
 			std::unique_ptr<IAlgorithmHandler> clone() override;
 			QString getName() const override;
 			QString getDescription() const override;
+			std::string parseSourceFrameIndexString(const std::string& strPath) override;
 
 			std::string getFrameFolderName() const override;
 
@@ -39,9 +40,7 @@ namespace LandaJune
 			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 
 		private :
-		
-
-			std::string _sourceFrameNumber;
+			
 			SHEET_SIDE _regSide = LEFT;
 		};
 	}

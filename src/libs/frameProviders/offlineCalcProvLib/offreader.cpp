@@ -94,7 +94,7 @@ FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
 	frameRef->setUnknownData(std::move(tempObject));
 
 	// pass source image path to frame
-	frameRef->setNamedParameter("srcPath", stdPath);
+	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 

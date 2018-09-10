@@ -104,6 +104,8 @@ namespace LandaJune
 			virtual std::string generateFullPathForElement(const std::string& elementName, const std::string& ext = "bmp" ) const;
 			virtual std::string generateFullPathForRegCSV(const PARAMS_C2C_STRIP_OUTPUT& out) const;
 			virtual std::string generateFullPathForPlacementCSV(SHEET_SIDE side) const;
+			virtual void getSourceFrameIndexString();
+			virtual std::string parseSourceFrameIndexString(const std::string& strPath) = 0;
 
 			template<typename T>
 			std::string generateFullPathForElement(T& inout, const std::string& ext = "bmp" )  const
@@ -145,6 +147,7 @@ namespace LandaJune
 			int _frameIndex = 0;
 			int _imageIndex = 0;
 			std::string _csvFolder;
+			std::string _sourceFrameIndexStr;
 			std::shared_ptr<Parameters::ProcessParameters> _processParameters;
 			bool _bParallelCalc = false;
 		};

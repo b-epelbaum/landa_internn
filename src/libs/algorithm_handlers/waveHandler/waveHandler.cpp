@@ -46,10 +46,29 @@ QString wavePageHandler::getDescription() const
 	return wave_HANDLER_DESC;
 }
 
+std::string wavePageHandler::parseSourceFrameIndexString(const std::string& strPath)
+{
+	std::string retVal;
+	//
+	//c:/temp/offline/10_780_wave/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
+	//
+	auto splittedStrVec = Helpers::Utility::split_string (strPath, "\\/");
+	if ( splittedStrVec.size() >= 4 )
+	{
+		const auto& rawName = splittedStrVec[splittedStrVec.size() - 3];
+		auto splittedNameVec = Helpers::Utility::split_string (rawName, "_");
+		if ( splittedNameVec.size() > 1 )
+		{
+			retVal = splittedNameVec[0];
+		}
+	}
+	return retVal;
+}
+
 std::string wavePageHandler::getFrameFolderName()  const 
 {
 	//11_Reg_Left
-	return std::move(fmt::format("{0}_Wave", _sourceFrameNumber));
+	return std::move(fmt::format("{0}_Wave", _sourceFrameIndexStr));
 }
 
 
@@ -94,34 +113,6 @@ void wavePageHandler::process(const FrameRef * frame)
 	// call general process implementation of parent class
 	abstractAlgoHandler::process(frame);
 
-	// get source frame ID from custom parameter passed by provider
-	_sourceFrameNumber.clear();
-	try
-	{
-		const auto framePath = std::any_cast<std::string>(frame->getNamedParameter("srcPath"));
-		
-		//c:/temp/offline/10_780_wave/GeometricRegInf85_12/GeometricRegInf85_12layoutImg.bmp
-
-		auto splittedStrVec = Helpers::Utility::split_string (framePath, "\\/");
-		if ( splittedStrVec.size() >= 4 )
-		{
-			const auto& rawName = splittedStrVec[splittedStrVec.size() - 3];
-			auto splittedNameVec = Helpers::Utility::split_string (rawName, "_");
-			if ( splittedNameVec.size() > 1 )
-			{
-				_sourceFrameNumber = splittedNameVec[0];
-			}
-		}
-	}
-	catch (const std::bad_any_cast& e)
-	{
-		WAVE_HANDLER_SCOPED_ERROR << "Cannot retrieve source image file name. Error : " << e.what() << "; Resetting to default...";
-	}
-
-	if ( _sourceFrameNumber.empty())
-		_sourceFrameNumber = std::to_string(_frameIndex);
-	else
-		_frameIndex = std::stoi(_sourceFrameNumber);
 
 	std::vector<PARAMS_WAVE_INPUT> waveInputs;
 	
@@ -134,16 +125,13 @@ void wavePageHandler::process(const FrameRef * frame)
 		input._circleColor = color2HSV(color);
 		
 		generateWaveRegions(input, regionList, _processParameters->DumpWaveROI() && waveInputs.empty());
+		
 		// and perform a deep copy
 		copyRegions(regionList);
 
 		waveInputs.emplace_back(std::move(input));
 	}
-
-	//process wave ROI n times ( n = number of colors )
-	//for (const auto& wave : waveInputs )
-	//const auto output = std::move(processWave(wave));
-
+	
 	const auto output = std::move(processWaves(waveInputs));
 
 	// dump C2C results to CSV

@@ -25,6 +25,7 @@ namespace LandaJune
 			std::unique_ptr<IAlgorithmHandler> clone() override;
 			QString getName() const override;
 			QString getDescription() const override;
+			std::string parseSourceFrameIndexString(const std::string& strPath) override;
 
 			std::string getFrameFolderName() const override;
 

@@ -55,6 +55,9 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	const auto& tStart = Utility::now_in_microseconds();
 	try
 	{
+		// set provider name to the frame
+		frameRef->setNamedParameter(NAMED_PROPERTY_PROVIDER_NAME, frameProvider->getName().toStdString());
+
 		// assign postData callback to the frameRefObject
 		using namespace std::placeholders;
 		std::function<void(Core::FrameRef*)> f = std::bind(&IFrameProvider::releaseData, frameProvider, _1);

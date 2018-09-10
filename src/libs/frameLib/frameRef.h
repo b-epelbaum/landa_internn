@@ -4,6 +4,9 @@
 #include <functional>
 #include <map>
 
+#define NAMED_PROPERTY_SOURCE_PATH "srcPath"
+#define NAMED_PROPERTY_PROVIDER_NAME "providerName"
+
 namespace LandaJune {
 	namespace Parameters {
 		class ProcessParameters;
