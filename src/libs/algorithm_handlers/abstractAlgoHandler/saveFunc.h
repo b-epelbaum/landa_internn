@@ -4,6 +4,9 @@
 #include "util.h"
 #include "TaskThreadPool.h"
 #include "functions.h"
+#include <ppltasks.h>
+
+using namespace concurrency;
 
 namespace LandaJune
 {
@@ -66,10 +69,34 @@ namespace LandaJune
 		return filePath;
 	}
 
-	static void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool bCloneImage, bool bParallelWrite)
+	static void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool bCloneImage, bool asyncWrite)
 	{
+#ifdef USE_PPL
+		if (asyncWrite)	
+		{
+			if (bCloneImage)
+			{
+				cv::Mat * pImg = new cv::Mat(img.clone());
+				task<void> t([pImg, filePath]()
+				{
+					 Functions::frameSaveImage(*pImg, filePath);
+				});
+			}
+			else
+			{
+				task<void> t([&img, &filePath]()
+			    {
+			        Functions::frameSaveImage(std::move(img), filePath);
+			    });
+			}
+		}
+		else
+		{
+			Functions::frameSaveImage(img, filePath);
+		}
+#else
 		const auto t0 = Helpers::Utility::now_in_microseconds();
-		if (bParallelWrite)
+		if (asyncWrite)
 		{
 			const auto t0 = Helpers::Utility::now_in_microseconds();
 			if (bCloneImage)
@@ -85,5 +112,6 @@ namespace LandaJune
 		{
 			Functions::frameSaveImage(img, filePath);
 		}
+#endif
 	}
 }

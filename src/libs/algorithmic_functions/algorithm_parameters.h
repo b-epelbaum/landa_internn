@@ -4,9 +4,16 @@
 #include <optional>
 #include <vector>
 
+///////////////
+/// PPL
+#include <ppl.h>
+#include <concurrent_vector.h>
+
+#define USE_PPL
+
 #include "common/june_errors.h"
 #include "opencv/cv.h"
-#include "../formatLib/include/format.h"
+#include "include/format.h"
 
 #define DECLARE_INPUT_PARAMETER(x,type,initval) public: type _##x = initval; public: type x() const { return _##x; } public: void set##x(const type val) { _##x = val; }
 
@@ -341,7 +348,11 @@ namespace LandaJune
 			public:
 				PARAMS_PAPEREDGE_OUTPUT				_paperEdgeOutput;
 				PARAMS_I2S_OUTPUT					_i2sOutput;
+#ifdef USE_PPL
+				Concurrency::concurrent_vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
+#else
 				std::vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
+#endif
 				///
 				std::optional<PARAMS_C2C_STRIP_INPUT>		_input;
 				

@@ -12,6 +12,20 @@ namespace LandaJune
 		{
 			public:
 
+			static ImageRegion createRegion
+			(
+				const cv::Mat&									srcMat						// source data
+				, cv::Mat&										targetMat					// target MAT objects
+				, std::shared_ptr<Parameters::ProcessParameters> params
+				, const cv::Rect&								srcRect						// rectangle of the source data to copy
+				, int											frameIndex
+				, const std::string&							saveFilePath				// ROI Name
+				, const bool									needSaving = false			// if should be dumped to disk as well
+			)
+			{
+				return  ImageRegion(srcMat,	targetMat, params, srcRect,	frameIndex, saveFilePath, needSaving );
+			}
+
 			ImageRegion(
 				const cv::Mat&									srcMat						// source data
 				, cv::Mat&										targetMat					// target MAT objects
@@ -107,6 +121,10 @@ namespace LandaJune
 			}
 		};
 
+#ifdef USE_PPL
+		using IMAGE_REGION_LIST = Concurrency::concurrent_vector<ImageRegion>;
+#else
 		using IMAGE_REGION_LIST = std::vector<ImageRegion>;
+#endif
 	}
 }

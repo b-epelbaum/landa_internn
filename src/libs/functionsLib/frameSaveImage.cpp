@@ -3,8 +3,10 @@
 #include "util.h"
 #include "RealTimeStats.h"
 #include <filesystem>
+#include <Windows.h>
 
 #include <opencv2/imgcodecs.hpp>
+#include "applog.h"
 
 using namespace LandaJune;
 using namespace Helpers;
@@ -15,6 +17,8 @@ static std::mutex _createDirmutex;
 
 void Functions::frameSaveImage(const cv::Mat& image, const std::string& pathName)
 {
+	//PRINT_INFO7 << "frameSaveImage [file " << pathName.c_str() << "] runs on thread #" << GetCurrentThreadId();
+
 	const auto t0 = Helpers::Utility::now_in_microseconds();
 	fs::path p{ pathName };
 	auto const parentPath = p.parent_path();

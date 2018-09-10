@@ -1,6 +1,5 @@
 #pragma once
 #include "baseparam.h"
-
 #include <QRect>
 
 namespace LandaJune

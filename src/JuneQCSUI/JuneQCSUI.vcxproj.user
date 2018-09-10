@@ -9,4 +9,8 @@
     <QTDIR>D:\SDKs\Qt\5.11.1\5.11.1\msvc2017_64</QTDIR>
     <LocalDebuggerEnvironment>PATH=$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_With_DebugInfo|x64'">
+    <QTDIR>D:\SDKs\Qt\5.11.1\5.11.1\msvc2017_64</QTDIR>
+    <LocalDebuggerEnvironment>PATH=$(QTDIR)\bin%3b$(PATH)</LocalDebuggerEnvironment>
+  </PropertyGroup>
 </Project>

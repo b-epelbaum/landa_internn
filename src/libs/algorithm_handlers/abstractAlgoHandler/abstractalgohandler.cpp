@@ -13,6 +13,7 @@
 #include "algo_wave_impl.h"
 
 namespace fs = std::filesystem;
+using namespace concurrency;
 
 using namespace LandaJune;
 using namespace Algorithms;
@@ -91,6 +92,12 @@ void abstractAlgoHandler::dumpRegistrationCSV(const PARAMS_C2C_STRIP_OUTPUT& str
 {
 	if (_processParameters->DisableAllCSVSaving())
 		return;
+
+	if ( stripOut._c2cROIOutputs.empty() )
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_WARNING << "C2C array is empty, aborting CSV creation...";
+		return;
+	}
 
 	std::string resultName = (stripOut._result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
 
@@ -336,6 +343,19 @@ void abstractAlgoHandler::fillWaveProcessParameters(PARAMS_WAVE_INPUT& input)
 
 void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 {
+#ifdef USE_PPL
+	if (_bParallelizeCalculations)
+	{
+		parallel_for_each (regionList.begin(), regionList.end(), [&](auto &in) 
+		{
+			ImageRegion::performCopy(std::ref(in));
+		});
+	}
+	else
+	{
+		std::for_each(regionList.begin(), regionList.end(), ImageRegion::performCopy );
+	}
+#else
 	// performs actual deep copy of selected regions
 	if (_bParallelizeCalculations)
 	{
@@ -362,10 +382,25 @@ void abstractAlgoHandler::copyRegions(IMAGE_REGION_LIST& regionList)
 	{
 		std::for_each(regionList.begin(), regionList.end(), ImageRegion::performCopy);
 	}
+#endif
 }
 
 void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
+#ifdef USE_PPL
+	if (_bParallelizeCalculations && _processParameters->ProcessRightSide() )
+	{
+		parallel_invoke(         
+			[&] { generateStripRegions(input._stripInputParamLeft, regionList); },
+			[&] { generateStripRegions(input._stripInputParamRight, regionList);}
+		);
+	}
+	else
+	{
+		generateStripRegions(input._stripInputParamLeft, regionList);
+	}
+
+#else
 	auto& inputStripLeft = input._stripInputParamLeft;
 	generateStripRegions(inputStripLeft, regionList);
 
@@ -374,6 +409,7 @@ void abstractAlgoHandler::generateSheetRegions(PARAMS_C2C_SHEET_INPUT& input, IM
 		auto& inputStripRight = input._stripInputParamRight;
 		generateStripRegions(inputStripRight, regionList);
 	}
+#endif
 }
 
 void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IMAGE_REGION_LIST& regionList) const
@@ -386,9 +422,87 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IM
 		? _processParameters->LeftStripRect() 
 		: _processParameters->RightStripRect();
 
+	const auto& approxRect = (input._side == LEFT)
+		? toROIRect(_processParameters->I2SApproximateTriangleRectLeft())
+		: toROIRect(_processParameters->I2SApproximateTriangleRectRight());
+
+	input._i2sInput._approxTriangeROI = approxRect;
+	auto& inputI2S = input._i2sInput;
+
+
+#if (0)
+
+	auto generateStripRegionFunc = std::bind(&ImageRegion::createRegion, *_frameContainer
+			, input._paperEdgeInput._stripImageSource
+			, _processParameters
+			, qrect2cvrect(stripRect)
+			, _frameIndex
+			, generateFullPathForElement<PARAMS_C2C_STRIP_INPUT>(input, "bmp")
+			, dumpStrip);
+
+	auto generateI2SFunc = std::bind(&ImageRegion::createRegion, *_frameContainer
+			, input._i2sInput._triangleImageSource
+			, _processParameters
+			, roirect2cvrect(input._i2sInput._approxTriangeROI)
+			, _frameIndex
+			, this->generateFullPathForElement<PARAMS_I2S_INPUT>(input._i2sInput, "bmp")
+			, _processParameters->DumpI2S());
+
+	auto& roiInputs = input._c2cROIInputs;
+	if (roiInputs.empty())
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_WARNING << "No C2C ROI defined in input parameters.";
+	}
+
+	auto generateC2CFuncPar = 
+		[&]{
+			parallel_for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
+			{
+				auto generateC2CFunc = std::bind(&ImageRegion::createRegion, *_frameContainer
+				, in._ROIImageSource
+				, _processParameters
+				, roirect2cvrect(in._ROI)
+				, _frameIndex
+				, generateFullPathForElement<PARAMS_C2C_ROI_INPUT>(in, "bmp")
+				, _processParameters->DumpC2CROIs());
+				regionList.push_back(std::move(generateC2CFunc()));
+			});
+		};
+
+	const auto generateC2CFuncSec = 
+		[&]{
+			std::for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
+			{
+				auto generateC2CFunc = std::bind(&ImageRegion::createRegion, *_frameContainer
+				, in._ROIImageSource
+				, _processParameters
+				, roirect2cvrect(in._ROI)
+				, _frameIndex
+				, generateFullPathForElement<PARAMS_C2C_ROI_INPUT>(in, "bmp")
+				, _processParameters->DumpC2CROIs());
+				regionList.push_back(std::move(generateC2CFunc()));
+			});
+		};
+
+	if (_bParallelizeCalculations)
+	{
+		parallel_invoke
+		( 
+			[&] { regionList.push_back(std::move(generateStripRegionFunc())); },
+			[&] { regionList.push_back(std::move(generateI2SFunc())); },
+			[&] { generateC2CFuncPar(); }
+		);
+	}
+	else
+	{
+		regionList.push_back(std::move(generateStripRegionFunc()));
+		regionList.push_back(std::move(generateI2SFunc()));
+		generateC2CFuncSec();
+	}
+#else
 	// add strip region
-	regionList.emplace_back(
-		ImageRegion
+	regionList.push_back(
+		std::move(ImageRegion::createRegion
 		(
 			*_frameContainer
 			, input._paperEdgeInput._stripImageSource
@@ -397,19 +511,11 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IM
 			, _frameIndex
 			, generateFullPathForElement<PARAMS_C2C_STRIP_INPUT>(input, "bmp")
 			, dumpStrip
-		)
+		))
 	);
 
 	// get I2S region
-	const auto& approxRect = (input._side == LEFT)
-		? toROIRect(_processParameters->I2SApproximateTriangleRectLeft())
-		: toROIRect(_processParameters->I2SApproximateTriangleRectRight());
-
-	input._i2sInput._approxTriangeROI = approxRect;
-	auto& inputI2S = input._i2sInput;
 	generateI2SRegions(inputI2S, regionList);
-
-
 
 	///////////////////////
 	////////// C2C ROIs
@@ -417,10 +523,20 @@ void abstractAlgoHandler::generateStripRegions(PARAMS_C2C_STRIP_INPUT& input, IM
 	{
 		generateC2CRegions(_c2cROIInput, regionList);
 	}
+#endif
 }
 
 void abstractAlgoHandler::generateI2SRegions(PARAMS_I2S_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
+#ifdef USE_PPL
+	regionList.push_back(std::move(ImageRegion::createRegion(*_frameContainer
+			, input._triangleImageSource
+			, _processParameters
+			, roirect2cvrect(input._approxTriangeROI)
+			, _frameIndex
+			, this->generateFullPathForElement<PARAMS_I2S_INPUT>(input, "bmp")
+			, _processParameters->DumpI2S())));
+#else
 	regionList.emplace_back(
 		ImageRegion
 		(
@@ -433,14 +549,26 @@ void abstractAlgoHandler::generateI2SRegions(PARAMS_I2S_INPUT& input, IMAGE_REGI
 			, _processParameters->DumpI2S()
 		)
 	);
+#endif
 }
 
 void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_REGION_LIST& regionList) const
 {
 	auto& ROI = input;
 	ROI.setGenerateOverlay(input.GenerateOverlay());
-	regionList.emplace_back(
-		ImageRegion
+
+#if (0)
+	regionList.push_back(std::move(ImageRegion::createRegion(
+			*_frameContainer
+			, ROI._ROIImageSource
+			, _processParameters
+			, roirect2cvrect(ROI._ROI)
+			, _frameIndex
+			, generateFullPathForElement<PARAMS_C2C_ROI_INPUT>(input, "bmp")
+			, _processParameters->DumpC2CROIs())));
+#else
+	regionList.push_back(
+		std::move(ImageRegion::createRegion
 		(
 			*_frameContainer
 			, ROI._ROIImageSource
@@ -449,16 +577,28 @@ void abstractAlgoHandler::generateC2CRegions(PARAMS_C2C_ROI_INPUT& input, IMAGE_
 			, _frameIndex
 			, generateFullPathForElement<PARAMS_C2C_ROI_INPUT>(input, "bmp")
 			, _processParameters->DumpC2CROIs()
-		)
+		))
 	);
+#endif
 }
 
 void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_REGION_LIST& regionList, bool dumpWave )
 {
 	auto& ROI = input;
 	ROI.setGenerateOverlay(input.GenerateOverlay());
-	regionList.emplace_back(
-		ImageRegion
+
+#if(0)
+	regionList.push_back(std::move(ImageRegion::createRegion(
+			*_frameContainer
+			, ROI._waveImageSource
+			, _processParameters
+			, roirect2cvrect(ROI._waveROI)
+			, _frameIndex
+			, generateFullPathForElement<PARAMS_WAVE_INPUT>(input, "bmp")
+			, dumpWave)));
+#else
+	regionList.push_back(
+		std::move(ImageRegion::createRegion
 		(
 			*_frameContainer
 			, ROI._waveImageSource
@@ -467,8 +607,9 @@ void abstractAlgoHandler::generateWaveRegions(PARAMS_WAVE_INPUT& input, IMAGE_RE
 			, _frameIndex
 			, generateFullPathForElement<PARAMS_WAVE_INPUT>(input, "bmp")
 			, dumpWave
-		)
+		))
 	);
+#endif
 }
 
 /////////////////////////////////////////////////////////////////
@@ -489,6 +630,21 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 		return std::move(retVal);
 	}
 
+#ifdef USE_PPL
+	if (_bParallelizeCalculations && _processParameters->ProcessRightSide() )
+	{
+		parallel_invoke(         
+			[&] { retVal._stripOutputParameterLeft = processStrip(sheetInput._stripInputParamLeft, true); },
+			[&] { retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);}
+		);
+	}
+	else
+	{
+		retVal._stripOutputParameterLeft = processStrip(sheetInput._stripInputParamLeft, true);
+		if (_processParameters->ProcessRightSide())
+			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
+	}
+#else
 	if (_bParallelizeCalculations)
 	{
 		/////////////////////////////////////
@@ -516,6 +672,7 @@ PARAMS_C2C_SHEET_OUTPUT abstractAlgoHandler::processSheet(const PARAMS_C2C_SHEET
 		if (_processParameters->ProcessRightSide())
 			retVal._stripOutputParameterRight = processStrip(sheetInput._stripInputParamRight, false);
 	}
+#endif
 
 	retVal._input = std::move(sheetInput);
 	return std::move(retVal);
@@ -528,8 +685,48 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 {
 	PARAMS_C2C_STRIP_OUTPUT retVal;
 
-	// TODO : change processing to make I2S and C2C parallel
+#ifdef USE_PPL
+	auto calculateEdgeFunc = std::bind(&abstractAlgoHandler::processEdge, this, std::ref(stripInput._paperEdgeInput));
+	auto calculateI2SFunc = std::bind(&abstractAlgoHandler::processI2S, this, std::ref(stripInput._i2sInput));
 
+	auto& roiInputs = stripInput._c2cROIInputs;
+	if (roiInputs.empty())
+	{
+		ABSTRACTALGO_HANDLER_SCOPED_WARNING << "No C2C ROI defined in input parameters.";
+	}
+
+	auto calculateC2CfuncPar = 
+		[&]{
+			parallel_for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
+			{
+				retVal._c2cROIOutputs.push_back(processC2CROI(std::ref(in)));
+			});
+		};
+
+	const auto calculateC2CfuncSec = 
+		[&]{
+			std::for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
+			{
+				retVal._c2cROIOutputs.push_back(processC2CROI(in));
+			});
+		};
+
+	if (_bParallelizeCalculations)
+	{
+		parallel_invoke
+		( 
+			[&] { retVal._paperEdgeOutput = calculateEdgeFunc(); },
+			[&] { retVal._i2sOutput = calculateI2SFunc(); },
+			[&] { calculateC2CfuncPar(); }
+		);
+	}
+	else
+	{
+		retVal._paperEdgeOutput = calculateEdgeFunc();
+		retVal._i2sOutput = calculateI2SFunc();
+		calculateC2CfuncSec();
+	}
+#else
 	if (_bParallelizeCalculations)
 	{
 		/////////////////////////////////////
@@ -604,6 +801,7 @@ PARAMS_C2C_STRIP_OUTPUT abstractAlgoHandler::processStrip(const PARAMS_C2C_STRIP
 		}
 		);
 	}
+#endif
 
 	retVal._result = 
 		std::all_of(retVal._c2cROIOutputs.begin(), retVal._c2cROIOutputs.end(), [](auto& out) { return out._result == ALG_STATUS_SUCCESS; } )
@@ -633,7 +831,7 @@ void abstractAlgoHandler::initEdge(const INIT_PARAMETER& initParam) const
 PARAMS_PAPEREDGE_OUTPUT abstractAlgoHandler::processEdge(const PARAMS_PAPEREDGE_INPUT& input)
 {
 	PARAMS_PAPEREDGE_OUTPUT retVal;
-	ABSTRACTALGO_HANDLER_SCOPED_LOG << "Edge detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
+	//ABSTRACTALGO_HANDLER_SCOPED_LOG << "Edge detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 
 	try
 	{
@@ -682,7 +880,7 @@ PARAMS_I2S_OUTPUT abstractAlgoHandler::processI2S(const PARAMS_I2S_INPUT& input)
 {
 	PARAMS_I2S_OUTPUT retVal;
 
-	ABSTRACTALGO_HANDLER_SCOPED_LOG << "I2S detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
+	//ABSTRACTALGO_HANDLER_SCOPED_LOG << "I2S detection [side " << input._side << "] runs on thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_i2s(input, retVal);
@@ -742,7 +940,7 @@ PARAMS_C2C_ROI_OUTPUT abstractAlgoHandler::processC2CROI(const PARAMS_C2C_ROI_IN
 	retVal._colorStatuses = { hsvCount, ALG_STATUS_FAILED };
 	retVal._colorCenters = { hsvCount, {0,0} };
 	
-	ABSTRACTALGO_HANDLER_SCOPED_LOG << "C2C Detection [side : " << input._side << "; index : " << input._roiIndex << "] runs in thread #" << GetCurrentThreadId();
+	//ABSTRACTALGO_HANDLER_SCOPED_LOG << "C2C Detection [side : " << input._side << "; index : " << input._roiIndex << "] runs in thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_c2c_roi(input, retVal);
@@ -802,7 +1000,7 @@ PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& inp
 	retVal._colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
 	retVal._colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
 	
-	ABSTRACTALGO_HANDLER_SCOPED_LOG << "WAVE Detection [color : " << input._circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
+	//ABSTRACTALGO_HANDLER_SCOPED_LOG << "WAVE Detection [color : " << input._circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_wave(input, retVal);

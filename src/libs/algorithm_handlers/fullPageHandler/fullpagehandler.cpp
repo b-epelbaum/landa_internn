@@ -123,23 +123,26 @@ void fullPageHandler::process(const FrameRef * frame)
 	auto output = processSheet(input);
 
 	// dump C2C results to CSV
-	if (_processParameters->ProcessRightSide())
+	if ( !_processParameters->DisableAllCSVSaving() )
 	{
-		if (_bParallelizeCalculations)
+		if (_processParameters->ProcessRightSide())
 		{
-			TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullPageHandler::dumpRegistrationCSV, this, output._stripOutputParameterLeft );
+			if (_bParallelizeCalculations)
+			{
+				TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullPageHandler::dumpRegistrationCSV, this, output._stripOutputParameterLeft );
+			}
+			else
+				dumpRegistrationCSV(output._stripOutputParameterRight);
 		}
-		else
-			dumpRegistrationCSV(output._stripOutputParameterLeft);
-	}
 
-	dumpRegistrationCSV(output._stripOutputParameterLeft);
+		dumpRegistrationCSV(output._stripOutputParameterLeft);
 
 
-	// append I2S results to CSV
-	dumpPlacementCSV(output._stripOutputParameterLeft);
-	if (_processParameters->ProcessRightSide())
-	{
-		dumpPlacementCSV(output._stripOutputParameterRight);
+		// append I2S results to CSV
+		dumpPlacementCSV(output._stripOutputParameterLeft);
+		if (_processParameters->ProcessRightSide())
+		{
+			dumpPlacementCSV(output._stripOutputParameterRight);
+		}
 	}
 }
