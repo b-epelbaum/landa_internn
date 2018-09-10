@@ -1000,7 +1000,7 @@ PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& inp
 	retVal._colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
 	retVal._colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
 	
-	//ABSTRACTALGO_HANDLER_SCOPED_LOG << "WAVE Detection [color : " << input._circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
+	ABSTRACTALGO_HANDLER_SCOPED_LOG << "WAVE Detection [color : " << input._circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_wave(input, retVal);
@@ -1014,9 +1014,37 @@ PARAMS_WAVE_OUTPUT abstractAlgoHandler::processWave(const PARAMS_WAVE_INPUT& inp
 	// move input parameters to output
 	retVal._input = std::move(input);
 
-	dumpOverlay<PARAMS_WAVE_OUTPUT>(retVal);
-	return std::move(retVal);
+	//dumpOverlay<PARAMS_WAVE_OUTPUT>(retVal);
+	return retVal;
 }
+
+#ifdef USE_PPL
+concurrent_vector<PARAMS_WAVE_OUTPUT> abstractAlgoHandler::processWaves(const std::vector<PARAMS_WAVE_INPUT>& inputs)
+{
+	concurrent_vector<PARAMS_WAVE_OUTPUT> retVal;
+	if (_bParallelizeCalculations)
+	{
+		parallel_for_each (inputs.begin(), inputs.end(), [&](auto &in) 
+		{
+			retVal.push_back(std::move(processWave(std::cref(in))));
+		});
+	}
+	else
+	{
+		std::for_each (inputs.begin(), inputs.end(), [&](auto &in) 
+		{
+			retVal.push_back(std::move(processWave(in)));
+		});
+	}
+
+	return retVal;
+}
+#else
+std::vector<PARAMS_WAVE_OUTPUT> abstractAlgoHandler::processWaves(const std::vector<PARAMS_WAVE_INPUT>& inputs)
+{
+	
+}
+#endif
 
 void abstractAlgoHandler::shutdownWave()
 {

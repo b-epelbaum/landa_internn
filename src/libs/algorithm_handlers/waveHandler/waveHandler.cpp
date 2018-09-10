@@ -141,8 +141,10 @@ void wavePageHandler::process(const FrameRef * frame)
 	}
 
 	//process wave ROI n times ( n = number of colors )
-	for (const auto& wave : waveInputs )
-	const auto output = std::move(processWave(wave));
+	//for (const auto& wave : waveInputs )
+	//const auto output = std::move(processWave(wave));
+
+	const auto output = std::move(processWaves(waveInputs));
 
 	// dump C2C results to CSV
 	//dumpwaveCSV(output);

@@ -130,6 +130,12 @@ namespace LandaJune
 			
 			virtual void initWave(const INIT_PARAMETER& initParam);
 			virtual PARAMS_WAVE_OUTPUT processWave(const PARAMS_WAVE_INPUT& input);
+
+#ifdef USE_PPL
+			virtual concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT> processWaves(const std::vector<PARAMS_WAVE_INPUT>& inputs);
+#else
+			virtual std::vector<PARAMS_WAVE_OUTPUT> processWaves(const std::vector<PARAMS_WAVE_INPUT>& inputs);
+#endif
 			virtual void shutdownWave();
 			
 			virtual void constructFrameContainer(const Core::FrameRef* frame, int bitsPerPixel);
