@@ -556,8 +556,8 @@ void baseAlgorithmRunner::shutdownI2S() const
 void baseAlgorithmRunner::initC2CRoi(const INIT_PARAMETER& initParam) const
 {
 	C2C_ROI_INIT_PARAMETER c2cInitParam(initParam);
-	const auto& buf = _processParameters->CircleTemplateBuffer().constData();
-	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBuffer().size());
+	const auto& buf = _processParameters->CircleTemplateBufferC2C().constData();
+	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBufferC2C().size());
 	c2cInitParam._templateImage = std::move(cv::imdecode(cv::Mat(data), CV_LOAD_IMAGE_GRAYSCALE));
 
 	try
@@ -622,8 +622,8 @@ void baseAlgorithmRunner::shutdownC2CRoi() const
 void baseAlgorithmRunner::initWave(const INIT_PARAMETER& initParam)
 {
 	WAVE_INIT_PARAMETER waveInitParam(initParam);
-	const auto& buf = _processParameters->CircleTemplateBuffer().constData();
-	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBuffer().size());
+	const auto& buf = _processParameters->CircleTemplateBufferWave().constData();
+	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBufferWave().size());
 	waveInitParam._templateImage = std::move(cv::imdecode(cv::Mat(data), CV_LOAD_IMAGE_GRAYSCALE));
 
 	try

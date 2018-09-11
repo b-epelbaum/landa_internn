@@ -36,14 +36,5 @@ void Functions::frameRunAlgorithms(FrameRef *frame, const std::unique_ptr<IAlgor
 	FRAMEALGO_SCOPED_LOG << "finished in " << perfTime << " msec...";
 
 
-/*
-	if (retVal._result == ALG_STATUS_SUCCESS )
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_performedAlgoOk, perfTime);
-	}
-	else
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_performedAlgoFail, perfTime);
-	}
-*/
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_performedAlgoOk, perfTime);
 }

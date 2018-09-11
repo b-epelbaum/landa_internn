@@ -38,8 +38,10 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(ProcessWaveI2S, bool, true, true)
 			DECLARE_PARAM_PROPERTY(ProcessWave, bool, true, true)
 			DECLARE_PARAM_PROPERTY(GenerateOverlays, bool, true, true)
-			DECLARE_PARAM_PROPERTY(CircleTemplateResource, QString, "C2CCircleTemplate.tif", true)
-			DECLARE_PARAM_PROPERTY(CircleTemplateBuffer, QByteArray, {}, false)
+			DECLARE_PARAM_PROPERTY(CircleTemplateResourceC2C, QString, "C2CCircleTemplate.tif", true)
+			DECLARE_PARAM_PROPERTY(CircleTemplateResourceWave, QString, "WaveCircleTemplate.tif", true)
+			DECLARE_PARAM_PROPERTY(CircleTemplateBufferC2C, QByteArray, {}, false)
+			DECLARE_PARAM_PROPERTY(CircleTemplateBufferWave, QByteArray, {}, false)
 
 			DECLARE_PARAM_PROPERTY(ImageSaving, PARAM_GROUP_HEADER, { "Image/CSV saving parameters" }, true)
 			DECLARE_PARAM_PROPERTY(EnableAnyDataSaving, bool, true, true)

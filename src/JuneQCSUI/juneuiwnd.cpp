@@ -516,6 +516,8 @@ void JuneUIWnd::onAlgoRunnerComboChanged(int index)
 void JuneUIWnd::updateStats() const
 {
 	ui.statView->clear(); // unless you know the editor is empty
+
+	auto txt = Helpers::RealTimeStats::rtStats()->to_string();
 	ui.statView->appendPlainText(QString::fromStdString(Helpers::RealTimeStats::rtStats()->to_string()));
 }
 

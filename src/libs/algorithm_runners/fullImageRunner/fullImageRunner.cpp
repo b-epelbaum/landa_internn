@@ -68,14 +68,24 @@ void fullImageRunner::init(std::shared_ptr<BaseParameters> parameters)
 	if (_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
 		createCSVFolder();
 
-	// template image ( temporary solution ) - read from resources
-	QFile templateTif(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResource()));
+	// C2C template image ( temporary solution ) - read from resources
+	QFile templateTifC2C(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceC2C()));
 	
-	if (templateTif.open(QFile::ReadOnly))
-		_processParameters->setCircleTemplateBuffer(templateTif.readAll());
+	if (templateTifC2C.open(QFile::ReadOnly))
+		_processParameters->setCircleTemplateBufferC2C(templateTifC2C.readAll());
 	else
 	{
-		FULLIMAGE_RUNNER_SCOPED_WARNING << "Circle template cannot be read : " << _processParameters->CircleTemplateResource();
+		FULLIMAGE_RUNNER_SCOPED_WARNING << "C2C Circle template cannot be read : " << _processParameters->CircleTemplateResourceC2C();
+	}
+
+	// Wave template image ( temporary solution ) - read from resources
+	QFile templateTifWave(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceWave()));
+	
+	if (templateTifWave.open(QFile::ReadOnly))
+		_processParameters->setCircleTemplateBufferWave(templateTifWave.readAll());
+	else
+	{
+		FULLIMAGE_RUNNER_SCOPED_WARNING << "Wave Circle template cannot be read : " << _processParameters->CircleTemplateResourceWave();
 	}
 
 	const INIT_PARAMETER edgeInitParam{ toROIRect(_processParameters->LeftStripRect()) };
