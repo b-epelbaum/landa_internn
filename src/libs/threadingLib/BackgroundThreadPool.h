@@ -39,19 +39,6 @@ namespace LandaJune
 				{
 					autolock l(_mutex);
 					const auto length = _pool.size();
-#if 0
-					for (size_t i = 0; i < length; ++i)
-					{
-						const auto idx = (_next + i) % length;
-						auto t = _pool.at(idx).get();
-						if (t->isFree())
-						{
-							_next = idx;
-							return t->callTask(func, args...);
-						}
-					}
-					return std::future<void>();
-#endif
                     auto it = std::min_element(_pool.begin(), _pool.end(),
                         [](auto & a, auto & b) -> bool { return a.getQueueLength() < b.getQueueLength();});
 					return (*it).get()->callTask(func, args...);

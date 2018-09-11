@@ -42,11 +42,11 @@ namespace LandaJune
 
 			void setNamedParameter(const std::string& paramName, std::any paramValue) { _paramsMap[paramName] = std::move(paramValue); }
 
-			const std::any& getNamedParameter (const std::string& paramName) const
+			std::any getNamedParameter (const std::string& paramName) const
 			{
 				if (const auto& it = _paramsMap.find(paramName); it == _paramsMap.cend() )
 				{
-					return std::move(std::any());
+					return std::any{};
 				}
 				else
 					return it->second;

@@ -15,15 +15,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="GenericSafeQueue.h" />
     <ClInclude Include="BackgroundThreadPool.h" />
     <ClInclude Include="BackgroundThread.h" />
-    <ClInclude Include="TaskThreadPool.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="WorkingThread.cpp">
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
-    </ClCompile>
+    <ClCompile Include="BackgroundThread.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{66DC99B7-E24C-4541-943D-90C7B25AE197}</ProjectGuid>

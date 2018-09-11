@@ -43,15 +43,15 @@ namespace LandaJune
 			virtual void cleanup() = 0;
 
 			virtual const std::list<FrameProviderPtr>& getFrameProviderList() const = 0;
-			virtual const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const = 0;
+			virtual const std::list<AlgorithmRunnerPtr>& getAlgorithmRunnerList() const = 0;
 					
 			virtual std::shared_ptr<Parameters::BaseParameters> getProcessParameters() = 0;
 
 			virtual void selectFrameProvider(FrameProviderPtr provider) = 0;
 			virtual FrameProviderPtr getSelectedFrameProvider() const = 0;
 
-			virtual void selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler) = 0;
-			virtual AlgorithmHandlerPtr getSelectedAlgorithmHandler() const = 0;
+			virtual void selectAlgorithmRunner(AlgorithmRunnerPtr algoRunner) = 0;
+			virtual AlgorithmRunnerPtr getSelectedAlgorithmRunner() const = 0;
 
 			virtual void start() const = 0;
 			virtual void stop() const = 0;

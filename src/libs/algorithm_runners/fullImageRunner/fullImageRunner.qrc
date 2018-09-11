@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/templates">
+        <file>Resources/C2CCircleTemplate.tif</file>
+        <file>Resources/WaveCircleTemplate.tif</file>
+    </qresource>
+</RCC>

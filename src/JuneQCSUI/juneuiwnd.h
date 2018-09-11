@@ -36,7 +36,7 @@ namespace LandaJune
 			void onAboutToQuit();
 
 			void onFrameProviderComboChanged(int index);
-			void onAlgoHandlerComboChanged(int index);
+			void onAlgoRunnerComboChanged(int index);
 			void updateStats() const;
 
 			void onProviderPropChanged(QString propName, const QVariant& newVal);
@@ -65,7 +65,7 @@ namespace LandaJune
 			void createStatusBar();
 
 			void enumerateFrameProviders() ;
-			void enumerateAlgoHandlers() ;
+			void enumerateAlgoRunners() ;
 			void enableUIForProcessing(bool bEnable);
 
 			void initProcessParameters() const;
@@ -99,7 +99,7 @@ namespace LandaJune
 
 			QStringList _processParamsExpandedStatesList;
 
-			QLabel * statusGeneral, *statusFrameProv, *statusAlgoHandler, *statusFramesHandled, * statusFramesDropped;
+			QLabel * statusGeneral, *statusFrameProv, *statusAlgoRunner, *statusFramesHandled, * statusFramesDropped;
 			QProgressBar *statusProgressBar;
 			QTimer _progressBarTimer;
 		};

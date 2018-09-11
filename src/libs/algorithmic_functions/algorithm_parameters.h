@@ -218,15 +218,18 @@ namespace LandaJune
 				explicit PARAMS_C2C_SHEET_INPUT(const Core::FrameRef * frame)
 					: ABSTRACT_INPUT(frame)
 					, _stripInputParamLeft(frame, LEFT)
-					, _stripInputParamRight(frame, RIGHT) {}
+					, _stripInputParamRight(frame, RIGHT)
+					, _waveInputs(0, PARAMS_WAVE_INPUT{frame})
+					{}
 
 				std::string getElementName() const  override
 				{
 					return "Frame";
 				}
 
-				PARAMS_C2C_STRIP_INPUT _stripInputParamLeft;
-				PARAMS_C2C_STRIP_INPUT _stripInputParamRight;
+				PARAMS_C2C_STRIP_INPUT				_stripInputParamLeft;
+				PARAMS_C2C_STRIP_INPUT				_stripInputParamRight;
+				std::vector<PARAMS_WAVE_INPUT>	    _waveInputs;
 		};
 
 
@@ -346,15 +349,12 @@ namespace LandaJune
 		class PARAMS_C2C_STRIP_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				PARAMS_PAPEREDGE_OUTPUT				_paperEdgeOutput;
-				PARAMS_I2S_OUTPUT					_i2sOutput;
-#ifdef USE_PPL
+				PARAMS_PAPEREDGE_OUTPUT									_paperEdgeOutput;
+				PARAMS_I2S_OUTPUT										_i2sOutput;
 				Concurrency::concurrent_vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
-#else
-				std::vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
-#endif
-				///
-				std::optional<PARAMS_C2C_STRIP_INPUT>		_input;
+				
+			///
+				std::optional<PARAMS_C2C_STRIP_INPUT>					_input;
 				
 				std::string getElementName() override
 				{
@@ -374,8 +374,9 @@ namespace LandaJune
 		class PARAMS_C2C_SHEET_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterLeft;
-				PARAMS_C2C_STRIP_OUTPUT		_stripOutputParameterRight;
+				PARAMS_C2C_STRIP_OUTPUT										_stripOutputParameterLeft;
+				PARAMS_C2C_STRIP_OUTPUT										_stripOutputParameterRight;
+				Concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT>			_waveOutputs;
 				///
 				std::optional<PARAMS_C2C_SHEET_INPUT>		_input;
 				std::string getElementName() override

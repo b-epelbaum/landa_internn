@@ -3,12 +3,11 @@
 
 #include "common/june_exceptions.h"
 #include "interfaces/IFrameProvider.h"
-#include "interfaces/IAlgorithmHandler.h"
+#include "interfaces/IAlgorithmRunner.h"
 
 
 //#include "algorithm_wrappers.h"
 
-#include "TaskThreadPool.h"
 #include "BackgroundThreadPool.h"
 #include "functions.h"
 #include "ProcessParameters.h"
@@ -70,7 +69,7 @@ void BaseCore::init()
 
 	// scan and init frame providers
 	initProviders();
-	initAlgorithmHandlers();
+	initAlgorithmRunners();
 
 	_bInited = true;
 	CORE_SCOPED_LOG << " Core Initialization finished...";
@@ -87,10 +86,10 @@ const std::list<FrameProviderPtr>& BaseCore::getFrameProviderList() const
 	return _providerList;
 }
 
-const std::list<AlgorithmHandlerPtr>& BaseCore::getAlgorithmHandlerList() const
+const std::list<AlgorithmRunnerPtr>& BaseCore::getAlgorithmRunnerList() const
 {
 	CHECK_IF_INITED
-	return _algorithmHandlerList;
+	return _algorithmRunnerList;
 }
 
 std::shared_ptr<Parameters::BaseParameters> BaseCore::getProcessParameters()
@@ -126,20 +125,20 @@ FrameProviderPtr BaseCore::getSelectedFrameProvider() const
 	return _currentFrameProvider;
 }
 
-void BaseCore::selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler)
+void BaseCore::selectAlgorithmRunner(AlgorithmRunnerPtr algoRunner)
 {
 	CHECK_IF_INITED
 
-	if (_currentAlgorithmHandler == algoHandler)
+	if (_currentAlgorithmRunner == algoRunner)
 		return;
 
-	_currentAlgorithmHandler = std::move(algoHandler);
+	_currentAlgorithmRunner = std::move(algoRunner);
 }
 
-AlgorithmHandlerPtr BaseCore::getSelectedAlgorithmHandler() const
+AlgorithmRunnerPtr BaseCore::getSelectedAlgorithmRunner() const
 {
 	CHECK_IF_INITED
-	return _currentAlgorithmHandler;
+	return _currentAlgorithmRunner;
 }
 
 void BaseCore::start() const
@@ -150,9 +149,9 @@ void BaseCore::start() const
 		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED, "");
 	}
 
-	if (!_currentAlgorithmHandler)
+	if (!_currentAlgorithmRunner)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_HANDLER_SELECTED, "");
+		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED, "");
 	}
 
 	if (_currentFrameProvider->isBusy())
@@ -164,11 +163,11 @@ void BaseCore::start() const
 
 	try
 	{
-		_currentAlgorithmHandler->init(_processParameters);
+		_currentAlgorithmRunner->init(_processParameters);
 	}
 	catch(...)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_ALGO_HANDLER_THROWN_RUNTIME_EXCEPTION, "");
+		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 
 
@@ -183,19 +182,11 @@ void BaseCore::start() const
 		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 
-	// start two thread pools
-	// one for frame processing
-	(void)TaskThreadPools::algorithmsThreadPool();
-
-	// and another one for saving bitmaps or any other files
-	(void)TaskThreadPools::diskDumperThreadPool();
-
-	
 
 	// start one and only frame consuming thread
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
 	// see "frameConsume" implementation
-	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmHandler );
+	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmRunner );
 	frameConsumerThread().start();
 
 	
@@ -223,12 +214,12 @@ void BaseCore::stop() const
 	frameProducerThread().join();
 	CORE_SCOPED_LOG << "Frame producer thread finished";
 	frameConsumerThread().join();
-	CORE_SCOPED_LOG << "Frame handler thread finished";
+	CORE_SCOPED_LOG << "Frame runner thread finished";
 
 	_currentFrameProvider->cleanup();
 	FrameRefPool::frameRefPool()->cleanup();
-	if ( _currentAlgorithmHandler)
-		_currentAlgorithmHandler->cleanup();
+	if ( _currentAlgorithmRunner)
+		_currentAlgorithmRunner->cleanup();
 
 
 }
@@ -274,7 +265,7 @@ void BaseCore::initProviders()
 	_providerList = IFrameProvider::enumerateImageProviders();
 }
 
-void BaseCore::initAlgorithmHandlers()
+void BaseCore::initAlgorithmRunners()
 {
-	_algorithmHandlerList = IAlgorithmHandler::enumerateAlgorithmSets();
+	_algorithmRunnerList = IAlgorithmRunner::enumerateAlgorithmRunners();
 }

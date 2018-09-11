@@ -11,7 +11,7 @@
 
 #include "interfaces/ICore.h"
 #include "interfaces/IFrameProvider.h"
-#include "interfaces/IAlgorithmHandler.h"
+#include "interfaces/IAlgorithmRunner.h"
 #include "ProcessParameters.h"
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
@@ -63,11 +63,11 @@ void JuneUIWnd::init()
 	setWindowState(Qt::WindowMaximized);
 	initCore();
 	enumerateFrameProviders();
-	enumerateAlgoHandlers();
+	enumerateAlgoRunners();
 	initProcessParameters();
 
 	connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
-	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoHandlerComboChanged);
+	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoRunnerComboChanged);
 
 
 }
@@ -177,35 +177,35 @@ void JuneUIWnd::enumerateFrameProviders()
 
 }
 
-void JuneUIWnd::enumerateAlgoHandlers()
+void JuneUIWnd::enumerateAlgoRunners()
 {
-	CLIENT_SCOPED_LOG << "Enumerating algorithm handlers...";
+	CLIENT_SCOPED_LOG << "Enumerating algorithm runners...";
 	ui.algoHandlerCombo->clear();
 	//try
 	//{
-		auto listOfAlgo = ICore::get()->getAlgorithmHandlerList();
+		auto listOfAlgo = ICore::get()->getAlgorithmRunnerList();
 		for (auto& algo : listOfAlgo)
 		{
-			CLIENT_SCOPED_LOG << "\tadding algorith handler ==> " << algo->getName();
+			CLIENT_SCOPED_LOG << "\tadding algorith runner ==> " << algo->getName();
 			ui.algoHandlerCombo->addItem(algo->getName(), QVariant::fromValue(algo));
 		}
 		listOfAlgo.empty() ? ui.algoHandlerCombo->setCurrentIndex(-1) : ui.algoHandlerCombo->setCurrentIndex(0);
 
 		QSettings settings("Landa Corp", "June QCS");
-		auto lastAlgoHandler = settings.value("UIClient/lastSelectedAlgorithm").toString();
+		auto lastAlgoRunner = settings.value("UIClient/lastSelectedAlgorithm").toString();
 
-		if ( !lastAlgoHandler.isEmpty() )
+		if ( !lastAlgoRunner.isEmpty() )
 		{
-			CLIENT_SCOPED_LOG << "Found last selected algorithm handler ==> " <<  lastAlgoHandler;
-			if ( ui.algoHandlerCombo->findText(lastAlgoHandler) != - 1 )
-				ui.algoHandlerCombo->setCurrentText(lastAlgoHandler);
+			CLIENT_SCOPED_LOG << "Found last selected algorithm runner ==> " <<  lastAlgoRunner;
+			if ( ui.algoHandlerCombo->findText(lastAlgoRunner) != - 1 )
+				ui.algoHandlerCombo->setCurrentText(lastAlgoRunner);
 		}
 	else
 		{
-			CLIENT_SCOPED_LOG << "The last selected algorithm handler has not been found, setting default value...";
+			CLIENT_SCOPED_LOG << "The last selected algorithm runner has not been found, setting default value...";
 		}
 
-		onAlgoHandlerComboChanged (ui.algoHandlerCombo->currentIndex());
+		onAlgoRunnerComboChanged (ui.algoHandlerCombo->currentIndex());
 
 
 	//}
@@ -213,7 +213,7 @@ void JuneUIWnd::enumerateAlgoHandlers()
 	//{
 
 	//}
-	CLIENT_SCOPED_LOG << "Finished algorithm handlers enumeration";
+	CLIENT_SCOPED_LOG << "Finished algorithm runner enumeration";
 }
 
 
@@ -278,7 +278,7 @@ void JuneUIWnd::start()
 
 	if (ui.algoHandlerCombo->currentIndex() == -1)
 	{
-		CLIENT_SCOPED_WARNING << "[JuneUIWnd] : no valid algorithm handler selected. Aborted ";
+		CLIENT_SCOPED_WARNING << "[JuneUIWnd] : no valid algorithm runner selected. Aborted ";
 		return;
 	}
 
@@ -286,17 +286,17 @@ void JuneUIWnd::start()
 	//try
 	//{
 		const auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
-		const auto selectedAlgoHandler = ui.algoHandlerCombo->currentData().value<AlgorithmHandlerPtr>();
+		const auto selectedAlgoRunner = ui.algoHandlerCombo->currentData().value<AlgorithmRunnerPtr>();
 		
-		if (selectedProvider && selectedAlgoHandler)
+		if (selectedProvider && selectedAlgoRunner)
 		{
 			PRINT_DEBUG_DBLINE;
 			CLIENT_SCOPED_LOG << "[JuneUIWnd] : Selected frame provider : " << selectedProvider->getName();
-			CLIENT_SCOPED_LOG << "[JuneUIWnd] : Selected algorithm handler : " << selectedAlgoHandler->getName();
+			CLIENT_SCOPED_LOG << "[JuneUIWnd] : Selected algorithm runner : " << selectedAlgoRunner->getName();
 			CLIENT_SCOPED_LOG << "starting processing...";
 			PRINT_DEBUG_DBLINE;
 
-			ICore::get()->selectAlgorithmHandler(selectedAlgoHandler);
+			ICore::get()->selectAlgorithmRunner(selectedAlgoRunner);
 			ICore::get()->selectFrameProvider(selectedProvider);
 			ICore::get()->start();
 		}
@@ -369,7 +369,7 @@ void JuneUIWnd::createStatusBar()
 
 	statusGeneral = new QLabel(this);
 	statusFrameProv = new QLabel(this);
-	statusAlgoHandler = new QLabel(this);
+	statusAlgoRunner = new QLabel(this);
 	statusFramesHandled = new QLabel(this);
 	statusFramesDropped = new QLabel(this);
 
@@ -385,7 +385,7 @@ void JuneUIWnd::createStatusBar()
     ui.statusBar->addPermanentWidget(statusGeneral);
     ui.statusBar->addPermanentWidget(statusProgressBar,1);
 	ui.statusBar->addPermanentWidget(statusFrameProv,2);
-	ui.statusBar->addPermanentWidget(statusAlgoHandler,3);
+	ui.statusBar->addPermanentWidget(statusAlgoRunner,3);
 }
 
 void JuneUIWnd::zoomIn()
@@ -497,12 +497,12 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), true);
 }
 
-void JuneUIWnd::onAlgoHandlerComboChanged(int index)
+void JuneUIWnd::onAlgoRunnerComboChanged(int index)
 {
-	const auto selectedAlgo = ui.algoHandlerCombo->itemData(index).value<AlgorithmHandlerPtr>();
+	const auto selectedAlgo = ui.algoHandlerCombo->itemData(index).value<AlgorithmRunnerPtr>();
 	if (!selectedAlgo)
 	{
-		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected algorithm handler is invalid. Aborted ";
+		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected algorithm runner is invalid. Aborted ";
 		return;
 	}
 

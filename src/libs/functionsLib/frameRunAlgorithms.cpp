@@ -4,7 +4,7 @@
 #include "applog.h"
 #include "RealTimeStats.h"
 #include "frameRef.h"
-#include "interfaces/IAlgorithmHandler.h"
+#include "interfaces/IAlgorithmRunner.h"
 
 using namespace LandaJune;
 using namespace Helpers;
@@ -16,15 +16,19 @@ using namespace Core;
 #define FRAMEALGO_SCOPED_ERROR PRINT_ERROR << "[frameRunAlgorithms func] : "
 #define FRAMEALGO_SCOPED_WARNING PRINT_WARNING << "[frameRunAlgorithms func] : "
 
-void Functions::frameRunAlgorithms(FrameRef *frame, const std::unique_ptr<IAlgorithmHandler>& algorithmHandler)
+void Functions::frameRunAlgorithms(FrameRef *frame, const std::unique_ptr<IAlgorithmRunner>& algorithmRunner)
 {
 	// call root analysis function, which performed in calling thread
 	const auto& tStart = Utility::now_in_microseconds();
 
-	const auto processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameters>(algorithmHandler->getParameters());
+	const auto processParameters = std::dynamic_pointer_cast<Parameters::ProcessParameters>(algorithmRunner->getParameters());
 
-	if (!processParameters->DisableAllProcessing())
-		algorithmHandler->process(frame);
+	if (processParameters->EnableProcessing())
+		algorithmRunner->process(frame);
+	else
+	{
+		FRAMEALGO_SCOPED_LOG << "---- All algorithm processing is disabled. Skipping calculations ----";
+	}
 
 	const auto& tFinish = Utility::now_in_microseconds();
 

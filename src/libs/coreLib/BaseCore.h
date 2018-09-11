@@ -31,15 +31,15 @@ namespace LandaJune
 			void cleanup() override;
 
 			const std::list<FrameProviderPtr>& getFrameProviderList() const override;
-			const std::list<AlgorithmHandlerPtr>& getAlgorithmHandlerList() const override;
+			const std::list<AlgorithmRunnerPtr>& getAlgorithmRunnerList() const override;
 
 			std::shared_ptr<Parameters::BaseParameters> getProcessParameters() override;
 
 			void selectFrameProvider(FrameProviderPtr provider) override;
 			FrameProviderPtr getSelectedFrameProvider() const override;
 
-			void selectAlgorithmHandler(AlgorithmHandlerPtr algoHandler) override;
-			AlgorithmHandlerPtr getSelectedAlgorithmHandler() const override;
+			void selectAlgorithmRunner(AlgorithmRunnerPtr algoRUnner) override;
+			AlgorithmRunnerPtr getSelectedAlgorithmRunner() const override;
 
 			void start() const override;
 			void stop() const override;
@@ -63,14 +63,14 @@ namespace LandaJune
 			void initGlobalParameters();
 			void initFramePool() const;
 			void initProviders();
-			void initAlgorithmHandlers();
+			void initAlgorithmRunners();
 			bool _bInited = false;
 
 			std::list<FrameProviderPtr> _providerList;
-			std::list<AlgorithmHandlerPtr> _algorithmHandlerList;
+			std::list<AlgorithmRunnerPtr> _algorithmRunnerList;
 
 			FrameProviderPtr	_currentFrameProvider;
-			AlgorithmHandlerPtr	_currentAlgorithmHandler;
+			AlgorithmRunnerPtr	_currentAlgorithmRunner;
 
 			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
 		};
