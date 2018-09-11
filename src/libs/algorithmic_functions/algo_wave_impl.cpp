@@ -52,7 +52,7 @@ int Compare_Circle_Pos(const void* arg1, const void* arg2)
 }
 
 
-void detect_wave(const PARAMS_WAVE_INPUT& input, PARAMS_WAVE_OUTPUT& output)
+void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_OUTPUT> output)
 {
 	int		iLabel;
 	int		iCircle;
@@ -62,38 +62,38 @@ void detect_wave(const PARAMS_WAVE_INPUT& input, PARAMS_WAVE_OUTPUT& output)
 	static int iSeq = 0;
 
 	// define and clear overlay image
-	if (input._GenerateOverlay) {
-		output._colorOverlay.create(input._waveImageSource.rows, input._waveImageSource.cols, CV_8UC3);
-		output._colorOverlay.setTo(255);
-//		output.overlay = input._waveImageSource.clone();
+	if (input->_GenerateOverlay) {
+		output->_colorOverlay->create(input->_waveImageSource->rows, input->_waveImageSource->cols, CV_8UC3);
+		output->_colorOverlay->setTo(255);
+//		output->overlay = input->_waveImageSource.clone();
 	}
 
-	cvtColor(input._waveImageSource, g_imWave_Part_GL, CV_RGB2GRAY);
-	cvtColor(input._waveImageSource, g_imWave_Part_HSV, CV_BGR2HSV);
+	cvtColor(*input->_waveImageSource, g_imWave_Part_GL, CV_RGB2GRAY);
+	cvtColor(*input->_waveImageSource, g_imWave_Part_HSV, CV_BGR2HSV);
 
 	blur(g_imWave_Part_GL, g_imWave_Part_GL_Smooth, Size(1, 1));
-	split(input._waveImageSource, g_aimWave_BGR);
+	split(*input->_waveImageSource, g_aimWave_BGR);
 	split(g_imWave_Part_HSV, g_aimWave_HSV);
 
 
 	// find center of H
 	int iH_Center, iH_Range;
-	if (input._circleColor._min._iH < input._circleColor._max._iH) {
-		iH_Center = (input._circleColor._min._iH + input._circleColor._max._iH) / 2;
-		iH_Range = input._circleColor._max._iH - input._circleColor._min._iH;
+	if (input->_circleColor._min._iH < input->_circleColor._max._iH) {
+		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH) / 2;
+		iH_Range = input->_circleColor._max._iH - input->_circleColor._min._iH;
 	}
 	else {
-		iH_Center = (input._circleColor._min._iH + input._circleColor._max._iH - 180) / 2;
-		iH_Range = input._circleColor._max._iH - input._circleColor._min._iH + 180;
+		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH - 180) / 2;
+		iH_Range = input->_circleColor._max._iH - input->_circleColor._min._iH + 180;
 		if (iH_Center < 0)
 			iH_Center += 180;
 	}
 
-	int iS_Center = (input._circleColor._min._iS + 3 * input._circleColor._max._iS) / 4;
-	int iV_Center = input._circleColor._max._iV / 2;
+	int iS_Center = (input->_circleColor._min._iS + 3 * input->_circleColor._max._iS) / 4;
+	int iV_Center = input->_circleColor._max._iV / 2;
 
 	g_imWave_Color_Circle = H_Diff(g_aimWave_HSV[0], iH_Center) <= iH_Range &
-		g_aimWave_HSV[1] >= input._circleColor._min._iS & g_aimWave_HSV[1] <= input._circleColor._max._iS & g_aimWave_HSV[2] >= input._circleColor._min._iV & g_aimWave_HSV[2] <= input._circleColor._max._iV;
+		g_aimWave_HSV[1] >= input->_circleColor._min._iS & g_aimWave_HSV[1] <= input->_circleColor._max._iS & g_aimWave_HSV[2] >= input->_circleColor._min._iV & g_aimWave_HSV[2] <= input->_circleColor._max._iV;
 
 //	imwrite("e:\\temp\\Overlay_00.tif", g_imWave_Color_Circle);
 	dilate(g_imWave_Color_Circle, g_imWave_Color_Circle, Mat::ones(3, 3, CV_8U));
@@ -142,17 +142,17 @@ void detect_wave(const PARAMS_WAVE_INPUT& input, PARAMS_WAVE_OUTPUT& output)
 
 			Point tCircle_Center = cv::Point((int)round(g_afX[iCircle]), round(g_afY[iCircle]));
 
-			output._colorCenters[iLabel-1]._x = (int)round((g_afX[iCircle] + input._waveROI.left()) * input.Pixel2MM_X() * 1000);
-			output._colorCenters[iLabel-1]._y = (int)round((g_afY[iCircle] + input._waveROI.left()) * input.Pixel2MM_X() * 1000);
-			output._colorDetectionResults[iLabel-1] = ALG_STATUS_SUCCESS ;
+			output->_colorCenters[iLabel-1]._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_colorCenters[iLabel-1]._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_colorDetectionResults[iLabel-1] = ALG_STATUS_SUCCESS ;
 		}
 		else {
-			output._colorCenters[iLabel - 1]._x = 0 ;
-			output._colorCenters[iLabel - 1]._y = 0 ;
-			output._colorDetectionResults[iLabel - 1] = ALG_STATUS_FAILED;
+			output->_colorCenters[iLabel - 1]._x = 0 ;
+			output->_colorCenters[iLabel - 1]._y = 0 ;
+			output->_colorDetectionResults[iLabel - 1] = ALG_STATUS_FAILED;
 		}
 
-		if (input._GenerateOverlay) {
+		if (input->_GenerateOverlay) {
 			int iX, iY;
 			dilate(g_imWave_Color_Circle, g_imWave_Color_Circle_Dil, Mat::ones(3, 3, CV_8U));
 			g_imWave_Color_Circle_Dil = g_imWave_Color_Circle_Dil - g_imWave_Color_Circle;
@@ -168,12 +168,12 @@ void detect_wave(const PARAMS_WAVE_INPUT& input, PARAMS_WAVE_OUTPUT& output)
 			for (iY = iStart_Y; iY < iEnd_Y; iY++)
 				for (iX = iStart_X; iX < iEnd_X; iX++)
 					if (g_imWave_Color_Circle_Dil.at<byte>(iY, iX))
-						Draw_Point(output._colorOverlay, iX, iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+						Draw_Point(*output->_colorOverlay, iX, iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
 
 			// draw cross around center
 			for (iY = -5; iY < 5; iY++) {
-				Draw_Point(output._colorOverlay, g_afX[iCircle], g_afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
-				Draw_Point(output._colorOverlay, g_afX[iCircle] + iY, g_afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+				Draw_Point(*output->_colorOverlay, g_afX[iCircle], g_afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+				Draw_Point(*output->_colorOverlay, g_afX[iCircle] + iY, g_afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
 			}
 		}
 	}
@@ -204,7 +204,7 @@ void detect_wave(const PARAMS_WAVE_INPUT& input, PARAMS_WAVE_OUTPUT& output)
 
 //	char sOvl_Name[256];
 //	sprintf_s(sOvl_Name, "e:\\temp\\wv_%03d.jpg", iSeq);
-//	imwrite(sOvl_Name, output._colorOverlay);
+//	imwrite(sOvl_Name, output->_colorOverlay);
 //	iSeq++;
 
 }

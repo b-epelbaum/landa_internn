@@ -46,7 +46,7 @@ void detect_c2c_roi_init(const C2C_ROI_INIT_PARAMETER& initParam)
 
 
 
-void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& output)
+void detect_c2c_roi(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> output)
 {
 	int		iCircle;
 	int		iLabels;
@@ -56,27 +56,28 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 
 	static int iSeq = 0 ;
 
-	output._result = ALG_STATUS_SUCCESS ;
+	output->_result = ALG_STATUS_SUCCESS ;
 
-	int iColor_Num = input._colors.size() ;		// number of clircles
+	int iColor_Num = input->_colors.size() ;		// number of clircles
 
 	// define and clear overlay image
-	if (input.GenerateOverlay()) {
-		output._colorOverlay.create(input._ROIImageSource.rows, input._ROIImageSource.cols, CV_8UC3);
-		output._colorOverlay.setTo(255);
+	if (input->GenerateOverlay()) 
+	{
+		output->_colorOverlay->create(input->_ROIImageSource->rows, input->_ROIImageSource->cols, CV_8UC3);
+		output->_colorOverlay->setTo(255);
 	}
 
 	// size of color centers
-	// output._colorCenters.resize(iColor_Num);
-	// output._colorStatuses.resize(iColor_Num);
+	// output->_colorCenters.resize(iColor_Num);
+	// output->_colorStatuses.resize(iColor_Num);
 
 	// convert part to gray levels and HSV
-	cvtColor(input._ROIImageSource, g_imPart_GL, CV_RGB2GRAY);
-	cvtColor(input._ROIImageSource, g_imPart_HSV, CV_BGR2HSV);
+	cvtColor(*input->_ROIImageSource, g_imPart_GL, CV_RGB2GRAY);
+	cvtColor(*input->_ROIImageSource, g_imPart_HSV, CV_BGR2HSV);
 
 	blur(g_imPart_GL, g_imPart_GL_Smooth, Size(1, 1));
 
-	split(input._ROIImageSource, g_aimBGR);
+	split(*input->_ROIImageSource, g_aimBGR);
 
 	split(g_imPart_HSV, g_aimHSV);
 
@@ -91,32 +92,32 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 	int iFail_Circles = 0;
 
 	// loop on circles
-	for (iCircle = 0; iCircle < input._colors.size(); iCircle++) {
+	for (iCircle = 0; iCircle < input->_colors.size(); iCircle++) {
 
 		afX[iCircle] = 0;
 		afY[iCircle] = 0;
 
 		// find center of H
 		int iH_Center, iH_Range ;
-		if (input._colors[iCircle]._min._iH < input._colors[iCircle]._max._iH) {
-			iH_Center = (input._colors[iCircle]._min._iH + input._colors[iCircle]._max._iH) / 2 ;
-			iH_Range = input._colors[iCircle]._max._iH - input._colors[iCircle]._min._iH ;
+		if (input->_colors[iCircle]._min._iH < input->_colors[iCircle]._max._iH) {
+			iH_Center = (input->_colors[iCircle]._min._iH + input->_colors[iCircle]._max._iH) / 2 ;
+			iH_Range = input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH ;
 		}
 		else {
-			iH_Center = (input._colors[iCircle]._min._iH + input._colors[iCircle]._max._iH - 180) / 2;
-			iH_Range = input._colors[iCircle]._max._iH - input._colors[iCircle]._min._iH + 180;
+			iH_Center = (input->_colors[iCircle]._min._iH + input->_colors[iCircle]._max._iH - 180) / 2;
+			iH_Range = input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH + 180;
 			if (iH_Center < 0)
 				iH_Center += 180 ;
 		}
 
-		// int iS_Center = (input._colors[iCircle]._min._iS + input._colors[iCircle]._max._iS) / 2 ;
-		int iS_Center = (input._colors[iCircle]._min._iS + 3 * input._colors[iCircle]._max._iS) / 4 ;
-		//		int iV_Center = (input._colors[iCircle]._min._iV + input._colors[iCircle]._max._iV) / 2 ;
-		int iV_Center = input._colors[iCircle]._max._iV / 2;
+		// int iS_Center = (input->_colors[iCircle]._min._iS + input->_colors[iCircle]._max._iS) / 2 ;
+		int iS_Center = (input->_colors[iCircle]._min._iS + 3 * input->_colors[iCircle]._max._iS) / 4 ;
+		//		int iV_Center = (input->_colors[iCircle]._min._iV + input->_colors[iCircle]._max._iV) / 2 ;
+		int iV_Center = input->_colors[iCircle]._max._iV / 2;
 
 		g_imColor_Circle = H_Diff(g_aimHSV[0], iH_Center) <= iH_Range &
-							g_aimHSV[1] >= input._colors[iCircle]._min._iS & g_aimHSV[1] <= input._colors[iCircle]._max._iS &
-							g_aimHSV[2] >= input._colors[iCircle]._min._iV & g_aimHSV[2] <= input._colors[iCircle]._max._iV ;
+							g_aimHSV[1] >= input->_colors[iCircle]._min._iS & g_aimHSV[1] <= input->_colors[iCircle]._max._iS &
+							g_aimHSV[2] >= input->_colors[iCircle]._min._iV & g_aimHSV[2] <= input->_colors[iCircle]._max._iV ;
 
 		
 		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(5, 5, CV_8U));
@@ -166,20 +167,21 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 			afX[iCircle] = (int)g_imCentroids.at<double>(2) + afDx[0];
 			afY[iCircle] = (int)g_imCentroids.at<double>(3) + afDy[0] ;
 
-			output._colorCenters[iCircle]._x = (int)round(afX[iCircle] * input.Pixel2MM_X() * 1000);
-			output._colorCenters[iCircle]._y = (int)round(afX[iCircle] * input.Pixel2MM_Y() * 1000);
-			output._colorStatuses[iCircle] =  ALG_STATUS_SUCCESS ;
+			output->_colorCenters[iCircle]._x = (int)round(afX[iCircle] * input->Pixel2MM_X() * 1000);
+			output->_colorCenters[iCircle]._y = (int)round(afX[iCircle] * input->Pixel2MM_Y() * 1000);
+			output->_colorStatuses[iCircle] =  ALG_STATUS_SUCCESS ;
 		}
 		else {
-			output._colorCenters[iCircle]._x = (int)round((afX[iCircle] + (float)input._ROI.left()) *	input.Pixel2MM_X() * 1000);
-			output._colorCenters[iCircle]._y = (int)round((afY[iCircle] + (float)input._ROI.top()) *	input.Pixel2MM_Y() * 1000);
-			output._colorStatuses[iCircle] = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
-			output._result = ALG_STATUS_FAILED ;
+			output->_colorCenters[iCircle]._x = (int)round((afX[iCircle] + (float)input->_ROI.left()) *	input->Pixel2MM_X() * 1000);
+			output->_colorCenters[iCircle]._y = (int)round((afY[iCircle] + (float)input->_ROI.top()) *	input->Pixel2MM_Y() * 1000);
+			output->_colorStatuses[iCircle] = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
+			output->_result = ALG_STATUS_FAILED ;
 		}
 
 		Point tCircle_Center = cv::Point((int)round(afX[iCircle]), (int)round(afY[iCircle])) ;
 
-		if (input._GenerateOverlay) {
+		if (input->GenerateOverlay()) 
+		{
 			int iX, iY ;
 			dilate (g_imColor_Circle, g_imColor_Circle_Dil, Mat::ones(3, 3, CV_8U)) ;
 			g_imColor_Circle_Dil = g_imColor_Circle_Dil - g_imColor_Circle ;
@@ -188,12 +190,12 @@ void detect_c2c_roi(const PARAMS_C2C_ROI_INPUT& input, PARAMS_C2C_ROI_OUTPUT& ou
 			for (iY = 0 ; iY < g_imColor_Circle_Dil.rows ; iY ++)
 				for (iX = 0; iX < g_imColor_Circle_Dil.cols; iX++)
 					if (g_imColor_Circle_Dil.at<byte>(iY, iX))
-						Draw_Point(output._colorOverlay, iX, iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+						Draw_Point(*output->_colorOverlay, iX, iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
 
 			// draw cross around center
 			for (iY = -5 ; iY < 5; iY++) {
-				Draw_Point(output._colorOverlay, afX[iCircle], afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
-				Draw_Point(output._colorOverlay, afX[iCircle] + iY, afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+				Draw_Point(*output->_colorOverlay, afX[iCircle], afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+				Draw_Point(*output->_colorOverlay, afX[iCircle] + iY, afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
 			}
 
 //			for (float fAng = 0 ;fAng < 2 * 3.14159; fAng += 0.03) {

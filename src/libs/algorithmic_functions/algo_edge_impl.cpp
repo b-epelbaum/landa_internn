@@ -30,23 +30,23 @@ void detect_edge_init(const INIT_PARAMETER& initParam)
 
 
 
-void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& output)
+void detect_edge(std::shared_ptr<LandaJune::Algorithms::PARAMS_PAPEREDGE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_PAPEREDGE_OUTPUT> output)
 {
 	int		iY;				// counter
 	float	fAx, fBx;		// Line equation (y=Ax+b) for paper edge
 
 	// convert to gray scale
-	cvtColor(input._stripImageSource, g_imPaperEdge_Input_GL, CV_RGB2GRAY);
+	cvtColor(*input->_stripImageSource, g_imPaperEdge_Input_GL, CV_RGB2GRAY);
 
 	// define and clear overlay image
-	if (input.GenerateOverlay()) {
-		output._edgeOverlay.create(input._stripImageSource.rows, input._stripImageSource.cols, CV_8UC3);
-		output._edgeOverlay.setTo(255);
+	if (input->GenerateOverlay()) {
+		output->_edgeOverlay->create(input->_stripImageSource->rows, input->_stripImageSource->cols, CV_8UC3);
+		output->_edgeOverlay->setTo(255);
 	}
 
-	int iEstimated_X = input._approxDistanceFromEdgeX ;
+	int iEstimated_X = input->_approxDistanceFromEdgeX ;
 	int iStart_X = max(iEstimated_X - 20, 0);
-	int iEnd_X = min(iEstimated_X + 20, input._stripImageSource.cols - 1);
+	int iEnd_X = min(iEstimated_X + 20, input->_stripImageSource->cols - 1);
 
 	// paper edge
 	int iCount = 0 ;		// toal number of edges
@@ -65,24 +65,24 @@ void detect_edge(const PARAMS_PAPEREDGE_INPUT& input, PARAMS_PAPEREDGE_OUTPUT& o
 	Find_Line_Data(g_afPaperEdge_Edges, iEdges_Len, fAx, fBx);
 
 	if (iFails > iCount / 2)
-		output._result = ALG_STATUS_FAILED;
+		output->_result = ALG_STATUS_FAILED;
 
 	// draw overlay
-	if (input.GenerateOverlay())
+	if (input->GenerateOverlay())
 		for (iY = 0; iY < g_imPaperEdge_Input_GL.rows; iY++) {
 			float fPos_X = fAx * float(iY - 100) / 50 + fBx;
-			Draw_Point(output._edgeOverlay, fPos_X, (float)iY, 0, 255, 0);
+			Draw_Point(*output->_edgeOverlay, fPos_X, static_cast<float>(iY), 0, 255, 0);
 		}
 
 	// linear line parameters of the paper
 	float fPaper_A = fAx / 50;
 	float fPaper_B = fBx - 2;
 
-	output._exactDistanceFromEdgeX = round((fPaper_A * input._triangeApproximateY + fPaper_B) * input.Pixel2MM_X() * 1000);
-	output._result = ALG_STATUS_SUCCESS;
+	output->_exactDistanceFromEdgeX = round((fPaper_A * input->_triangeApproximateY + fPaper_B) * input->Pixel2MM_X() * 1000);
+	output->_result = ALG_STATUS_SUCCESS;
 
-	//if (input.GenerateOverlay())
-	//	imwrite("e:\\temp\\res1.tif", output._edgeOverlay);
+	//if (input->GenerateOverlay())
+	//	imwrite("e:\\temp\\res1.tif", output->_edgeOverlay);
 }
 
 

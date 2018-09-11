@@ -14,8 +14,8 @@ namespace LandaJune
 
 			static ImageRegion createRegion
 			(
-				const cv::Mat&									srcMat						// source data
-				, cv::Mat&										targetMat					// target MAT objects
+				  const cv::Mat*								srcMat						// source data
+				, std::shared_ptr<cv::Mat>						targetMat					// target MAT objects
 				, std::shared_ptr<Parameters::ProcessParameters> params
 				, const cv::Rect&								srcRect						// rectangle of the source data to copy
 				, int											frameIndex
@@ -27,13 +27,13 @@ namespace LandaJune
 			}
 
 			ImageRegion(
-				const cv::Mat&									srcMat						// source data
-				, cv::Mat&										targetMat					// target MAT objects
-				, std::shared_ptr<Parameters::ProcessParameters> params
-				, const cv::Rect&								srcRect						// rectangle of the source data to copy
-				, int											frameIndex
-				, const std::string&							saveFilePath				// ROI Name
-				, const bool									needSaving = false			// if should be dumped to disk as well
+				  const cv::Mat*									srcMat						// source data
+				, std::shared_ptr<cv::Mat>							targetMat					// target MAT objects
+				, std::shared_ptr<Parameters::ProcessParameters>	params
+				, const cv::Rect&									srcRect						// rectangle of the source data to copy
+				, int												frameIndex
+				, const std::string&								saveFilePath				// ROI Name
+				, const bool										needSaving = false			// if should be dumped to disk as well
 			)
 				: _srcMatContainer(srcMat)
 				, _targetMatContainer(targetMat)
@@ -56,8 +56,8 @@ namespace LandaJune
 			}
 
 			private:
-				const cv::Mat&									_srcMatContainer;
-				cv::Mat&										_targetMatContainer;
+				const cv::Mat*									_srcMatContainer;
+				std::shared_ptr<cv::Mat>						_targetMatContainer;
 				cv::Rect										_srcRequestedRect;
 				cv::Rect										_srcNormalizedRect;
 				bool											_bNeedSaving;
@@ -69,8 +69,8 @@ namespace LandaJune
 
 			cv::Rect normalizeRegionRect() const
 			{
-				auto const& srcWidth = _srcMatContainer.cols;
-				auto const& srcHeight = _srcMatContainer.rows;
+				auto const& srcWidth = _srcMatContainer->cols;
+				auto const& srcHeight = _srcMatContainer->rows;
 
 				auto const& regReqLeft = _srcRequestedRect.x;
 				auto const& regReqTop = _srcRequestedRect.y;
@@ -111,7 +111,7 @@ namespace LandaJune
 			static void performCopy(ImageRegion& rgn)
 			{
 				// create a new MAT object by making a deep copy from the source MAT
-				rgn._targetMatContainer = std::move((rgn._srcMatContainer)(rgn._srcNormalizedRect));
+				*rgn._targetMatContainer = std::move((*rgn._srcMatContainer)(rgn._srcNormalizedRect));
 
 				if ( !rgn._params->EnableAnyDataSaving() )
 					return;

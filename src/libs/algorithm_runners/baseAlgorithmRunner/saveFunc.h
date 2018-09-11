@@ -68,11 +68,11 @@ namespace LandaJune
 		return filePath;
 	}
 
-	static void dumpMatFile (const cv::Mat& img, const std::string& filePath, bool asyncWrite)
+	static void dumpMatFile (std::shared_ptr<cv::Mat> img, const std::string& filePath, bool asyncWrite)
 	{
 		if (asyncWrite)	
 		{
-			auto targetImg = new cv::Mat(std::move(img.clone()));
+			auto targetImg = new cv::Mat(std::move(img->clone()));
 			task<void> t([targetImg, filePath]()
 			{
 				 Functions::frameSaveImage(targetImg, filePath);

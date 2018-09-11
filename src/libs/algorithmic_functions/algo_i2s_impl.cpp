@@ -33,7 +33,7 @@ void detect_i2s_init(const INIT_PARAMETER& initParam)
 
 
 
-void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
+void detect_i2s(std::shared_ptr<LandaJune::Algorithms::PARAMS_I2S_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_I2S_OUTPUT> output)
 {
 	int		iX, iY;							// counters
 	float	fCntX, fCntY;					// counters
@@ -47,13 +47,13 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 	fTriangle_X = fTriangle_Y = 0;
 
 	// create and clear overlay
-	if (input.GenerateOverlay()) {
-		output._triangleOverlay.create(input._triangleImageSource.rows, input._triangleImageSource.cols, CV_8UC3);
-		output._triangleOverlay.setTo(255);
+	if (input->GenerateOverlay()) {
+		output->_triangleOverlay->create(input->_triangleImageSource->rows, input->_triangleImageSource->cols, CV_8UC3);
+		output->_triangleOverlay->setTo(255);
 	}
 
 	// convert part to gray levels and HSV
-	cvtColor(input._triangleImageSource, g_imTriangle_Input_GL, CV_RGB2GRAY);
+	cvtColor(*input->_triangleImageSource, g_imTriangle_Input_GL, CV_RGB2GRAY);
 
 	threshold(g_imTriangle_Input_GL, g_imTriangle_T, 128, 255, THRESH_BINARY_INV);
 
@@ -91,15 +91,15 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		iEdges_Len = 0;
 		for (iY = iYS + 5; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
 			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS - 10, iXS + 10, iY);	// detect single pixel edge
-			g_afTriangle_Edges[input._side][iEdges_Len++] = fMiddle_X;
+			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
 		}
 
 		// estimate line for edge-pixels
-		Find_Line_Data(g_afTriangle_Edges[input._side], iEdges_Len, fAx, fBx);
-		if (input.GenerateOverlay())
+		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAx, fBx);
+		if (input->GenerateOverlay())
 			for (fCntY = 0; fCntY < iEdges_Len; fCntY += 1) {
 				float fPos_X = fAx * fCntY + fBx;
-				Draw_Point(output._triangleOverlay, fPos_X, fCntY + iYS + 5, 0, 255, 0, 1);
+				Draw_Point(*output->_triangleOverlay, fPos_X, fCntY + iYS + 5, 0, 255, 0, 1);
 			}
 		float fX0 = fBx;
 		float fY0 = iYS + 5.f;
@@ -110,15 +110,15 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		iEdges_Len = 0;
 		for (iX = iXS + 5; iX < iXS + iWT * 2 / 3; iX++) {	// loop on part of the triangle side
 			float fMiddle_Y = Detect_Edge_Y(g_imTriangle_Input_GL, iYS - 10, iYS + 10, iX);	// detect single pixel edge
-			g_afTriangle_Edges[input._side][iEdges_Len++] = fMiddle_Y;
+			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_Y;
 		}
 
 		// estimate line for edge-pixels
-		Find_Line_Data(g_afTriangle_Edges[input._side], iEdges_Len, fAy, fBy);
-		if (input.GenerateOverlay())
+		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAy, fBy);
+		if (input->GenerateOverlay())
 			for (fCntX = 0; fCntX < iEdges_Len; fCntX += 1) {
 				float fPos_Y = fAy * fCntX + fBy;
-				Draw_Point(output._triangleOverlay, fCntX + iXS + 5, fPos_Y, 0, 255, 0, 1);
+				Draw_Point(*output->_triangleOverlay, fCntX + iXS + 5, fPos_Y, 0, 255, 0, 1);
 			}
 		float fX1 = iXS + 5.f;
 		float fY1 = fBy;
@@ -138,22 +138,22 @@ void detect_i2s(const PARAMS_I2S_INPUT& input, PARAMS_I2S_OUTPUT& output)
 		fTriangle_Y = fV0y * fT0 + fY0;
 
 		// overlay
-		if (input.GenerateOverlay())
-			Draw_Point(output._triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
+		if (input->GenerateOverlay())
+			Draw_Point(*output->_triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
 
 		// set output data
-		output._triangeCorner._x = (int)round((fTriangle_X + input._approxTriangeROI.left()) * input.Pixel2MM_X() * 1000);
-		output._triangeCorner._y = (int)round((fTriangle_Y + input._approxTriangeROI.top()) * input.Pixel2MM_Y() * 1000);
-		output._result = ALG_STATUS_SUCCESS;
+		output->_triangeCorner._x = (int)round((fTriangle_X + input->_approxTriangeROI.left()) * input->Pixel2MM_X() * 1000);
+		output->_triangeCorner._y = (int)round((fTriangle_Y + input->_approxTriangeROI.top()) * input->Pixel2MM_Y() * 1000);
+		output->_result = ALG_STATUS_SUCCESS;
 
-		//if (input.GenerateOverlay())
-		//	imwrite("e:\\temp\\res2.tif", output._triangleOverlay);	// ***
+		//if (input->GenerateOverlay())
+		//	imwrite("e:\\temp\\res2.tif", output->_triangleOverlay);	// ***
 	}
 	else {
 		// set output data for failure
-		output._triangeCorner._x = 0;
-		output._triangeCorner._y = 0;
-		output._result = ALG_STATUS_FAILED;
+		output->_triangeCorner._x = 0;
+		output->_triangeCorner._y = 0;
+		output->_result = ALG_STATUS_FAILED;
 	}
 }
 

@@ -88,7 +88,7 @@ void fullImageRunner::init(std::shared_ptr<BaseParameters> parameters)
 		FULLIMAGE_RUNNER_SCOPED_WARNING << "Wave Circle template cannot be read : " << _processParameters->CircleTemplateResourceWave();
 	}
 
-	const INIT_PARAMETER edgeInitParam{ toROIRect(_processParameters->LeftStripRect()) };
+	const INIT_PARAMETER edgeInitParam ( toROIRect(_processParameters->LeftStripRect()) );
 	initEdge(edgeInitParam);
 
 	const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2SApproximateTriangleRectLeft()) };
@@ -129,7 +129,7 @@ void fullImageRunner::process(const FrameRef * frame)
 	// call general process implementation of parent class
 	baseAlgorithmRunner::process(frame);
 
-	PARAMS_C2C_SHEET_INPUT input(_frame);
+	const auto input = std::make_shared<PARAMS_C2C_SHEET_INPUT>(_frame);
 	
 	// fill process parameters
 	fillSheetProcessParameters(input);

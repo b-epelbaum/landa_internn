@@ -2,6 +2,7 @@
 
 #include "algorithm_basic_types.h"
 #include <optional>
+#include <utility>
 #include <vector>
 
 ///////////////
@@ -28,6 +29,12 @@ namespace LandaJune
 	namespace Algorithms
 	{
 
+		template<typename TO, typename FROM>
+		std::unique_ptr<TO> static_unique_pointer_cast (std::unique_ptr<FROM>&& old)
+		{
+			return std::unique_ptr<TO>{static_cast<TO*>(old.release())};
+		}
+
 		//////////////////////////////////////////////////
 		///////////  Algorithm functions parameters 
 		//////////////////////////////////////////////////
@@ -38,24 +45,42 @@ namespace LandaJune
 
 		class INIT_PARAMETER
 		{
-		public:
-			ROIRect _roiRect;
+			public:
+				INIT_PARAMETER () = default;
+				INIT_PARAMETER (const ROIRect& rc) : _roiRect (rc) {}
+				explicit INIT_PARAMETER (const INIT_PARAMETER& other) = delete;
+				explicit INIT_PARAMETER (INIT_PARAMETER&& other) = delete;
+				const INIT_PARAMETER & operator = (const INIT_PARAMETER& other) = delete;
+				INIT_PARAMETER & operator = (INIT_PARAMETER &&) = delete;
+				~INIT_PARAMETER () = default;
+
+				ROIRect _roiRect;
 		};
 
-		class C2C_ROI_INIT_PARAMETER : INIT_PARAMETER
+		class C2C_ROI_INIT_PARAMETER : public INIT_PARAMETER
 		{
-		public:
+			public:
+				C2C_ROI_INIT_PARAMETER () = default;
+				explicit C2C_ROI_INIT_PARAMETER (const C2C_ROI_INIT_PARAMETER& other) = delete;
+				explicit C2C_ROI_INIT_PARAMETER (C2C_ROI_INIT_PARAMETER&& other) = delete;
+				const C2C_ROI_INIT_PARAMETER & operator = (const C2C_ROI_INIT_PARAMETER& other) = delete;
+				C2C_ROI_INIT_PARAMETER & operator = (C2C_ROI_INIT_PARAMETER &&) = delete;
+				~C2C_ROI_INIT_PARAMETER () = default;
 
-			C2C_ROI_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
-			cv::Mat	_templateImage;
+				cv::Mat	_templateImage;
 		};
 
-		class WAVE_INIT_PARAMETER : INIT_PARAMETER
+		class WAVE_INIT_PARAMETER : public INIT_PARAMETER
 		{
-		public:
-
-			WAVE_INIT_PARAMETER(const INIT_PARAMETER& other) : INIT_PARAMETER(other) {}
-			cv::Mat	_templateImage;
+			public:
+				WAVE_INIT_PARAMETER () = default;
+				explicit WAVE_INIT_PARAMETER (const WAVE_INIT_PARAMETER& other) = delete;
+				explicit WAVE_INIT_PARAMETER (WAVE_INIT_PARAMETER&& other) = delete;
+				const WAVE_INIT_PARAMETER & operator = (const WAVE_INIT_PARAMETER& other) = delete;
+				WAVE_INIT_PARAMETER & operator = (WAVE_INIT_PARAMETER &&) = delete;
+				~WAVE_INIT_PARAMETER () = default;
+	
+				cv::Mat	_templateImage;
 		};
 
 		////////////////////////////////////////////////
@@ -70,7 +95,11 @@ namespace LandaJune
 		{
 			public:
 				explicit ABSTRACT_INPUT(const Core::FrameRef * frame) : _frame(frame){}
-				virtual ~ABSTRACT_INPUT() = default;
+				explicit ABSTRACT_INPUT (const ABSTRACT_INPUT& other) = delete;
+				explicit ABSTRACT_INPUT (ABSTRACT_INPUT&& other) = delete;
+				const ABSTRACT_INPUT & operator = (const ABSTRACT_INPUT& other) = delete;
+				ABSTRACT_INPUT & operator = (ABSTRACT_INPUT &&) = delete;
+				virtual ~ABSTRACT_INPUT () = default;
 
 				virtual std::string getElementName() const  = 0;
 
@@ -80,7 +109,6 @@ namespace LandaJune
 				DECLARE_INPUT_PARAMETER(GenerateOverlay, bool, false)
 				
 				const Core::FrameRef * _frame = nullptr;
-				std::weak_ptr<ABSTRACT_INPUT> _parent;
 		};
 
 		//------------------------------------------
@@ -93,7 +121,14 @@ namespace LandaJune
 				explicit PARAMS_I2S_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
 					: ABSTRACT_INPUT(frame)
 					, _side(side)
+					, _triangleImageSource (std::make_shared<cv::Mat>())
 					{}
+			
+				explicit PARAMS_I2S_INPUT (const PARAMS_I2S_INPUT& other) = delete;
+				explicit PARAMS_I2S_INPUT (PARAMS_I2S_INPUT&& other) = delete;
+				const PARAMS_I2S_INPUT & operator = (const PARAMS_I2S_INPUT& other) = delete;
+				PARAMS_I2S_INPUT & operator = (PARAMS_I2S_INPUT &&) = delete;
+				virtual ~PARAMS_I2S_INPUT () = default;
 
 				std::string getElementName() const  override
 				{
@@ -101,9 +136,8 @@ namespace LandaJune
 				}
 
 				SHEET_SIDE					_side = LEFT;
-				// ref color ?
 				ROIRect						_approxTriangeROI {};
-				cv::Mat						_triangleImageSource;
+				std::shared_ptr<cv::Mat>	_triangleImageSource;
 		};
 
 		//------------------------------------------
@@ -119,15 +153,22 @@ namespace LandaJune
 					, _side(side)
 					, _colors(std::move(hsvs))
 					, _ROI(roi)
+					, _ROIImageSource (std::make_shared<cv::Mat>())
 					, _roiIndex(roiIndex)
-				{}
+				{
+				}
 
-				SHEET_SIDE				_side = LEFT;
-				// scanner side
-				std::vector<HSV>		_colors;
-				ROIRect					_ROI;
-				cv::Mat					_ROIImageSource;
-				uint32_t				_roiIndex = -1;
+				explicit PARAMS_C2C_ROI_INPUT (const PARAMS_C2C_ROI_INPUT& other) = delete;
+				explicit PARAMS_C2C_ROI_INPUT (PARAMS_C2C_ROI_INPUT&& other) = delete;
+				const PARAMS_C2C_ROI_INPUT & operator = (const PARAMS_C2C_ROI_INPUT& other) = delete;
+				PARAMS_C2C_ROI_INPUT & operator = (PARAMS_C2C_ROI_INPUT &&) = delete;
+				virtual ~PARAMS_C2C_ROI_INPUT () = default;
+
+				SHEET_SIDE						_side = LEFT;
+				std::vector<HSV>				_colors;
+				ROIRect							_ROI;
+				std::shared_ptr<cv::Mat>		_ROIImageSource;
+				uint32_t						_roiIndex = -1;
 
 				std::string getElementName() const  override
 				{
@@ -145,19 +186,25 @@ namespace LandaJune
 				PARAMS_PAPEREDGE_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
 					: ABSTRACT_INPUT(frame )
 					, _side(side)
-					{}
+					, _stripImageSource (std::make_shared<cv::Mat>())
+				{
+				}
 
-					std::string getElementName() const  override
-					{
-						return fmt::format("EDGE_{0}", SIDE_NAMES[_side]);
-					}
+				explicit PARAMS_PAPEREDGE_INPUT (const PARAMS_PAPEREDGE_INPUT& other) = delete;
+				explicit PARAMS_PAPEREDGE_INPUT (PARAMS_PAPEREDGE_INPUT&& other) = delete;
+				const PARAMS_PAPEREDGE_INPUT & operator = (const PARAMS_PAPEREDGE_INPUT& other) = delete;
+				PARAMS_PAPEREDGE_INPUT & operator = (PARAMS_PAPEREDGE_INPUT &&) = delete;
+				virtual ~PARAMS_PAPEREDGE_INPUT () = default;
 
-					SHEET_SIDE					_side = LEFT;
-					uint32_t					_approxDistanceFromEdgeX = -1;
-					uint32_t					_triangeApproximateY = -1;
-					cv::Mat						_stripImageSource;
+				std::string getElementName() const  override
+				{
+					return fmt::format("EDGE_{0}", SIDE_NAMES[_side]);
+				}
 
-					std::weak_ptr<ABSTRACT_INPUT> _parent;
+				SHEET_SIDE						_side = LEFT;
+				uint32_t						_approxDistanceFromEdgeX = -1;
+				uint32_t						_triangeApproximateY = -1;
+				std::shared_ptr<cv::Mat>		_stripImageSource;
 		};
 
 		//------------------------------------------
@@ -168,16 +215,22 @@ namespace LandaJune
 		class PARAMS_WAVE_INPUT :  public ABSTRACT_INPUT
 		{
 			public:
-			explicit PARAMS_WAVE_INPUT(const Core::FrameRef * frame)
-				: ABSTRACT_INPUT(frame)
+				explicit PARAMS_WAVE_INPUT(const Core::FrameRef * frame)
+					: ABSTRACT_INPUT(frame)
+					, _waveImageSource (std::make_shared<cv::Mat>())
 				{}
+				explicit PARAMS_WAVE_INPUT (const PARAMS_WAVE_INPUT& other) = delete;
+				explicit PARAMS_WAVE_INPUT (PARAMS_WAVE_INPUT&& other) = delete;
+				const PARAMS_WAVE_INPUT & operator = (const PARAMS_WAVE_INPUT& other) = delete;
+				PARAMS_WAVE_INPUT & operator = (PARAMS_WAVE_INPUT &&) = delete;
+				virtual ~PARAMS_WAVE_INPUT () = default;
 
 				std::string getElementName() const  override
 				{
 					return "WAVE";
 				}
 
-			cv::Mat						_waveImageSource;
+			std::shared_ptr<cv::Mat>	_waveImageSource;
 			// scanner side
 			HSV							_circleColor;
 			ROIRect						_waveROI;
@@ -190,23 +243,29 @@ namespace LandaJune
 		class PARAMS_C2C_STRIP_INPUT :  public ABSTRACT_INPUT
 		{
 			public:
-			explicit PARAMS_C2C_STRIP_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
-				: ABSTRACT_INPUT(frame)
-				, _side(side)
-				, _paperEdgeInput(frame, side)
-				, _i2sInput(frame, side)
-			{
-			}
+				explicit PARAMS_C2C_STRIP_INPUT(const Core::FrameRef * frame, const SHEET_SIDE side)
+					: ABSTRACT_INPUT(frame)
+					, _side(side)
+					, _paperEdgeInput(std::make_shared<PARAMS_PAPEREDGE_INPUT>(frame, side))
+					, _i2sInput(std::make_shared<PARAMS_I2S_INPUT>(frame, side))
+					{
+					}
+				
+				explicit PARAMS_C2C_STRIP_INPUT (const PARAMS_C2C_STRIP_INPUT& other) = delete;
+				explicit PARAMS_C2C_STRIP_INPUT (PARAMS_C2C_STRIP_INPUT&& other) = delete;
+				const PARAMS_C2C_STRIP_INPUT & operator = (const PARAMS_C2C_STRIP_INPUT& other) = delete;
+				PARAMS_C2C_STRIP_INPUT & operator = (PARAMS_C2C_STRIP_INPUT &&) = delete;
+				virtual ~PARAMS_C2C_STRIP_INPUT () = default;
 
 			std::string getElementName() const  override
 			{
 				return fmt::format("Strip_{0}", SIDE_NAMES[_side]);
 			}
 
-			SHEET_SIDE							_side = LEFT;
-			PARAMS_PAPEREDGE_INPUT				_paperEdgeInput;
-			PARAMS_I2S_INPUT					_i2sInput;
-			std::vector<PARAMS_C2C_ROI_INPUT>	_c2cROIInputs;
+			SHEET_SIDE											_side = LEFT;
+			std::shared_ptr<PARAMS_PAPEREDGE_INPUT>				_paperEdgeInput;
+			std::shared_ptr<PARAMS_I2S_INPUT>					_i2sInput;
+			std::vector<std::shared_ptr<PARAMS_C2C_ROI_INPUT>>	_c2cROIInputs;
 		};
 
 		//------------------------------------------
@@ -217,19 +276,25 @@ namespace LandaJune
 			public:
 				explicit PARAMS_C2C_SHEET_INPUT(const Core::FrameRef * frame)
 					: ABSTRACT_INPUT(frame)
-					, _stripInputParamLeft(frame, LEFT)
-					, _stripInputParamRight(frame, RIGHT)
-					, _waveInputs(0, PARAMS_WAVE_INPUT{frame})
+					, _stripInputParamLeft(std::make_shared<PARAMS_C2C_STRIP_INPUT>(frame, LEFT))
+					, _stripInputParamRight(std::make_shared<PARAMS_C2C_STRIP_INPUT>(frame, RIGHT))
+					, _waveInputs(0, std::make_shared<PARAMS_WAVE_INPUT>(frame))
 					{}
+
+				explicit PARAMS_C2C_SHEET_INPUT (const PARAMS_C2C_SHEET_INPUT& other) = delete;
+				explicit PARAMS_C2C_SHEET_INPUT (PARAMS_C2C_SHEET_INPUT&& other) = delete;
+				const PARAMS_C2C_SHEET_INPUT & operator = (const PARAMS_C2C_SHEET_INPUT& other) = delete;
+				PARAMS_C2C_SHEET_INPUT & operator = (PARAMS_C2C_SHEET_INPUT &&) = delete;
+				virtual ~PARAMS_C2C_SHEET_INPUT () = default;
 
 				std::string getElementName() const  override
 				{
 					return "Frame";
 				}
 
-				PARAMS_C2C_STRIP_INPUT				_stripInputParamLeft;
-				PARAMS_C2C_STRIP_INPUT				_stripInputParamRight;
-				std::vector<PARAMS_WAVE_INPUT>	    _waveInputs;
+				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamLeft;
+				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamRight;
+				std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>		_waveInputs;
 		};
 
 
@@ -244,11 +309,16 @@ namespace LandaJune
 		class ABSTRACT_OUTPUT
 		{
 			public:
+				
+				explicit ABSTRACT_OUTPUT(std::shared_ptr<ABSTRACT_INPUT> input) {}
+				explicit ABSTRACT_OUTPUT (const ABSTRACT_OUTPUT& other) = delete;
+				explicit ABSTRACT_OUTPUT (ABSTRACT_OUTPUT&& other) = delete;
+				const ABSTRACT_OUTPUT & operator = (const ABSTRACT_OUTPUT& other) = delete;
+				ABSTRACT_OUTPUT & operator = (ABSTRACT_OUTPUT &&) = delete;
 				virtual ~ABSTRACT_OUTPUT() = default;
-				ABSTRACT_OUTPUT() = default;
 
 				virtual std::string getElementName() = 0;
-				virtual std::optional<cv::Mat> overlay() const  = 0;
+				virtual std::shared_ptr<cv::Mat> overlay() const  = 0;
 
 				OUT_STATUS	_result = ALG_STATUS_FAILED;
 		};
@@ -259,18 +329,29 @@ namespace LandaJune
 		class PARAMS_I2S_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				APOINT						_triangeCorner {};
-				cv::Mat						_triangleOverlay;
+				
+				explicit PARAMS_I2S_OUTPUT(std::shared_ptr<PARAMS_I2S_INPUT> input)
+					: ABSTRACT_OUTPUT(input)
+					, _triangleOverlay (std::make_shared<cv::Mat>())
+					, _input (input)
+				{}
+				explicit PARAMS_I2S_OUTPUT (const PARAMS_I2S_OUTPUT& other) = delete;
+				explicit PARAMS_I2S_OUTPUT (PARAMS_I2S_OUTPUT&& other) = delete;
+				const PARAMS_I2S_OUTPUT & operator = (const PARAMS_I2S_OUTPUT& other) = delete;
+				PARAMS_I2S_OUTPUT & operator = (PARAMS_I2S_OUTPUT &&) = delete;
+				virtual ~PARAMS_I2S_OUTPUT() = default;
 
-				//
-				std::optional<PARAMS_I2S_INPUT>		_input;
+				APOINT							_triangeCorner {};
+				std::shared_ptr<cv::Mat>		_triangleOverlay;
+
+				std::shared_ptr<PARAMS_I2S_INPUT>	_input;
 
 				std::string getElementName() override
 				{
 					return fmt::format("I2S_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 			
-				std::optional<cv::Mat> overlay()  const override
+				std::shared_ptr<cv::Mat> overlay()  const override
 				{
 					return _triangleOverlay;
 				}
@@ -282,16 +363,27 @@ namespace LandaJune
 		class PARAMS_PAPEREDGE_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				uint32_t					_exactDistanceFromEdgeX = -1;
-				cv::Mat						_edgeOverlay;
+				explicit PARAMS_PAPEREDGE_OUTPUT(std::shared_ptr<PARAMS_PAPEREDGE_INPUT> input)
+					: ABSTRACT_OUTPUT(input)
+					, _edgeOverlay (std::make_shared<cv::Mat>())
+					, _input(input)
+				{}
+				explicit PARAMS_PAPEREDGE_OUTPUT (const PARAMS_PAPEREDGE_OUTPUT& other) = delete;
+				explicit PARAMS_PAPEREDGE_OUTPUT (PARAMS_PAPEREDGE_OUTPUT&& other) = delete;
+				const PARAMS_PAPEREDGE_OUTPUT & operator = (const PARAMS_PAPEREDGE_OUTPUT& other) = delete;
+				PARAMS_PAPEREDGE_OUTPUT & operator = (PARAMS_PAPEREDGE_OUTPUT &&) = delete;
+				virtual ~PARAMS_PAPEREDGE_OUTPUT() = default;
+				
+				uint32_t								_exactDistanceFromEdgeX = -1;
+				std::shared_ptr<cv::Mat>				_edgeOverlay;
+				std::shared_ptr<PARAMS_PAPEREDGE_INPUT>	_input;
 			
-				std::optional<PARAMS_PAPEREDGE_INPUT>		_input;
 				std::string getElementName() override
 				{
 					return fmt::format("Edge_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 				
-				std::optional<cv::Mat> overlay() const override
+				std::shared_ptr<cv::Mat> overlay() const override
 				{
 					return _edgeOverlay;
 				}
@@ -303,22 +395,33 @@ namespace LandaJune
 		class PARAMS_C2C_ROI_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
+				explicit PARAMS_C2C_ROI_OUTPUT(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input) 
+					: ABSTRACT_OUTPUT(input)
+					, _colorOverlay (std::make_shared<cv::Mat>())
+					, _input(input)
+				{}
+				explicit PARAMS_C2C_ROI_OUTPUT (const PARAMS_C2C_ROI_OUTPUT& other) = delete;
+				explicit PARAMS_C2C_ROI_OUTPUT (PARAMS_C2C_ROI_OUTPUT&& other) = delete;
+				const PARAMS_C2C_ROI_OUTPUT & operator = (const PARAMS_C2C_ROI_OUTPUT& other) = delete;
+				PARAMS_C2C_ROI_OUTPUT & operator = (PARAMS_C2C_ROI_OUTPUT &&) = delete;
+				virtual ~PARAMS_C2C_ROI_OUTPUT() = default;
 
-			std::vector<OUT_STATUS>		_colorStatuses;
-			std::vector<APOINT>			_colorCenters;
-			cv::Mat						_colorOverlay;
+				std::vector<OUT_STATUS>		_colorStatuses;
+				std::vector<APOINT>			_colorCenters;
+				std::shared_ptr<cv::Mat>	_colorOverlay;
+				std::shared_ptr<PARAMS_C2C_ROI_INPUT>	_input;
 
 			///
-			std::optional<PARAMS_C2C_ROI_INPUT>		_input;
-			std::string getElementName() override
-			{
-				return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[_input->_side], _input->_roiIndex, _input->_ROI.left(), _input->_ROI.top());
-			}
+				std::string getElementName() override
+				{
+					const auto castInput = std::static_pointer_cast<PARAMS_C2C_ROI_INPUT>(_input);
+					return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[castInput->_side], castInput->_roiIndex, castInput->_ROI.left(), castInput->_ROI.top());
+				}
 
-			std::optional<cv::Mat> overlay() const  override
-			{
-				return _colorOverlay;
-			}
+				std::shared_ptr<cv::Mat> overlay() const  override
+				{
+					return _colorOverlay;
+				}
 		};
 
 		//------------------------------------------
@@ -327,17 +430,28 @@ namespace LandaJune
 		class PARAMS_WAVE_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
+				explicit PARAMS_WAVE_OUTPUT(std::shared_ptr<PARAMS_WAVE_INPUT> input) 
+					: ABSTRACT_OUTPUT(input)
+					, _colorOverlay (std::make_shared<cv::Mat>())
+					, _input(input)
+				{}
+				explicit PARAMS_WAVE_OUTPUT (const PARAMS_WAVE_OUTPUT& other) = delete;
+				explicit PARAMS_WAVE_OUTPUT (PARAMS_WAVE_OUTPUT&& other) = delete;
+				const PARAMS_WAVE_OUTPUT & operator = (const PARAMS_WAVE_OUTPUT& other) = delete;
+				PARAMS_WAVE_OUTPUT & operator = (PARAMS_WAVE_OUTPUT &&) = delete;
+				virtual ~PARAMS_WAVE_OUTPUT() = default;
+
 				std::vector<OUT_STATUS>					_colorDetectionResults;
 				std::vector<APOINT>						_colorCenters;
-				cv::Mat									_colorOverlay;
-				///
-				std::optional<PARAMS_WAVE_INPUT>		_input;
+				std::shared_ptr<cv::Mat>				_colorOverlay;
+				std::shared_ptr<PARAMS_WAVE_INPUT>		_input;
+				
 				std::string getElementName() override
 				{
-					return fmt::format("Wave_[{0}]", _input->_circleColor._colorName);
+					return fmt::format("Wave_[{0}]", std::static_pointer_cast<PARAMS_WAVE_INPUT>(_input)->_circleColor._colorName);
 				}
 
-				std::optional<cv::Mat> overlay()  const override
+				std::shared_ptr<cv::Mat> overlay()  const override
 				{
 					return _colorOverlay;
 				}
@@ -349,21 +463,33 @@ namespace LandaJune
 		class PARAMS_C2C_STRIP_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				PARAMS_PAPEREDGE_OUTPUT									_paperEdgeOutput;
-				PARAMS_I2S_OUTPUT										_i2sOutput;
-				Concurrency::concurrent_vector<PARAMS_C2C_ROI_OUTPUT>	_c2cROIOutputs;
+				explicit PARAMS_C2C_STRIP_OUTPUT(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> input) 
+					: ABSTRACT_OUTPUT(input)
+					, _paperEdgeOutput(std::make_shared<PARAMS_PAPEREDGE_OUTPUT>(input->_paperEdgeInput))
+					, _i2sOutput(std::make_shared<PARAMS_I2S_OUTPUT>(input->_i2sInput))
+					, _input(input)
+				{}
+
+				explicit PARAMS_C2C_STRIP_OUTPUT (const PARAMS_C2C_STRIP_OUTPUT& other) = delete;
+				explicit PARAMS_C2C_STRIP_OUTPUT (PARAMS_C2C_STRIP_OUTPUT&& other) = delete;
+				const PARAMS_C2C_STRIP_OUTPUT & operator = (const PARAMS_C2C_STRIP_OUTPUT& other) = delete;
+				PARAMS_C2C_STRIP_OUTPUT & operator = (PARAMS_C2C_STRIP_OUTPUT &&) = delete;
+				virtual ~PARAMS_C2C_STRIP_OUTPUT() = default;
+
+				std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>								_paperEdgeOutput;
+				std::shared_ptr<PARAMS_I2S_OUTPUT>										_i2sOutput;
+				Concurrency::concurrent_vector<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>	_c2cROIOutputs;
+				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>									_input;
 				
-			///
-				std::optional<PARAMS_C2C_STRIP_INPUT>					_input;
-				
+								
 				std::string getElementName() override
 				{
-					return fmt::format("Strip_{0}_overlay", SIDE_NAMES[_input->_side]);
+					return fmt::format("Strip_{0}_overlay", SIDE_NAMES[std::static_pointer_cast<PARAMS_C2C_STRIP_INPUT>(_input)->_side]);
 				}
 				
-				std::optional<cv::Mat> overlay()  const override
+				std::shared_ptr<cv::Mat> overlay()  const override
 				{
-					return std::nullopt;
+					return nullptr;
 				}
 		};
 
@@ -374,18 +500,33 @@ namespace LandaJune
 		class PARAMS_C2C_SHEET_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				PARAMS_C2C_STRIP_OUTPUT										_stripOutputParameterLeft;
-				PARAMS_C2C_STRIP_OUTPUT										_stripOutputParameterRight;
-				Concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT>			_waveOutputs;
+			explicit PARAMS_C2C_SHEET_OUTPUT(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> input) 
+					: ABSTRACT_OUTPUT(input)
+					, _stripOutputParameterLeft(std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(input->_stripInputParamLeft))
+					, _stripOutputParameterRight(std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(input->_stripInputParamRight))
+					, _input(input)
+				{}
+
+				explicit PARAMS_C2C_SHEET_OUTPUT (const PARAMS_C2C_SHEET_OUTPUT& other) = delete;
+				explicit PARAMS_C2C_SHEET_OUTPUT (PARAMS_C2C_SHEET_OUTPUT&& other) = delete;
+				const PARAMS_C2C_SHEET_OUTPUT & operator = (const PARAMS_C2C_SHEET_OUTPUT& other) = delete;
+				PARAMS_C2C_SHEET_OUTPUT & operator = (PARAMS_C2C_SHEET_OUTPUT &&) = delete;
+				virtual ~PARAMS_C2C_SHEET_OUTPUT() = default;
+
+				std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT>										_stripOutputParameterLeft;
+				std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT>										_stripOutputParameterRight;
+				Concurrency::concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>>				_waveOutputs;
+				std::shared_ptr<PARAMS_C2C_SHEET_INPUT>											_input;
 				///
-				std::optional<PARAMS_C2C_SHEET_INPUT>		_input;
+
 				std::string getElementName() override
 				{
 					return "Frame_overlay";
 				}
-				std::optional<cv::Mat> overlay()  const override
+
+				std::shared_ptr<cv::Mat> overlay()  const override
 				{
-					return std::nullopt;
+					return nullptr;
 				}
 		};
 	}

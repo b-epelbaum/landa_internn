@@ -61,7 +61,7 @@ void Functions::frameSaveImage(cv::Mat * pimage, const std::string pathName)
 
 }
 
-void Functions::frameSaveImage(cv::Mat image, const std::string pathName)
+void Functions::frameSaveImage(std::shared_ptr<cv::Mat> image, const std::string pathName)
 {
 	//PRINT_INFO7 << "frameSaveImage [file " << pathName.c_str() << "] runs on thread #" << GetCurrentThreadId();
 
@@ -84,7 +84,7 @@ void Functions::frameSaveImage(cv::Mat image, const std::string pathName)
 	try
 	{
 		//std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		auto bSaved = cv::imwrite(pathName.c_str(), image);
+		auto bSaved = cv::imwrite(pathName.c_str(), *image);
 	}
 	catch (...)
 	{
