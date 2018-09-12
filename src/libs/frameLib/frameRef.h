@@ -13,7 +13,7 @@ namespace LandaJune {
 	}
 }
 
-namespace LandaJune 
+namespace LandaJune   
 {
 	namespace Core
 	{
