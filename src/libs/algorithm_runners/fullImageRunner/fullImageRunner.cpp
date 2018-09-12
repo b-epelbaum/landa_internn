@@ -1,9 +1,11 @@
 #include "fullImageRunner.h"
 #include "applog.h"
+#include "RealTimeStats.h"
 
 using namespace LandaJune;
 using namespace Algorithms;
 using namespace Parameters;
+using namespace Helpers;
 using namespace Core;
 
 static const QString FULL_IMAGE_RUNNER_NAME = "Full Image Runner";
@@ -135,11 +137,15 @@ void fullImageRunner::process(const FrameRef * frame)
 	fillSheetProcessParameters(input);
 
 	// generate ROIs for all required elements
+	auto tStart = Utility::now_in_microseconds();
 	IMAGE_REGION_LIST regionList;
 	generateSheetRegions(input, regionList);
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsGeneratedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
 	// and perform a deep copy
+	tStart = Utility::now_in_microseconds();
 	copyRegions(regionList);
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsCopiedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
 		return;

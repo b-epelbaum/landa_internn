@@ -12,6 +12,7 @@
 #include "typeConverters.hpp"
 #include <fstream>
 #include "algo_wave_impl.h"
+#include "RealTimeStats.h"
 
 namespace fs = std::filesystem;
 using namespace concurrency;
@@ -19,6 +20,7 @@ using namespace concurrency;
 using namespace LandaJune;
 using namespace Algorithms;
 using namespace Parameters;
+using namespace Helpers;
 using namespace Core;
 
 #define BASE_RUNNER_SCOPED_LOG PRINT_INFO6 << "[baseAlgorithmRunner] : "
@@ -167,7 +169,7 @@ void baseAlgorithmRunner::fillC2CProcessParameters(std::shared_ptr<PARAMS_C2C_RO
 	input->_side = side;
 }
 
-void baseAlgorithmRunner::fillWaveProcessParameters(std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>> inputs)
+void baseAlgorithmRunner::fillWaveProcessParameters(std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs)
 {
 	for (const auto& color : _processParameters->ColorArray() )
 	{
@@ -377,6 +379,7 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 
 std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> stripInput)
 {
+	auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(stripInput);
 
 	const auto edgeLambda = [&] { retVal->_paperEdgeOutput = processEdge(stripInput->_paperEdgeInput); };
@@ -437,6 +440,7 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 		? ALG_STATUS_SUCCESS
 		: ALG_STATUS_FAILED;
 
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_stripsHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	// TODO : update C2C rectangles with I2S offset
 	return retVal;
 }
@@ -458,6 +462,7 @@ void baseAlgorithmRunner::initEdge(const INIT_PARAMETER& initParam) const
 
 std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::shared_ptr<PARAMS_PAPEREDGE_INPUT> input)
 {
+	auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_PAPEREDGE_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -477,6 +482,7 @@ std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::s
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_edge has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
 	}
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_edgeHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
 	dumpOverlay<std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>>(retVal);
 	return retVal;
@@ -511,6 +517,7 @@ void baseAlgorithmRunner::initI2S(const INIT_PARAMETER& initParam) const
 
 std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_ptr<PARAMS_I2S_INPUT> input)
 {
+	auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_I2S_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -529,7 +536,7 @@ std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_p
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_i2s has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
 	}
-
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_I2SHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	dumpOverlay<std::shared_ptr<PARAMS_I2S_OUTPUT>>(retVal);
 	return retVal;
 }
@@ -572,6 +579,7 @@ void baseAlgorithmRunner::initC2CRoi(const INIT_PARAMETER& initParam) const
 
 std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input)
 {
+	auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_C2C_ROI_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -598,6 +606,7 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
 	}
 
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_C2CHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	dumpOverlay<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>(retVal);
 	return retVal;
 }

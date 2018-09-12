@@ -73,7 +73,7 @@ namespace LandaJune
 			virtual void fillEdgeProcessParameters(std::shared_ptr<PARAMS_PAPEREDGE_INPUT> input, SHEET_SIDE side);
 			virtual void fillI2SProcessParameters(std::shared_ptr<PARAMS_I2S_INPUT> input, SHEET_SIDE side);
 			virtual void fillC2CProcessParameters(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, SHEET_SIDE side);
-			virtual void fillWaveProcessParameters(std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>> inputs);
+			virtual void fillWaveProcessParameters(std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs);
 
 			virtual void generateSheetRegions(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> input, IMAGE_REGION_LIST& regionList) const;

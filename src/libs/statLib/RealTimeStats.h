@@ -1,23 +1,29 @@
 #pragma once
 #include <mutex>
-#include "utillib_global.h"
+#include "global.h"
 
 namespace LandaJune 
 {
 	namespace Helpers
 	{
-		class RealTimeStats
+		class STATLIB_EXPORT RealTimeStats
 		{
 		public:
+			
 			RealTimeStats();
 			virtual ~RealTimeStats();
 			
 
 			enum StatName {
 				objectsPerSec_acquiredFramesOk = 0,
-				objectsPerSec_performedAlgoOk,
-				objectsPerSec_performedAlgoResultOk,
-				objectsPerSec_createdRegionsOk,
+				objectsPerSec_framesHandledOk,
+				objectsPerSec_regionsGeneratedOk,
+				objectsPerSec_regionsCopiedOk,
+				objectsPerSec_stripsHandledOk,
+				objectsPerSec_edgeHandledOk,
+				objectsPerSec_I2SHandledOk,
+				objectsPerSec_C2CHandledOk,
+				objectsPerSec_WaveHandledOk,
 				objectsPerSec_savedBitmapsOk,
 				objectsPerSec_acquiredFramesFail,
 				objectsPerSec_generatedImagesFail,
@@ -33,17 +39,15 @@ namespace LandaJune
 			void increment(const StatName stat, const double delta, const double v = 1);
 			std::string to_string();
 
-			static std::shared_ptr<RealTimeStats> rtStats()
-			{
-				return _this ? _this : _this = std::make_shared<RealTimeStats>();
-			}
+			static RealTimeStats* rtStats();
+			;
 
 		protected:
 			std::mutex _mutex;
 			double _values[statsNumber]{};
 			double _times[statsNumber]{};
 
-			static std::shared_ptr<RealTimeStats> _this;
+			static RealTimeStats* _this;
 		};
 	}
 }

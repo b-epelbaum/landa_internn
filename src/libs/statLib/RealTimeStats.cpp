@@ -1,10 +1,11 @@
+#include "stdafx.h"
 #include "RealTimeStats.h"
 #include <string>
 
 using namespace LandaJune::Helpers;
 using autolock = std::lock_guard<std::mutex>;
 
-std::shared_ptr<RealTimeStats> RealTimeStats::_this;
+STATLIB_EXPORT RealTimeStats * RealTimeStats::_this = nullptr;
 
 RealTimeStats::RealTimeStats()
 {
@@ -39,10 +40,15 @@ void RealTimeStats::increment(const StatName stat, const double delta, const dou
 std::string RealTimeStats::to_string() 
 {
 	static const char *names[statsNumber] = {
-		"Generated Images Ok",
-		"Performed Algo Ok",
-		"Performed Algo Result Ok",
-		"Created Regions Ok",
+		"Generated Images",
+		"Frames handled",
+		"Regions generated",
+		"Regions copied",
+		"Handled strips",
+		"Handled edges",
+		"Handled I2S",
+		"Handled C2C",
+		"Handled Waves",
 		"Saved Bitmaps Ok",
 		"Generated Images Drop",
 		"Generated Images Fail",
@@ -61,4 +67,9 @@ std::string RealTimeStats::to_string()
 			.append("\t").append(std::to_string(_times[i] / _values[i])).append("\n");
 	}
 	return std::move(txt);
+}
+
+RealTimeStats* RealTimeStats::rtStats()
+{
+	return _this ? _this : _this = new RealTimeStats();
 }

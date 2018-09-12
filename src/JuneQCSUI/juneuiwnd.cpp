@@ -460,7 +460,7 @@ void JuneUIWnd::stop()
 	//}
 
 
-	Helpers::RealTimeStats::rtStats().reset();
+	Helpers::RealTimeStats::rtStats()->reset();
 	_updateStatsTimer->stop();
 	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
 	enableUIForProcessing(true);

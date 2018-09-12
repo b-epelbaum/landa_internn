@@ -176,6 +176,9 @@
     <ProjectReference Include="..\paramLib\paramLib.vcxproj">
       <Project>{aee565b3-8822-46e6-8e39-eb574b3bc447}</Project>
     </ProjectReference>
+    <ProjectReference Include="..\statLib\statLib.vcxproj">
+      <Project>{5053b108-d4ad-43f6-bbbf-d0c0fead9e3b}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\threadingLib\threadingLib.vcxproj">
       <Project>{66dc99b7-e24c-4541-943d-90c7b25ae197}</Project>
     </ProjectReference>

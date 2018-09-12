@@ -146,12 +146,10 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="RealTimeStats.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="utillib_global.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="RealTimeStats.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
