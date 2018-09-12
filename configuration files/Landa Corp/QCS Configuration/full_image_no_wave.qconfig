@@ -8,45 +8,45 @@
             "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
-                "H": 30,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 170,
-                "V": 50
-            }
-        },
-        {
-            "ColorName": "Yellow",
-            "Max": {
-                "ColorName": "",
-                "H": 110,
+                "H": 120,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
                 "H": 80,
-                "S": 170,
-                "V": 50
+                "S": 90,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Yellow",
+            "Max": {
+                "ColorName": "",
+                "H": 40,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 10,
+                "S": 90,
+                "V": 170
             }
         },
         {
             "ColorName": "Magenta",
             "Max": {
                 "ColorName": "",
-                "H": 150,
+                "H": 179,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 115,
-                "S": 170,
-                "V": 50
+                "H": 135,
+                "S": 90,
+                "V": 170
             }
         },
         {
@@ -54,8 +54,8 @@
             "Max": {
                 "ColorName": "",
                 "H": 255,
-                "S": 100,
-                "V": 128
+                "S": 90,
+                "V": 140
             },
             "Min": {
                 "ColorName": "",
