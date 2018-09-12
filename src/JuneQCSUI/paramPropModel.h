@@ -41,6 +41,8 @@ public:
                       const QModelIndex &parent = QModelIndex()) const override;
     QModelIndex parent(const QModelIndex &index) const override;
 
+	QString itemType(const QModelIndex& idx ) const;
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
 
@@ -61,6 +63,10 @@ public:
 
 	void copyParam(const QModelIndex &index);
 	void removeParam(const QModelIndex &index);
+
+	LandaJune::IPropertyTuple getPropertyTuple(const QModelIndex& idx) const;
+
+	QModelIndexList findItem(QString name) const;
 
 signals:
 

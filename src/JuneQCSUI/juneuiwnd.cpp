@@ -18,7 +18,8 @@
 #include "applog.h"
 #include <QJsonDocument>
 #include <QSettings>
-#include <qstandardpaths.h>
+#include <QStandardPaths>
+#include <QMessageBox>
 
 
 using namespace LandaJune::UI;
@@ -109,13 +110,12 @@ void JuneUIWnd::initUI()
 
 	_processParamModelEditable = std::make_unique<ParamPropModel>(this);
 	ui.batchParamView->setModel(_processParamModelEditable.get());
-	connect(_processParamModelEditable.get(), &ParamPropModel::propChanged, this, &JuneUIWnd::onBatchPropChanged);
+	connect(_processParamModelEditable.get(), &ParamPropModel::propChanged, this, &JuneUIWnd::onProcessParameterChanged);
 
 	_processParamModelCalculated = std::make_unique<ParamPropModel>(this);
 	ui.processParamViewCalculated->setModel(_processParamModelCalculated.get());
 
-	//connect(ui.btnAddProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnAddPropClicked);
-	//connect(ui.btnRemoveProp, &QPushButton::clicked, this, &JuneUIWnd::onBtnRemovePropClicked);
+	connect(ui.batchParamView->selectionModel(), SIGNAL(currentChanged(const  QModelIndex&,const  QModelIndex&)), this, SLOT(processParamSelectionChanged(const  QModelIndex&,const  QModelIndex&)));
 
 	_progressBarTimer.setSingleShot(false);
 	_progressBarTimer.setInterval(300);
@@ -342,10 +342,7 @@ void JuneUIWnd::createActions()
 	fitToWindowAct->setShortcut(tr("Ctrl+F"));
 
 	QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
-}
 
-void JuneUIWnd::createStatusBar()
-{
 	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start"), this);
 	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop"), this);
 
@@ -362,6 +359,23 @@ void JuneUIWnd::createStatusBar()
 
 	connect(startAct, &QAction::triggered, this, &JuneUIWnd::start);
 	connect(stopAct, &QAction::triggered, this, &JuneUIWnd::stop);
+
+
+	addColor = new QAction(QIcon(":/JuneUIWnd/Resources/color_add.png"), tr("&Add Color"), this);
+	removeColor = new QAction(QIcon(":/JuneUIWnd/Resources/color_remove.png"), tr("&Remove Color"), this);
+
+	connect(addColor, &QAction::triggered, this, &JuneUIWnd::onAddColor);
+	connect(removeColor, &QAction::triggered, this, &JuneUIWnd::onRemoveColor);
+
+	ui.buttAddParam->setDefaultAction(addColor);
+	ui.buttRemoveParam->setDefaultAction(removeColor);
+
+	removeColor->setEnabled(false);
+}
+
+void JuneUIWnd::createStatusBar()
+{
+	
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
 	ui.mainToolBar->setIconSize(QSize(48, 48));
@@ -528,7 +542,7 @@ void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
 		selectedProvider->setProviderProperty(propName, newVal);
 }
 
-void JuneUIWnd::onBatchPropChanged(QString propName, const QVariant& newVal)
+void JuneUIWnd::onProcessParameterChanged(QString propName, const QVariant& newVal)
 {
 	//try
 	//{
@@ -594,13 +608,26 @@ void JuneUIWnd::onUpdateProcessParams()
 	restoreExpandedState(nodes, ui.batchParamView);
 	if ( idx.isValid())
 	{
-		 ui.batchParamView->selectionModel()->setCurrentIndex(ui.batchParamView->model()->index(idx.row(), idx.column()), QItemSelectionModel::Select);
+		ui.batchParamView->scrollTo(idx);
+		ui.batchParamView->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::Select);
 	}
 }
 
 void JuneUIWnd::onUpdateCalculatedParams()
 {
+	QSet<int> nodes;
+	saveExpandedState(nodes, ui.processParamViewCalculated );
+	QModelIndex idx = ui.processParamViewCalculated->selectionModel()->currentIndex();
+
 	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
+
+	restoreExpandedState(nodes, ui.processParamViewCalculated);
+	if ( idx.isValid())
+	{
+		ui.processParamViewCalculated->scrollTo(idx);
+		ui.processParamViewCalculated->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::Select);
+	}
+
 	onFrameProviderComboChanged(ui.frameSourceCombo->currentIndex());
 	//ui.processParamViewCalculated->expandToDepth(1);
 }
@@ -679,7 +706,6 @@ void JuneUIWnd::onLoadConfig()
 	}
 }
 
-
 ///////////////////////////////////////////////////////////////////////
 ////////////////  PARAMETERS UI
 ///////////////////////////////////////////////////////////////////////
@@ -701,6 +727,83 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 	}
 }
 
+
+void JuneUIWnd::onAddColor()
+{
+	bool ok;
+    QString text = QInputDialog::getText(this, tr("Add C2C color)"),
+                                         tr("Color name"), QLineEdit::Normal,
+                                         "Black", &ok);
+    if (ok && !text.isEmpty())
+        addNewColor(text);
+}
+
+void JuneUIWnd::onRemoveColor()
+{
+	auto const& idx = ui.batchParamView->selectionModel()->currentIndex();
+	if ( idx.isValid() )
+	{
+		const auto typeName = _processParamModelEditable->itemType(idx);
+		if ( typeName == "LandaJune::Parameters::COLOR_TRIPLET" )
+		{
+			const auto&[name, colorVal, editable] = _processParamModelEditable->getPropertyTuple(idx);
+			if ( QMessageBox::question(this, "Remove C2C color", QString("Are you sure to remove color %1 ?").arg(colorVal.value<COLOR_TRIPLET>().ColorName())) == QMessageBox::Yes )
+			{
+				// get parent of index we are going to remove
+				auto parent = _processParamModelEditable->parent(idx);
+
+				// remove the item
+				_processParamModelEditable->removeRows(idx.row(), 1, _processParamModelEditable->parent(idx));
+
+				// update remaining color triplets
+				QVector<COLOR_TRIPLET> newColorArray;
+				auto rowCount = _processParamModelEditable->rowCount(parent);
+				for ( int i = 0; i < rowCount; i++ )
+				{
+					auto const& newIdx = _processParamModelEditable->index(i,0, parent);
+					const auto&[name, colorVal, editable] = _processParamModelEditable->getPropertyTuple(newIdx);
+					newColorArray.push_back(colorVal.value<COLOR_TRIPLET>());
+				}
+
+				const auto batchParams = ICore::get()->getProcessParameters();
+				batchParams->setParamProperty("ColorArray", QVariant::fromValue(newColorArray));
+			}
+		}
+	}
+}
+
+void JuneUIWnd::addNewColor(const QString& colorName )
+{
+	auto idxList = 	_processParamModelEditable->findItem("ColorArray");
+	if (!idxList.isEmpty() )
+	{
+		auto const& parentIdx = idxList[0];
+
+		// update remaining color triplets
+		QVector<COLOR_TRIPLET> newColorArray;
+		const auto rowCount = _processParamModelEditable->rowCount(parentIdx);
+		for ( int i = 0; i < rowCount; i++ )
+		{
+			auto const& newIdx = _processParamModelEditable->index(i,0, parentIdx);
+			const auto&[name, colorVal, editable] = _processParamModelEditable->getPropertyTuple(newIdx);
+			newColorArray.push_back(colorVal.value<COLOR_TRIPLET>());
+		}
+
+		COLOR_TRIPLET newTriplet;
+		newTriplet.Min().setColorName(colorName);
+		newTriplet.Max().setColorName(colorName);
+		newTriplet.setColorName(colorName);
+		newColorArray.push_back(newTriplet);
+
+		const auto batchParams = ICore::get()->getProcessParameters();
+		batchParams->setParamProperty("ColorArray", QVariant::fromValue(newColorArray));
+
+		onUpdateProcessParams();
+	}
+}
+
+
+/*
 void JuneUIWnd::onBtnAddPropClicked() noexcept
 {
 	const auto list = ui.batchParamView->selectionModel()->selectedIndexes();
@@ -716,9 +819,16 @@ void JuneUIWnd::onBtnRemovePropClicked() noexcept
 		_processParamModelEditable->removeParam(list.first());
 	}
 }
+*/
 
 void JuneUIWnd::onTimerTick()
 {
 	auto const& val = statusProgressBar->value();
 	statusProgressBar->setValue(val == 100 ? 0 : val + 1);
+}
+
+void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const  QModelIndex& prev)
+{
+	const auto typeName = _processParamModelEditable->itemType(current);
+	removeColor->setEnabled( typeName == "LandaJune::Parameters::COLOR_TRIPLET" );
 }

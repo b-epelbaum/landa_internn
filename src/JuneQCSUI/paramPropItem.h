@@ -16,6 +16,7 @@ public:
     bool insertChildren(int position, int count, int columns);
     bool insertColumns(int position, int columns);
 	ParamPropItem *parent() const;
+	void removeChild(ParamPropItem *child);
     bool removeChildren(int position, int count);
     bool removeColumns(int position, int columns);
     int childNumber() const;

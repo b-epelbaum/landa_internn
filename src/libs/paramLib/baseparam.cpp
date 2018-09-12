@@ -192,6 +192,23 @@ IPropertyList BaseParameters::getPropertyList(bool bReadOnly) const
 	return retVal;
 }
 
+IPropertyTuple BaseParameters::getPropertyTuple(const QString& strValName) const
+{
+	IPropertyTuple retVal;
+	const auto metaobject = metaObject();
+	const auto count = metaobject->propertyCount();
+	for (auto i = 0; i<count; ++i)
+	{
+		auto metaproperty = metaobject->property(i);
+		const auto name = metaproperty.name();
+		if (strcmp(name, strValName.toLocal8Bit()) == 0 )
+		{
+			return IPropertyTuple(name, property(name), metaproperty.isUser());
+		}
+	}
+	return retVal;
+}
+
 bool BaseParameters::setPropertyList(const IPropertyList& vals)
 {
 	return false;

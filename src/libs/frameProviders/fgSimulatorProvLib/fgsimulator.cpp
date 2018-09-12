@@ -66,9 +66,9 @@ FRAME_PROVIDER_ERROR FGSimulator::accessData(FrameRef* frameRef)
 	
 	auto & img = _images.at(_next);
 
-	auto w = img.cols;
-	auto h = img.rows;
-	auto s = img.step[0] * img.rows;
+	const auto w = img.cols;
+	const auto h = img.rows;
+	const auto s = img.step[0] * img.rows;
 
 	frameRef->setBits(++_lastAcquiredImage, w, h, s, img.data);
 	FGSIMULATOR_PROVIDER_SCOPED_LOG << "Received frame #" << _lastAcquiredImage;

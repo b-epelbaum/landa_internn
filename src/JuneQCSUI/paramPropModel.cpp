@@ -281,6 +281,13 @@ QModelIndex ParamPropModel::parent(const QModelIndex &index) const
     return createIndex(parentItem->childNumber(), 0, parentItem);
 }
 
+QString ParamPropModel::itemType(const QModelIndex& idx) const
+{
+	const auto item = static_cast<ParamPropItem*>(idx.internalPointer());
+	const auto var = item->data(1);
+	return QString(var.typeName());
+}
+
 bool ParamPropModel::removeColumns(int position, int columns, const QModelIndex &parent)
 {
 	beginRemoveColumns(parent, position, position + columns - 1);
@@ -310,9 +317,11 @@ void ParamPropModel::copyParam(const QModelIndex &index)
 		if (const auto item = getItem(index)) {
 			const auto data = item->data(1);
 			const auto name = item->data(0).toString();
+
+			beginResetModel();
 			setupProp(item->parent(), { name, data, true });
-			emit dataChanged({}, {});
-			emit propAdd(name, data);
+			endResetModel();
+			emit propAdd(name, data);			
 		}
 	}
 	
@@ -323,9 +332,10 @@ void ParamPropModel::removeParam(const QModelIndex &index)
 	if (index.isValid()) {
 		if (const auto item = getItem(index)) {
 			auto itemParent = item->parent();
-			itemParent->removeChildren(item->childNumber(), item->childCount());
-//			emit dataChanged(, {});
-			emit propRemoved(item->data(0).toString());
+			beginResetModel();
+			itemParent->removeChild(item);
+			endResetModel();
+			emit propRemoved(item->data(0).toString());		
 		}
 	}
 }
@@ -391,7 +401,7 @@ void ParamPropModel::setupModelData(LandaJune::IPropertyList propList, bool read
 
 		if (var.canConvert<PARAM_GROUP_HEADER>())
 		{
-			auto chItem = setupGroupHeader(_rootItem, propTuple);
+			const auto chItem = setupGroupHeader(_rootItem, propTuple);
 			_currentRoot = chItem;
 			continue;
 		}
@@ -613,4 +623,15 @@ void ParamPropModel::setupColorTripletVector(ParamPropItem *parent, const LandaJ
 	{
 		setupColorTriplet(child, { QString("[%1]").arg(i) , QVariant::fromValue(colorTripletVector[i]), editable });	
 	}
+}
+
+LandaJune::IPropertyTuple ParamPropModel::getPropertyTuple(const QModelIndex& idx) const
+{
+	return propertyValue(getItem(idx));
+}
+
+
+QModelIndexList ParamPropModel::findItem(QString name) const
+{
+	return match(index(0, 0), Qt::DisplayRole, QVariant::fromValue(name), 1, Qt::MatchRecursive);
 }

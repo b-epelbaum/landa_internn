@@ -59,8 +59,8 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>921</width>
-         <height>368</height>
+         <width>920</width>
+         <height>365</height>
         </rect>
        </property>
       </widget>
@@ -74,7 +74,7 @@
      <x>0</x>
      <y>0</y>
      <width>1450</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>
@@ -91,7 +91,7 @@
    <property name="minimumSize">
     <size>
      <width>520</width>
-     <height>375</height>
+     <height>406</height>
     </size>
    </property>
    <attribute name="dockWidgetArea">
@@ -142,8 +142,14 @@
             <widget class="QToolButton" name="saveConfigButt">
              <property name="minimumSize">
               <size>
-               <width>26</width>
-               <height>26</height>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
               </size>
              </property>
              <property name="text">
@@ -153,14 +159,26 @@
               <iconset resource="juneuiwnd.qrc">
                <normaloff>:/JuneUIWnd/Resources/file_save.png</normaloff>:/JuneUIWnd/Resources/file_save.png</iconset>
              </property>
+             <property name="iconSize">
+              <size>
+               <width>26</width>
+               <height>26</height>
+              </size>
+             </property>
             </widget>
            </item>
            <item>
             <widget class="QToolButton" name="loadConfigButt">
              <property name="minimumSize">
               <size>
-               <width>26</width>
-               <height>26</height>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
               </size>
              </property>
              <property name="text">
@@ -169,6 +187,12 @@
              <property name="icon">
               <iconset resource="juneuiwnd.qrc">
                <normaloff>:/JuneUIWnd/Resources/file_open.png</normaloff>:/JuneUIWnd/Resources/file_open.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>26</width>
+               <height>26</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -186,28 +210,60 @@
             </spacer>
            </item>
            <item>
-            <widget class="QPushButton" name="btnAddProp">
+            <widget class="QToolButton" name="buttAddParam">
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>30</width>
-               <height>16777215</height>
+               <width>32</width>
+               <height>32</height>
               </size>
              </property>
              <property name="text">
-              <string>+</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="juneuiwnd.qrc">
+               <normaloff>:/JuneUIWnd/Resources/color_add.png</normaloff>:/JuneUIWnd/Resources/color_add.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>26</width>
+               <height>26</height>
+              </size>
              </property>
             </widget>
            </item>
            <item>
-            <widget class="QPushButton" name="btnRemoveProp">
+            <widget class="QToolButton" name="buttRemoveParam">
+             <property name="minimumSize">
+              <size>
+               <width>32</width>
+               <height>32</height>
+              </size>
+             </property>
              <property name="maximumSize">
               <size>
-               <width>30</width>
-               <height>16777215</height>
+               <width>32</width>
+               <height>32</height>
               </size>
              </property>
              <property name="text">
-              <string>-</string>
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset resource="juneuiwnd.qrc">
+               <normaloff>:/JuneUIWnd/Resources/color_remove.png</normaloff>:/JuneUIWnd/Resources/color_remove.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>26</width>
+               <height>26</height>
+              </size>
              </property>
             </widget>
            </item>
@@ -301,7 +357,7 @@
                   <property name="minimumSize">
                    <size>
                     <width>0</width>
-                    <height>50</height>
+                    <height>250</height>
                    </size>
                   </property>
                   <property name="maximumSize">

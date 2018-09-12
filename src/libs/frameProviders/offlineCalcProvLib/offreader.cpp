@@ -72,26 +72,25 @@ FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
 	_imagePaths.pop_front();
 
 	const auto& stdPath = srcFullPath.toStdString();
-	const auto &tempObject = cv::imread(stdPath);
-	if (!tempObject.data)            // Check for invalid input
+	const auto tempMatObject = std::make_shared<cv::Mat>(cv::imread(stdPath));
+	if (!tempMatObject->data)            // Check for invalid input
 	{
 		OFFREADER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
-	//auto newImage = new cv::Mat(std::move(tempObject));
 	OFFREADER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
 	++_lastAcquiredImage;
 	
-	const auto w = tempObject.cols;
-	const auto h = tempObject.rows;
-	const auto s = tempObject.step[0] * tempObject.rows;
+	const auto w = tempMatObject->cols;
+	const auto h = tempMatObject->rows;
+	const auto s = tempMatObject->step[0] * tempMatObject->rows;
 
 	// push bits to frameRef object
-	frameRef->setBits(++_lastAcquiredImage, w, h, s, tempObject.data);
+	frameRef->setBits(++_lastAcquiredImage, w, h, s, tempMatObject->data);
 
 	// attach a created new image to unknown data
-	frameRef->setUnknownData(std::move(tempObject));
+	frameRef->setSharedData(tempMatObject);
 
 	// pass source image path to frame
 	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);
@@ -102,17 +101,17 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 {
 	if ( frameRef )
 	{
-		auto& unknownData = frameRef->getUnknownData();
-		if (unknownData.has_value())
+		auto& sharedData = frameRef->getSharedData();
+		if (sharedData.has_value())
 		{
 			try
 			{
-				auto pImage = std::move(std::any_cast<cv::Mat>(unknownData));
-				pImage.release();
+				auto pImage = std::any_cast<std::shared_ptr<cv::Mat>>(sharedData);
+				pImage->release();
 			}
 			catch (const std::bad_any_cast& e)
 			{
-				OFFREADER_PROVIDER_SCOPED_ERROR << "Cannot delete stored MAT object. Exception cought : " << e.what();
+				OFFREADER_PROVIDER_SCOPED_ERROR << "Cannot delete shared MAT object. Exception caught : " << e.what();
 			}
 		}
 	}

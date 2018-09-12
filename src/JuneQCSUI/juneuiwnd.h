@@ -40,17 +40,20 @@ namespace LandaJune
 			void updateStats() const;
 
 			void onProviderPropChanged(QString propName, const QVariant& newVal);
-			void onBatchPropChanged(QString propName, const QVariant& newVal);
+			void onProcessParameterChanged(QString propName, const QVariant& newVal);
 
 			void onUpdateProcessParams();
 			void onUpdateCalculatedParams();
-	        void onBtnAddPropClicked() noexcept;
-			void onBtnRemovePropClicked() noexcept;
 
 			void onSaveConfig();
 			void onLoadConfig();
 
+			void onAddColor();
+			void onRemoveColor();
+
 			void onTimerTick();
+
+			void processParamSelectionChanged(const  QModelIndex&, const  QModelIndex&);
 
 		signals :
 
@@ -75,6 +78,8 @@ namespace LandaJune
 			void saveExpandedState(QSet<int>& nodes, QTreeView * view) const;
 			void restoreExpandedState(QSet<int>& nodes, QTreeView * view) const;
 
+			void addNewColor(const QString& colorName );
+
 			std::unique_ptr<ParamPropModel> _providerParamModel;
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
@@ -86,6 +91,9 @@ namespace LandaJune
 
 			QAction * startAct = nullptr;
 			QAction * stopAct = nullptr;
+
+			QAction * addColor = nullptr;
+			QAction * removeColor = nullptr;
 
 			QAction * loadConfig = nullptr;
 			QAction * saveConfig = nullptr;

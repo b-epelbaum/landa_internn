@@ -101,17 +101,13 @@ namespace LandaJune
 			
 			/// strip properties
 			DECLARE_PARAM_PROPERTY(Strip, PARAM_GROUP_HEADER, { "Strip offsets" }, true)
-			//DECLARE_PARAM_PROPERTY(OffsetFromLeftEdge_mm, double, 10.2, true)
 			DECLARE_PARAM_PROPERTY(OffsetFromLeftEdge_mm, double, 2.94, true)
 			DECLARE_PARAM_PROPERTY(OffsetBetweenTriangles_mm, double, 990, true)
 			DECLARE_PARAM_PROPERTY(StripWidth_mm, double, 13.7, true)
-			//DECLARE_PARAM_PROPERTY(StripWidth_mm, double, 11.85, true)
 
 			// I2S Triangle
 			DECLARE_PARAM_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" }, true)
-			//DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double, 5.3, true)
 			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double, 3.19, true)
-			//DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double, 5.6, true)
 			DECLARE_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double, 10.5, true)
 			DECLARE_PARAM_PROPERTY(I2SMarginX_mm, double, 2.5, true)
 			DECLARE_PARAM_PROPERTY(I2SMarginY_mm, double, 2.5, true)
@@ -122,9 +118,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROI, PARAM_GROUP_HEADER, { "C2C ROI Parameters" }, true)
 			DECLARE_PARAM_PROPERTY(C2CROISetsCount, int, 5, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenDots_um, double, 3048, true)
-			//DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 158940, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double, 159300, true)
-			//DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double, 9000, true)
 			DECLARE_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double, 9600, true)
 
 			// HSV

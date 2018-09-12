@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="JuneUIWnd">
+    <file>Resources/color_add.png</file>
+    <file>Resources/color_remove.png</file>
     <file>Resources/color_arr.png</file>
     <file>Resources/algo.png</file>
     <file>Resources/proc_params.png</file>

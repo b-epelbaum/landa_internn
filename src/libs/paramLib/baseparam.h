@@ -30,6 +30,7 @@ namespace LandaJune
 			virtual QString	GetMetaClassFullName() const { return "BaseParameters"; }
 			virtual QString	GetMetaClassDebugName() const { return "BaseParameters"; }
 
+			virtual IPropertyTuple getPropertyTuple(const QString& strValName) const;
 			virtual IPropertyList getEditablePropertyList() const;
 			virtual IPropertyList getReadOnlyPropertyList() const;
 

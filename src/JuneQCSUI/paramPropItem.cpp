@@ -75,6 +75,14 @@ ParamPropItem *ParamPropItem::parent() const
     return parentItem;
 }
 
+void ParamPropItem::removeChild(ParamPropItem *child)
+{
+	if (!child)
+		return;
+
+	childItems.removeOne(child);
+}
+
 bool ParamPropItem::removeChildren(int position, int count)
 {
     if (position < 0 || position + count > childItems.size())

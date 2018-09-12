@@ -37,8 +37,8 @@ namespace LandaJune
 				_postDataFunc = func;
 			}
 
-			void setUnknownData(std::any unknown) { _unknownData = std::move(unknown); }
-			const std::any& getUnknownData() const { return _unknownData; }
+			void setSharedData(std::any unknown) { _sharedData = std::move(unknown); }
+			const std::any& getSharedData() const { return _sharedData; }
 
 			void setNamedParameter(const std::string& paramName, std::any paramValue) { _paramsMap[paramName] = std::move(paramValue); }
 
@@ -82,7 +82,7 @@ namespace LandaJune
 
 
 			std::function<void(FrameRef*)> _postDataFunc;
-			std::any _unknownData;
+			std::any _sharedData;
 		};
 	
 	}
