@@ -175,7 +175,11 @@ void BaseCore::start() const
 
 	try
 	{
-		_currentFrameProvider->init();
+		const auto& err = _currentFrameProvider->init();
+		if ( err != FRAME_PROVIDER_ERROR::ERR_NO_ERROR )
+		{
+			throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT, "");
+		}
 	}
 	catch (...)
 	{

@@ -38,11 +38,11 @@ namespace LandaJune
 			FRAME_PROVIDER_ERROR init() override;
 			FRAME_PROVIDER_ERROR cleanup() override;
 
-			DECLARE_PROVIDER_PROPERTY(AppletFilePath, QString, "")
-			DECLARE_PROVIDER_PROPERTY(ConfigurationFilePath, QString, "")
-			DECLARE_PROVIDER_PROPERTY(OutputImageFormat, QString, "")
-			DECLARE_PROVIDER_PROPERTY(BoardList, QStringList, {})
-			DECLARE_PROVIDER_PROPERTY(BoardIndex, int, 0)
+			DECLARE_PARAM_PROPERTY(AppletFilePath, QString, "", true)
+			DECLARE_PARAM_PROPERTY(ConfigurationFilePath, QString, "", true)
+			DECLARE_PARAM_PROPERTY(OutputImageFormat, QString, "", true)
+			DECLARE_PARAM_PROPERTY(BoardList, QStringList, {}, true)
+			DECLARE_PARAM_PROPERTY(BoardIndex, int, 0, true)
 
 		protected:
 

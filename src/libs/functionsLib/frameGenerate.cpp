@@ -42,7 +42,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 		if (frameProvider->warnAboutDroppedFrames())
 		{
 			FRAMEGENERATE_SCOPED_WARNING << "No free FrameRef object in pool ! [ FRAME # " << frameProvider->getCurrentFrameIndex() << " DROPPED] Total dropped : " << ++_droppedFrameCount;
-			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, 1.0e-6);
+			//RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, 1.0e-6);
 		}
 
 		static const std::chrono::milliseconds timeout(frameProvider->getFrameDropDelayTimeout());
@@ -115,7 +115,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	}
 	else
 	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_generatedImagesFail, (tFinish - tStart) * 1.0e-6);
+		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, (tFinish - tStart) * 1.0e-6);
 	}
 
 	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)

@@ -854,7 +854,7 @@ std::string baseAlgorithmRunner::getElementPrefix() const
 	//file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
 	return std::move(
 		fmt::format(
-			"{0}_{1}_"
+			"{0}_{1}"
 			, _frameIndex
 			, _imageIndex)
 	);

@@ -5,7 +5,9 @@
 #include <QMetaObject>
 #include "applog.h"
 
-#define DECLARE_PROVIDER_PROPERTY(x,type,initval) Q_PROPERTY(type x READ x WRITE set##x) private: type _##x = initval; public: type x() const { return _##x; } void set##x(type val) { _##x = val; }
+#include "baseparam.h"
+
+//#define DECLARE_PROVIDER_PROPERTY(x,type,initval) Q_PROPERTY(type x READ x WRITE set##x) private: type _##x = initval; public: type x() const { return _##x; } void set##x(type val) { _##x = val; }
 
 namespace LandaJune
 {
@@ -16,6 +18,7 @@ namespace LandaJune
 			Q_OBJECT
 
 			friend class IFrameProvider;
+			friend class offlineFrameProvider;
 		
 		public:
 			BaseFrameProvider() = default;
@@ -49,7 +52,7 @@ namespace LandaJune
 				return _busy;
 			}
 
-			DECLARE_PROVIDER_PROPERTY(DropFrameWaitTimeout, int, 50)
+			DECLARE_PARAM_PROPERTY(DropFrameWaitTimeout, int, 50, true)
 
 		public slots:
 

@@ -46,19 +46,9 @@ void Functions::frameSaveImage(cv::Mat * pimage, const std::string pathName)
 
 	}
 
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, pimage->step[0] * pimage->rows);
+
 	delete pimage;
-
-	/*
-	if (fres)
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, image.step[0] * image.rows);
-	}
-	else
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsFail, (Utility::now_in_microseconds() - t0) * 1.0e-6);
-	}
-	*/
-
 }
 
 void Functions::frameSaveImage(std::shared_ptr<cv::Mat> image, const std::string pathName)
@@ -92,15 +82,6 @@ void Functions::frameSaveImage(std::shared_ptr<cv::Mat> image, const std::string
 
 	}
 
-	/*
-	if (fres)
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, image.step[0] * image.rows);
-	}
-	else
-	{
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsFail, (Utility::now_in_microseconds() - t0) * 1.0e-6);
-	}
-	*/
+	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, image->step[0] * image->rows);
 
 }

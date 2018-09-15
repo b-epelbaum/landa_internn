@@ -1,11 +1,13 @@
-#include "offreader.h"
+#include "folderReader.h"
 #include <QDirIterator>
 
 #include "util.h"
 #include "frameRef.h"
 
 #include "ProcessParameters.h"
+
 #include <thread>
+#include <opencv2/imgcodecs.hpp>
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -14,13 +16,9 @@
 #endif
 
 
-static const QString OFFREADER_PROVIDER_NAME = "Offline Reader";
-static const QString OFFREADER_PROVIDER_DESC = "Performs QCS analysis in offline mode";
-
-
-#define OFFREADER_PROVIDER_SCOPED_LOG PRINT_INFO2 << "[OfflineReader] : "
-#define OFFREADER_PROVIDER_SCOPED_ERROR PRINT_ERROR << "[OfflineReader] : "
-#define OFFREADER_PROVIDER_SCOPED_WARNING PRINT_WARNING << "[OfflineReader] : "
+#define FOLDER_READER_PROVIDER_SCOPED_LOG PRINT_INFO2 << "[folderReader] : "
+#define FOLDER_READER_PROVIDER_SCOPED_ERROR PRINT_ERROR << "[folderReader] : "
+#define FOLDER_READER_PROVIDER_SCOPED_WARNING PRINT_WARNING << "[folderReader] : "
 
 using namespace LandaJune;
 using namespace Core;
@@ -28,19 +26,17 @@ using namespace Parameters;
 using namespace FrameProviders;
 using namespace Helpers;
 
-OfflineReader::OfflineReader()
+folderReader::folderReader()
 {
-	_name = OFFREADER_PROVIDER_NAME;
-	_description = OFFREADER_PROVIDER_DESC;
-	OFFREADER_PROVIDER_SCOPED_LOG << "created";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "created";
 }
 
-OfflineReader::~OfflineReader()
+folderReader::~folderReader()
 {
-	OFFREADER_PROVIDER_SCOPED_LOG << "destroyed";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
-bool OfflineReader::canContinue(FRAME_PROVIDER_ERROR lastError)
+bool folderReader::canContinue(FRAME_PROVIDER_ERROR lastError)
 {
 	auto _canContinue = true;
 	switch (lastError) 
@@ -52,11 +48,11 @@ bool OfflineReader::canContinue(FRAME_PROVIDER_ERROR lastError)
 	return _canContinue;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::prepareData(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR folderReader::prepareData(FrameRef* frameRef)
 {
 	if (_imagePaths.empty())
 	{
-		OFFREADER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
@@ -64,22 +60,22 @@ FRAME_PROVIDER_ERROR OfflineReader::prepareData(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
+FRAME_PROVIDER_ERROR folderReader::accessData(FrameRef* frameRef)
 {
 	// read image to cv::Mat object
 	const auto srcFullPath = _imagePaths.first();
-	OFFREADER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
 	_imagePaths.pop_front();
 
 	const auto& stdPath = srcFullPath.toStdString();
 	const auto tempMatObject = std::make_shared<cv::Mat>(cv::imread(stdPath));
 	if (!tempMatObject->data)            // Check for invalid input
 	{
-		OFFREADER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
+		FOLDER_READER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
-	OFFREADER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
 	++_lastAcquiredImage;
 	
 	const auto w = tempMatObject->cols;
@@ -97,7 +93,7 @@ FRAME_PROVIDER_ERROR OfflineReader::accessData(FrameRef* frameRef)
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-void OfflineReader::releaseData(FrameRef* frameRef)
+void folderReader::releaseData(FrameRef* frameRef)
 {
 	if ( frameRef )
 	{
@@ -111,23 +107,28 @@ void OfflineReader::releaseData(FrameRef* frameRef)
 			}
 			catch (const std::bad_any_cast& e)
 			{
-				OFFREADER_PROVIDER_SCOPED_ERROR << "Cannot delete shared MAT object. Exception caught : " << e.what();
+				FOLDER_READER_PROVIDER_SCOPED_ERROR << "Cannot delete shared MAT object. Exception caught : " << e.what();
 			}
 		}
 	}
 }
 
-void OfflineReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
+void folderReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
 
 	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
-	_SourceFolderPath = _processParameters->Off_SourceFolderPath();
-	_ImageMaxCount = _processParameters->Off_ImageMaxCount();
+	_SourceFolderPath = _processParameters->SourceFolderPath();
+	_ImageMaxCount = _processParameters->ImageMaxCount();
+
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "Validating provider parameters : ";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "---------------------------------------";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "_SourceFolderPath = " << _SourceFolderPath;
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "_ImageMaxCount = " << _ImageMaxCount;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::init()
+FRAME_PROVIDER_ERROR folderReader::init()
 {
 	_lastAcquiredImage = -1;
 	_imagePaths.clear();
@@ -146,9 +147,9 @@ FRAME_PROVIDER_ERROR OfflineReader::init()
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
-FRAME_PROVIDER_ERROR OfflineReader::cleanup()
+FRAME_PROVIDER_ERROR folderReader::cleanup()
 {
 	_imagePaths.clear();
-	OFFREADER_PROVIDER_SCOPED_LOG << "cleaned up";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }

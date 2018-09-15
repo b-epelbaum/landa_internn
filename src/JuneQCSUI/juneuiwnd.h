@@ -107,9 +107,12 @@ namespace LandaJune
 
 			QStringList _processParamsExpandedStatesList;
 
-			QLabel * statusGeneral, *statusFrameProv, *statusAlgoRunner, *statusFramesHandled, * statusFramesDropped;
+			QLabel * iconGeneral, * iconRecipe, * iconProvider, *iconAlgoRunner, *iconFramesHandled;
+			QLabel * statusGeneral, *statusRecipeName, *statusFrameProv, *statusAlgoRunner, *statusFramesHandled;
 			QProgressBar *statusProgressBar;
 			QTimer _progressBarTimer;
+
+			QPixmap  _greyLed, _greenLed;
 		};
 	}
 }

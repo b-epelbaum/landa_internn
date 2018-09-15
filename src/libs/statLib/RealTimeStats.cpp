@@ -40,7 +40,7 @@ void RealTimeStats::increment(const StatName stat, const double delta, const dou
 std::string RealTimeStats::to_string() 
 {
 	static const char *names[statsNumber] = {
-		"Generated Images",
+		"Frames generated",
 		"Frames handled",
 		"Regions generated",
 		"Regions copied",

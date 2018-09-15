@@ -448,26 +448,41 @@ LandaJune::IPropertyTuple ParamPropModel::propertyValue(ParamPropItem *child) co
 	}
 
 	const auto parentItem = child->parent();
-	return [this, parentItem, child]() -> IPropertyTuple
+	if (parentItem)
 	{
-		if (const auto point = parentItem; point->data(1).canConvert<QPoint>()) {
-			return { point->data(0).toString(), QVariant::fromValue(createQPoint(point)), _readOnlyView };
-		}
-		else if (const auto rect = parentItem; rect->data(1).canConvert<QRect>()) {
-			return { rect->data(0).toString(), QVariant::fromValue(createQRect(rect)), _readOnlyView };
-		}
-		else if (const auto colorTripletVector = parentItem->parent()->parent(); colorTripletVector->data(1).canConvert<QVector<COLOR_TRIPLET>>()) {
-			return { colorTripletVector->data(0).toString(), QVariant::fromValue(createColorTripletVector(colorTripletVector)), _readOnlyView };
-		} 
-		else if (const auto colorTriplet = parentItem->parent(); colorTriplet->data(1).canConvert<COLOR_TRIPLET>()) {
-			return { colorTriplet->data(0).toString(), QVariant::fromValue(createColorTriplet(colorTriplet)), _readOnlyView };
-		}
-		else if (const auto colorTipletSingle = parentItem; colorTipletSingle->data(1).canConvert<COLOR_TRIPLET_SINGLE>()) {
-			return { colorTipletSingle->data(0).toString(), QVariant::fromValue(createColorTripletSingle(colorTipletSingle)), _readOnlyView };
-		}
-		
-		return { child->data(0).toString(), child->data(1), _readOnlyView };
-	}();
+		return [this, parentItem, child]() -> IPropertyTuple
+		{
+			if (const auto point = parentItem; point->data(1).canConvert<QPoint>()) 
+			{
+				return { point->data(0).toString(), QVariant::fromValue(createQPoint(point)), _readOnlyView };
+			}
+			
+			if (const auto rect = parentItem; rect->data(1).canConvert<QRect>()) 
+			{
+				return { rect->data(0).toString(), QVariant::fromValue(createQRect(rect)), _readOnlyView };
+			}
+			
+			if ( parentItem->parent() && parentItem->parent()->parent() )
+			{
+				const auto colorTripletVector = parentItem->parent()->parent(); 
+				if (colorTripletVector->data(1).canConvert<QVector<COLOR_TRIPLET>>()) 
+					return { colorTripletVector->data(0).toString(), QVariant::fromValue(createColorTripletVector(colorTripletVector)), _readOnlyView };
+			} 
+			else if (parentItem->parent() ) 
+			{
+				const auto colorTriplet = parentItem->parent();
+				if (colorTriplet->data(1).canConvert<COLOR_TRIPLET>())
+					return { colorTriplet->data(0).toString(), QVariant::fromValue(createColorTriplet(colorTriplet)), _readOnlyView };
+			}
+			else if (const auto colorTipletSingle = parentItem; colorTipletSingle->data(1).canConvert<COLOR_TRIPLET_SINGLE>()) {
+				return { colorTipletSingle->data(0).toString(), QVariant::fromValue(createColorTripletSingle(colorTipletSingle)), _readOnlyView };
+			}
+			
+			return { child->data(0).toString(), child->data(1), _readOnlyView };
+		}();
+	}
+
+	return { child->data(0).toString(), child->data(1), _readOnlyView };
 }
 
 QPoint ParamPropModel::createQPoint(ParamPropItem *item) const noexcept

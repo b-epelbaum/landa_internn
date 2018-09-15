@@ -118,7 +118,7 @@ void JuneUIWnd::initUI()
 	connect(ui.batchParamView->selectionModel(), SIGNAL(currentChanged(const  QModelIndex&,const  QModelIndex&)), this, SLOT(processParamSelectionChanged(const  QModelIndex&,const  QModelIndex&)));
 
 	_progressBarTimer.setSingleShot(false);
-	_progressBarTimer.setInterval(300);
+	_progressBarTimer.setInterval(150);
 
 	connect(&_progressBarTimer, &QTimer::timeout, this, &JuneUIWnd::onTimerTick);
 }
@@ -252,6 +252,7 @@ void JuneUIWnd::initProcessParameters() const
 			}
 			else
 			{
+				statusRecipeName->setText(QFileInfo(lastConfigFile).baseName());
 				CLIENT_SCOPED_LOG << "Configuration file " << lastConfigFile << " has been loaded successfully";
 			}
 		}
@@ -375,17 +376,49 @@ void JuneUIWnd::createActions()
 
 void JuneUIWnd::createStatusBar()
 {
-	
+	_greyLed.load(":/JuneUIWnd/Resources/grey_led.png");
+	_greenLed.load(":/JuneUIWnd/Resources/green_led.png");
+
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
 	ui.mainToolBar->setIconSize(QSize(48, 48));
 
 
+	iconGeneral = new QLabel(this);
+	iconRecipe = new QLabel(this);
+	iconProvider = new QLabel(this);
+	iconAlgoRunner = new QLabel(this);
+	statusFramesHandled = new QLabel(this);
+
+	iconGeneral->setMinimumSize(QSize(16,16));
+	iconGeneral->setMaximumSize(QSize(16,16));
+	iconGeneral->setPixmap(_greyLed);
+
+	iconRecipe->setMinimumSize(QSize(16,16));
+	iconRecipe->setMaximumSize(QSize(16,16));
+	iconRecipe->setPixmap(QPixmap(":/JuneUIWnd/Resources/proc_params.png"));
+	iconRecipe->setScaledContents(true);
+
+	iconProvider->setMinimumSize(QSize(16,16));
+	iconProvider->setMaximumSize(QSize(16,16));
+	iconProvider->setPixmap(QPixmap(":/JuneUIWnd/Resources/scan.png"));
+	iconProvider->setScaledContents(true);
+
+	iconAlgoRunner->setMinimumSize(QSize(16,16));
+	iconAlgoRunner->setMaximumSize(QSize(16,16));
+	iconAlgoRunner->setPixmap(QPixmap(":/JuneUIWnd/Resources/algo.png"));
+	iconAlgoRunner->setScaledContents(true);
+
+	statusFramesHandled->setMinimumSize(QSize(16,16));
+	statusFramesHandled->setMaximumSize(QSize(16,16));
+
+	
 	statusGeneral = new QLabel(this);
+	statusRecipeName = new QLabel(this);
 	statusFrameProv = new QLabel(this);
 	statusAlgoRunner = new QLabel(this);
 	statusFramesHandled = new QLabel(this);
-	statusFramesDropped = new QLabel(this);
+
 
 	statusGeneral->setMinimumWidth(200);
 	statusGeneral->setText("Idle");
@@ -396,10 +429,18 @@ void JuneUIWnd::createStatusBar()
 	statusProgressBar->setTextVisible(false);
 
     // add the two controls to the status bar
-    ui.statusBar->addPermanentWidget(statusGeneral);
-    ui.statusBar->addPermanentWidget(statusProgressBar,1);
-	ui.statusBar->addPermanentWidget(statusFrameProv,2);
-	ui.statusBar->addPermanentWidget(statusAlgoRunner,3);
+	ui.statusBar->addPermanentWidget(iconGeneral,0);
+    ui.statusBar->addPermanentWidget(statusGeneral,1);
+
+	ui.statusBar->addPermanentWidget(iconRecipe,2);
+    ui.statusBar->addPermanentWidget(statusRecipeName,3);
+
+	ui.statusBar->addPermanentWidget(iconProvider,4);
+	ui.statusBar->addPermanentWidget(statusFrameProv,5);
+
+	ui.statusBar->addPermanentWidget(iconAlgoRunner,6);
+	ui.statusBar->addPermanentWidget(statusAlgoRunner,7);
+	ui.statusBar->addPermanentWidget(statusProgressBar,8);
 }
 
 void JuneUIWnd::zoomIn()
@@ -508,7 +549,8 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 
 	ICore::get()->selectFrameProvider(selectedProvider);
 	ui.providerDescEdit->document()->setPlainText(selectedProvider->getDescription());
-	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), true);
+	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), false);
+	statusFrameProv->setText(selectedProvider->getName());
 }
 
 void JuneUIWnd::onAlgoRunnerComboChanged(int index)
@@ -524,6 +566,7 @@ void JuneUIWnd::onAlgoRunnerComboChanged(int index)
 	settings.setValue("UIClient/lastSelectedAlgorithm",selectedAlgo->getName() );
 
 	ui.algoDescEdit->document()->setPlainText(selectedAlgo->getDescription());
+	statusAlgoRunner->setText(selectedAlgo->getName());
 }
 
 
@@ -537,17 +580,17 @@ void JuneUIWnd::updateStats() const
 
 void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
 {
-	auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
-	if (selectedProvider)
-		selectedProvider->setProviderProperty(propName, newVal);
+	const auto processParams = ICore::get()->getProcessParameters();
+	processParams->setParamProperty(propName, newVal);
+	onUpdateProcessParams();
 }
 
 void JuneUIWnd::onProcessParameterChanged(QString propName, const QVariant& newVal)
 {
 	//try
 	//{
-		const auto batchParams = ICore::get()->getProcessParameters();
-		batchParams->setParamProperty(propName, newVal);
+		const auto processParams = ICore::get()->getProcessParameters();
+		processParams->setParamProperty(propName, newVal);
 	//}
 	//catch (CoreEngineException& ex)
 	//{
@@ -606,11 +649,14 @@ void JuneUIWnd::onUpdateProcessParams()
 	_processParamModelEditable->setupModelData(ICore::get()->getProcessParameters()->getEditablePropertyList(), false);
 
 	restoreExpandedState(nodes, ui.batchParamView);
-	if ( idx.isValid())
+
+	/*
+	if ( idx.isValid() && idx.row() < ui.batchParamView->model()->rowCount())
 	{
 		ui.batchParamView->scrollTo(idx);
 		ui.batchParamView->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::Select);
 	}
+	*/
 }
 
 void JuneUIWnd::onUpdateCalculatedParams()
@@ -622,14 +668,15 @@ void JuneUIWnd::onUpdateCalculatedParams()
 	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
 
 	restoreExpandedState(nodes, ui.processParamViewCalculated);
-	if ( idx.isValid())
+	/*
+	if ( idx.isValid()  && idx.row() < ui.processParamViewCalculated->model()->rowCount() )
 	{
 		ui.processParamViewCalculated->scrollTo(idx);
 		ui.processParamViewCalculated->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::Select);
 	}
+	*/
 
 	onFrameProviderComboChanged(ui.frameSourceCombo->currentIndex());
-	//ui.processParamViewCalculated->expandToDepth(1);
 }
 
 void JuneUIWnd::onSaveConfig()
@@ -719,11 +766,15 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 	if (!bEnable)
 	{
 		_progressBarTimer.start();
+		statusGeneral->setText("Working...");
 	}
 	else
 	{
 		_progressBarTimer.stop();
 		statusProgressBar->setValue(0);
+		statusGeneral->setText("Idle");
+		statusFramesHandled->setText("");
+		iconGeneral->setPixmap(_greyLed);
 	}
 }
 
@@ -750,15 +801,15 @@ void JuneUIWnd::onRemoveColor()
 			if ( QMessageBox::question(this, "Remove C2C color", QString("Are you sure to remove color %1 ?").arg(colorVal.value<COLOR_TRIPLET>().ColorName())) == QMessageBox::Yes )
 			{
 				// get parent of index we are going to remove
-				auto parent = _processParamModelEditable->parent(idx);
+				const auto parent = _processParamModelEditable->parent(idx);
 
 				// remove the item
 				_processParamModelEditable->removeRows(idx.row(), 1, _processParamModelEditable->parent(idx));
 
 				// update remaining color triplets
 				QVector<COLOR_TRIPLET> newColorArray;
-				auto rowCount = _processParamModelEditable->rowCount(parent);
-				for ( int i = 0; i < rowCount; i++ )
+				const auto rowCount = _processParamModelEditable->rowCount(parent);
+				for (auto i = 0; i < rowCount; i++ )
 				{
 					auto const& newIdx = _processParamModelEditable->index(i,0, parent);
 					const auto&[name, colorVal, editable] = _processParamModelEditable->getPropertyTuple(newIdx);
@@ -802,29 +853,13 @@ void JuneUIWnd::addNewColor(const QString& colorName )
 	}
 }
 
-
-/*
-void JuneUIWnd::onBtnAddPropClicked() noexcept
-{
-	const auto list = ui.batchParamView->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		_processParamModelEditable->copyParam(list.first());
-	}
-}
-
-void JuneUIWnd::onBtnRemovePropClicked() noexcept
-{
-	const auto list = ui.batchParamView->selectionModel()->selectedIndexes();
-	if (!list.isEmpty()) {
-		_processParamModelEditable->removeParam(list.first());
-	}
-}
-*/
-
 void JuneUIWnd::onTimerTick()
 {
 	auto const& val = statusProgressBar->value();
 	statusProgressBar->setValue(val == 100 ? 0 : val + 1);
+
+	const auto& ledPx = (statusProgressBar->value() & 1 ) ? _greyLed : _greenLed;
+	iconGeneral->setPixmap(ledPx);
 }
 
 void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const  QModelIndex& prev)
