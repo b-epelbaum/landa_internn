@@ -471,7 +471,7 @@ std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::s
 		return retVal;
 	}
 
-	BASE_RUNNER_SCOPED_LOG << "Edge detection [side " << input->_side << "] runs on thread #" << GetCurrentThreadId();
+	//BASE_RUNNER_SCOPED_LOG << "Edge detection [side " << input->_side << "] runs on thread #" << GetCurrentThreadId();
 
 	try
 	{
@@ -526,7 +526,7 @@ std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_p
 		return retVal;
 	}
 
-	BASE_RUNNER_SCOPED_LOG << "I2S detection [side " << input->_side << "] runs on thread #" << GetCurrentThreadId();
+	//BASE_RUNNER_SCOPED_LOG << "I2S detection [side " << input->_side << "] runs on thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_i2s(input, retVal);
@@ -595,7 +595,7 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 	retVal->_colorStatuses = { hsvCount, ALG_STATUS_FAILED };
 	retVal->_colorCenters = { hsvCount, {0,0} };
 	
-	BASE_RUNNER_SCOPED_LOG << "C2C Detection [side : " << input->_side << "; index : " << input->_roiIndex << "] runs in thread #" << GetCurrentThreadId();
+	//BASE_RUNNER_SCOPED_LOG << "C2C Detection [side : " << input->_side << "; index : " << input->_roiIndex << "] runs on thread #" << GetCurrentThreadId();
 	try
 	{
 		detect_c2c_roi(input, retVal);
