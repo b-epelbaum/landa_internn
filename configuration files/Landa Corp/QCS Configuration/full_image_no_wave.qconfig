@@ -3,12 +3,14 @@
     "C2CDistanceBetweenSets_um": 158940,
     "C2CDistanceFromTriangle2FirstSet_um": 9000,
     "C2CROISetsCount": 5,
+    "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
+    "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
             "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
-                "H": 120,
+                "H": 30,
                 "S": 255,
                 "V": 255
             },
@@ -65,15 +67,13 @@
             }
         }
     ],
+    "CycleImage": true,
     "EnableAlgorithmProcessing": true,
     "EnableAnyDataSaving": true,
     "EnableCSVSaving": true,
     "EnableImageSaving": true,
     "EnableProcessing": true,
-    "FGS_CycleImage": true,
-    "FGS_FrameFrequencyInMSec": 250,
-    "FGS_SourceFilePath": "",
-    "FGS_SourceFolderPath": "c:\\Temp\\full_image",
+    "FrameFrequencyInMSec": 250,
     "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,
@@ -81,9 +81,8 @@
     "I2SOffsetFromPaperEdgeY_mm": 5.6,
     "I2SROIHeight_mm": 8.5,
     "I2SROIWidth_mm": 8.5,
+    "ImageMaxCount": 1000,
     "JobID": 0,
-    "Off_ImageMaxCount": 1000,
-    "Off_SourceFolderPath": "c:\\temp\\offline",
     "OffsetBetweenTriangles_mm": 990,
     "OffsetFromLeftEdge_mm": 10.2,
     "PanelCount": 11,
@@ -134,6 +133,8 @@
     "SaveWaveCSV": true,
     "ScanBitDepth": 24,
     "SheetID": 0,
+    "SourceFilePath": "c:\\Temp\\full_image\\Image_300dpi.bmp",
+    "SourceFolderPath": "c:\\temp\\registration",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
     "SubstrateImageMargin_mm": 2,
