@@ -7,15 +7,12 @@
 #include "algo_c2c_roi_impl.h"
 #include "util.h"
 #include <filesystem>
-#include "functions.h"
 #include <Windows.h>
 
 #include "typeConverters.hpp"
-#include <fstream>
 #include "algo_wave_impl.h"
 #include "RealTimeStats.h"
 
-namespace fs = std::filesystem;
 using namespace concurrency;
 
 using namespace LandaJune;
@@ -231,7 +228,7 @@ void baseAlgorithmRunner::generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_
 			, _processParameters
 			, qrect2cvrect(stripRect)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_STRIP_INPUT>>(input, "bmp")
+			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_STRIP_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceStrip
 		))
 	);
@@ -266,7 +263,7 @@ void baseAlgorithmRunner::generateI2SRegion(std::shared_ptr<PARAMS_I2S_INPUT> in
 			, _processParameters
 			, roirect2cvrect(input->_approxTriangeROI)
 			, _frameIndex
-			, this->generateFullPathForElement<std::shared_ptr<PARAMS_I2S_INPUT>>(input, "bmp")
+			, generateFullPathForElement<std::shared_ptr<PARAMS_I2S_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceI2S)));
 
 }
@@ -288,7 +285,7 @@ void baseAlgorithmRunner::generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT
 			, _processParameters
 			, roirect2cvrect(ROI->_ROI)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_ROI_INPUT>>(input, "bmp")
+			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_ROI_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceC2C
 		))
 	);
@@ -307,7 +304,7 @@ void baseAlgorithmRunner::generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> 
 			, _processParameters
 			, roirect2cvrect(ROI->_waveROI)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_WAVE_INPUT>>(input, "bmp")
+			, generateFullPathForElement<std::shared_ptr<PARAMS_WAVE_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, bDumpWave && _processParameters->SaveSourceWave()
 		))
 	);
@@ -435,13 +432,40 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 		});
 	}
 
+
+	// update C2C centers with I2S coordinates offsets
+	auto const offsetX = retVal->_i2sOutput->_triangeCorner._x;
+	auto const offsetY = retVal->_i2sOutput->_triangeCorner._y;
+	if (_bParallelCalc)
+	{
+ 		parallel_for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
+		{
+			std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+			{
+				colorCenter._x -= offsetX;
+				colorCenter._y -= offsetY;
+			});
+		});
+	}
+	else
+	{
+		std::for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
+		{
+			std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+			{
+				colorCenter._x -= offsetX;
+				colorCenter._y -= offsetY;
+			});
+		});
+	}
+
 	retVal->_result = 
 		std::all_of(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [](auto& out) { return out->_result == ALG_STATUS_SUCCESS; } )
 		? ALG_STATUS_SUCCESS
 		: ALG_STATUS_FAILED;
 
+	processStripOutput(retVal);
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_stripsHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
-	// TODO : update C2C rectangles with I2S offset
 	return retVal;
 }
 
@@ -710,183 +734,11 @@ void baseAlgorithmRunner::shutdownWave()
 	}
 }
 
-
-////////////////////////////////////////////////////////
-/////////////////  file saving  functions
-
-void baseAlgorithmRunner::dumpRegistrationCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut)
-{
-	if (!_processParameters->SaveC2CRegistrationCSV())
-		return;
-
-	if ( stripOut->_c2cROIOutputs.empty() )
-	{
-		BASE_RUNNER_SCOPED_WARNING << "C2C array is empty, aborting CSV creation...";
-		return;
-	}
-
-	std::string resultName = (stripOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-
-	std::ostringstream ss;
-	ss << "Pattern Type :,Registration" << std::endl << std::endl
-	<< "Job Id :," << _processParameters->JobID() << std::endl
-	<< "Flat ID :," << _frameIndex << std::endl
-	<< "ImageIndex ID :," << _imageIndex << std::endl
-	<< "Registration Side :" << SIDE_NAMES[stripOut->_input->_side] << std::endl
-	<< "Registration Overall Status :," << resultName << std::endl
-	<< "Ink\\Sets,";
-	
-	for (const auto& out : stripOut->_c2cROIOutputs)
-	{
-		resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-		ss << "Set #" << out->_input->_roiIndex + 1 << " :," << resultName << ",";
-	}
-	ss << std::endl;
-
-	for ( size_t i = 0; i < stripOut->_c2cROIOutputs[0]->_input->_colors.size(); i++)
-	{
-		ss << stripOut->_c2cROIOutputs[0]->_input->_colors[i]._colorName;
-		for (const auto& out : stripOut->_c2cROIOutputs)
-		{
-			ss << "," << out->_colorCenters[i]._x << "," << out->_colorCenters[i]._y;
-		}
-		ss << std::endl;
-	}
-
-	auto const& fPath = generateFullPathForRegCSV(stripOut);
-	std::ofstream outFile;
-	outFile.open (fPath);
-	if (outFile.fail())
-	{
-		BASE_RUNNER_SCOPED_ERROR << "cannot save file " << fPath.c_str() << "; error : " << strerror(errno);
-	}
-	else
-	{
-		outFile << ss.str();
-		outFile.close();
-	}
-}
-
-void baseAlgorithmRunner::dumpPlacementCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut)
-{
-	if (!_processParameters->SaveI2SPlacementCSV())
-		return;
-
-	const auto& i2sOut = stripOut->_i2sOutput;
-	static const std::string colons = ",,,,,,,";
-
-	const auto& csvOutFilePath = QString::fromStdString(generateFullPathForPlacementCSV(stripOut->_input->_side));
-	
-	const auto fileExists = QFileInfo(csvOutFilePath).exists();
-
-	const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
-	
-	QFile outFile(csvOutFilePath);
-	outFile.open(flags | QFile::Text);
-
-	const std::string resultName =  (i2sOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-	std::ostringstream ss;
-
-	if (!fileExists)
-		ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl ;
-
-	// TODO : move pixel density multiplication to algorithm function
-	ss << _frameIndex 
-		<< "," 
-		<< _imageIndex
-		<< "," 
-		<< resultName 
-		<< colons 
-		<< i2sOut->_triangeCorner._x  *  1000 
-		<< "," << i2sOut->_triangeCorner._y * 1000 
-		<< std::endl;
-
-	const std::string& outString = ss.str();
-	outFile.write(outString.c_str(), outString.size());
-}
-
-
-void baseAlgorithmRunner::createCSVFolder()
-{
-	auto rootPath = _processParameters->RootOutputFolder().toStdString();
-	if (rootPath.empty())
-	{
-		rootPath = DEFAULT_OUT_FOLDER;
-	}
-
-	const fs::path p{ 
-		fmt::format("{0}\\{1}\\RawResults"
-		, rootPath
-		, getBatchRootFolder() )
-	};
-	
-	if (!is_directory(p) || !exists(p))
-	{
-		try
-		{
-			create_directories(p); // create CSV folder
-		}
-		catch (fs::filesystem_error& er)
-		{
-			// 
-		}
-	}
-	_csvFolder = p.string();
-}
-
-//////////////////////////////////////////////
-//////////////  file naming functions 
-
-
-std::string baseAlgorithmRunner::getBatchRootFolder() const
-{
-	return std::move(std::to_string(_processParameters->JobID()));
-}
-
-
 std::string baseAlgorithmRunner::getFrameFolderName() const
 {
 	return fmt::format("frame_#{0}", _frameIndex);
 }
-
-std::string baseAlgorithmRunner::getElementPrefix() const
-{
-	//file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
-	return std::move(
-		fmt::format(
-			"{0}_{1}"
-			, _frameIndex
-			, _imageIndex)
-	);
-}
-
-std::string baseAlgorithmRunner::generateFullPathForElement(const std::string& elementName, const std::string& ext ) const
-{
-	// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_EDGE_LEFT or
-	// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
-
-	return std::move(
-		fmt::format(
-			R"({0}\{1}\{2}\{3}_{4}.{5})"
-			, _processParameters->RootOutputFolder().toStdString()
-			, getBatchRootFolder()
-			, getFrameFolderName()
-			, getElementPrefix()
-			, elementName
-			, ext)
-	);
-}
-
-std::string baseAlgorithmRunner::generateFullPathForRegCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> out) const
-{
-	return fmt::format("{0}\\Registration_{1}_{2}.csv", _csvFolder, SIDE_NAMES[out->_input->_side], _frameIndex );
-}
-
-std::string baseAlgorithmRunner::generateFullPathForPlacementCSV(SHEET_SIDE side) const
-{
-	return fmt::format("{0}\\ImagePlacement_{1}.csv", _csvFolder, SIDE_NAMES[side]);
-}
-
+	
 void baseAlgorithmRunner::getSourceFrameIndexString()
 {
 	std::pair<std::string,bool> retVal;
@@ -908,3 +760,68 @@ void baseAlgorithmRunner::getSourceFrameIndexString()
 		_frameIndex = std::stoi(_sourceFrameIndexStr);
 }
 
+void baseAlgorithmRunner::processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput )
+{
+	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
+	{
+		const auto csvFolder = _csvFolder;
+		const auto imgIndex = _imageIndex;
+		const auto frameIndex = _frameIndex;
+		const auto jobID = _processParameters->JobID();
+
+		if (_bParallelCalc)
+		{
+			if (_processParameters->SaveC2CRegistrationCSV())
+			{
+				task<void> sLeft([csvFolder, imgIndex, frameIndex, jobID, stripOutput]()
+				{
+					dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder );
+				});
+
+				if (_processParameters->ProcessRightStrip())
+				{
+					task<void> sRight([csvFolder, imgIndex, frameIndex, jobID, stripOutput]()
+					{
+						dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder  );
+					});
+				}
+			}
+
+			if (_processParameters->SaveI2SPlacementCSV())
+			{
+				task<void> iLeft([csvFolder, imgIndex, frameIndex, stripOutput]()
+				{
+					dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder  );
+				});
+
+				if (_processParameters->ProcessRightStrip())
+				{
+					task<void> iRight([csvFolder, imgIndex, frameIndex, stripOutput]()
+					{
+						dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder  );
+					});
+				}
+			}
+		}
+		else
+		{
+			if (_processParameters->SaveC2CRegistrationCSV())
+			{
+				dumpRegistrationCSV(stripOutput, _processParameters->JobID(), _frameIndex, _imageIndex, _csvFolder  );
+				if (_processParameters->ProcessRightStrip())
+				{
+					dumpRegistrationCSV(stripOutput, _processParameters->JobID(), _frameIndex, _imageIndex, _csvFolder  );
+				}
+			}
+			
+			if (_processParameters->SaveI2SPlacementCSV())
+			{
+				dumpPlacementCSV(stripOutput, _frameIndex, _imageIndex, _csvFolder  );
+				if (_processParameters->ProcessRightStrip())
+				{
+					dumpPlacementCSV(stripOutput, _frameIndex, _imageIndex, _csvFolder  );
+				}
+			}
+		}
+	}
+}

@@ -49,7 +49,7 @@ void detect_i2s(std::shared_ptr<LandaJune::Algorithms::PARAMS_I2S_INPUT> input, 
 	// create and clear overlay
 	if (input->GenerateOverlay()) {
 		output->_triangleOverlay->create(input->_triangleImageSource->rows, input->_triangleImageSource->cols, CV_8UC3);
-		output->_triangleOverlay->setTo(255);
+		output->_triangleOverlay->setTo(0);
 	}
 
 	// convert part to gray levels and HSV

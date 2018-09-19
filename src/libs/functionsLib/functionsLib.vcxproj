@@ -121,6 +121,9 @@
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;FUNCTIONS_LIB;BUILD_STATIC;QT_GUI_LIB;%(PreprocessorDefinitions)</Define>
       <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(SolutionDir)thirdparty\opencv\include;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\calculationsLib;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\frameProviders;$(SolutionDir)src\libs\algorithm_runners;%(AdditionalIncludeDirectories)</IncludePath>
     </QtMoc>
+    <Lib>
+      <LinkTimeCodeGeneration>true</LinkTimeCodeGeneration>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_With_DebugInfo|x64'">
     <ClCompile>

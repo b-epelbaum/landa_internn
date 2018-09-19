@@ -79,6 +79,8 @@ namespace LandaJune
 			virtual void generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const;
 
+			virtual void processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput);
+
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
 
 			template<typename T>
@@ -88,29 +90,13 @@ namespace LandaJune
 				{
 					const auto targetMat = out->overlay();
 					if ( targetMat != nullptr )
-						dumpMatFile(targetMat, generateFullPathForElement<T>(out), _bParallelCalc);
+						dumpMatFile(targetMat, generateFullPathForElement<T>(out, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName()), _bParallelCalc);
 				}
 			}
 
-			virtual void dumpRegistrationCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut);
-			virtual void dumpPlacementCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut);
-
-			virtual std::string getBatchRootFolder() const;
 			virtual std::string getFrameFolderName() const;
-			virtual std::string getElementPrefix() const;
-			virtual std::string generateFullPathForElement(const std::string& elementName, const std::string& ext = "bmp" ) const;
-			virtual std::string generateFullPathForRegCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> out) const;
-			virtual std::string generateFullPathForPlacementCSV(SHEET_SIDE side) const;
 			virtual void getSourceFrameIndexString();
 			virtual std::string parseSourceFrameIndexString(const std::string& strPath) = 0;
-
-			template<typename T>
-			std::string generateFullPathForElement(T& inout, const std::string& ext = "bmp" )  const
-			{
-				return generateFullPathForElement(inout->getElementName(), ext);
-			}
-
-			virtual void createCSVFolder();
 
 			virtual std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> processSheet(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> sheetInput);
 			virtual std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> processStrip(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> stripInput);

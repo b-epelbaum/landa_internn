@@ -41,6 +41,11 @@ namespace LandaJune
 			NativeThreadQueue() {
 				InitializeCriticalSection(&_cs);
 			}
+			NativeThreadQueue(const NativeThreadQueue &) = delete;
+			NativeThreadQueue(NativeThreadQueue &&) = delete;
+			const NativeThreadQueue & operator = (const NativeThreadQueue &) = delete;
+			NativeThreadQueue & operator = (NativeThreadQueue &&) = delete;
+
 			~NativeThreadQueue() {
 				LeaveCriticalSection(&_cs);
 			}
@@ -78,36 +83,41 @@ namespace LandaJune
 		    typedef void (*CALLBACKF_HANDLER)(std::tuple<Args...> &);
 
 		public:
-			NativeThread(const THREAD_PRIORITY tP = NORMAL) 
-				: _handle(NULL), _ehandler(NULL), _cbfhandler(NULL), _queue(NULL), _priority(tP) {
+			explicit NativeThread(const THREAD_PRIORITY tP = NORMAL) 
+				: _cbfhandler(nullptr), _queue(nullptr), _priority(tP) 
+			{
 				InitializeCriticalSection(&_cs);
 			}
+
 			NativeThread(const NativeThread &) = delete;
 			NativeThread(NativeThread &&) = delete;
-			~NativeThread() {
-			    stop(); join();
+
+			~NativeThread() 
+			{
+			    stop(); 
+				join();
 			    DeleteCriticalSection(&_cs);
 			}			
 			const NativeThread & operator = (const NativeThread &) = delete;
 			NativeThread & operator = (NativeThread &&) = delete;
 
-			void setErrorHandler(EXCEPTION_HANDLER ehandler) {
+			void setErrorHandler(const EXCEPTION_HANDLER ehandler) {
 				NativeThreadAutoLock l(_cs); _ehandler = ehandler;
 			}
-			auto getErrorHandler(void) {
+			auto getErrorHandler() {
 				NativeThreadAutoLock l(_cs); return std::ref(_ehandler);
 			}
 			void setThreadFunction(CALLBACKF_HANDLER cbfhandler) {
 				NativeThreadAutoLock l(_cs); _cbfhandler = cbfhandler;
 			}
-			auto getThreadFunction(void) {
+			auto getThreadFunction() {
 				NativeThreadAutoLock l(_cs); return std::ref(_cbfhandler);
 			}
 
 			void setQueue(NativeThreadQueue<Args...> *queue) {
 				NativeThreadAutoLock l(_cs); _queue = queue;
 			}
-			auto getQueue(void) {
+			auto getQueue() {
 				NativeThreadAutoLock l(_cs); return _queue;
 			}
 
@@ -119,37 +129,57 @@ namespace LandaJune
 			    _priority = priority;
 			}
 
-			bool start(void) {
+			bool start()
+			{
     			NativeThreadAutoLock l(_cs);
-				if (_handle) { return false; }
+				if (_handle)
+				{
+					return false;
+				}
 				_state = THREAD_STATE::START;
-				_handle = CreateThread(NULL, 0, threadFunction, this, 0, NULL);
-				if (!_handle) { _state = THREAD_STATE::IDLE; return false; }
+				_handle = CreateThread(nullptr, 0, threadFunction, this, 0, nullptr);
+				if (_handle != INVALID_HANDLE_VALUE)
+				{
+					_state = THREAD_STATE::IDLE; return false;
+				}
+
     			SetThreadPriority(_handle, _priority);
     			return true;
 			}
-			void stop(void) {
+
+			void stop() 
+			{
 				NativeThreadAutoLock l(_cs);
-				if (_state == THREAD_STATE::BUSY) {
+				if (_state == THREAD_STATE::BUSY) 
+				{
 					_state = THREAD_STATE::IDLE;
 				}
 			}
-			void join(void) {
-				for (;;) {
+
+			void join(void) 
+			{
+				for (;;) 
+				{
 					Sleep(10);
 					NativeThreadAutoLock l(_cs);
-					if (!_handle) {
+					if (!_handle) 
+					{
 						break;
 					}
 				}
 			}
 
 		protected:
-			THREAD_STATE getState(void) {
-				NativeThreadAutoLock l(_cs); return _state;
+			THREAD_STATE getState() 
+			{
+				NativeThreadAutoLock l(_cs); 
+				return _state;
 			}
-			void setState(THREAD_STATE state) {
-				NativeThreadAutoLock l(_cs); _state = state;
+
+			void setState(THREAD_STATE state) 
+			{
+				NativeThreadAutoLock l(_cs); 
+				_state = state;
 			}
 
 			static DWORD WINAPI threadFunction(LPVOID pParam) 
@@ -158,19 +188,31 @@ namespace LandaJune
 				NativeThread *pThis = static_cast<NativeThread*>(pParam);
 				pThis->setState(THREAD_STATE::BUSY);
 
-				while (pThis->getState() == THREAD_STATE::BUSY) {
+				while (pThis->getState() == THREAD_STATE::BUSY) 
+				{
 					Sleep(1);
 					try {
 						auto q = pThis->getQueue();
-						if (!q) { continue; }
+						if (!q)
+						{
+							continue;
+						}
 
 						std::tuple<Args...> params;
-						if (!q->next(params)) { continue; }
+						if (!q->next(params))
+						{
+							continue;
+						}
 
 						auto cbf = pThis->getThreadFunction();
-						if (cbf) { cbf(params); }
+						if (cbf)
+						{
+							cbf(params);
+						}
 
-					} catch (std::exception & e) {
+					}
+					catch (std::exception & e) 
+					{
 						auto ehandler = pThis->getErrorHandler();
 						if (ehandler) { ehandler(e); }
 					}
@@ -183,12 +225,11 @@ namespace LandaJune
 				return 0;
 			}
 
-		protected:
 		    CRITICAL_SECTION  _cs;
 
-			HANDLE _handle;
-			EXCEPTION_HANDLER _ehandler;
-		    CALLBACKF_HANDLER _cbfhandler;
+			HANDLE _handle = nullptr;
+			EXCEPTION_HANDLER _ehandler = nullptr;
+		    CALLBACKF_HANDLER _cbfhandler = nullptr;
 			NativeThreadQueue<Args...> *_queue;
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;

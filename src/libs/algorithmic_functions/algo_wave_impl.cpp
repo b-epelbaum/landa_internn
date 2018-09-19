@@ -65,7 +65,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	// define and clear overlay image
 	if (input->_GenerateOverlay) {
 		output->_colorOverlay->create(input->_waveImageSource->rows, input->_waveImageSource->cols, CV_8UC3);
-		output->_colorOverlay->setTo(255);
+		output->_colorOverlay->setTo(0);
 //		output->overlay = input->_waveImageSource.clone();
 	}
 

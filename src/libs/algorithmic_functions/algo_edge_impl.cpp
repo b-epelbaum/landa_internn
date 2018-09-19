@@ -41,7 +41,7 @@ void detect_edge(std::shared_ptr<LandaJune::Algorithms::PARAMS_PAPEREDGE_INPUT> 
 	// define and clear overlay image
 	if (input->GenerateOverlay()) {
 		output->_edgeOverlay->create(input->_stripImageSource->rows, input->_stripImageSource->cols, CV_8UC3);
-		output->_edgeOverlay->setTo(255);
+		output->_edgeOverlay->setTo(0);
 	}
 
 	int iEstimated_X = input->_approxDistanceFromEdgeX ;

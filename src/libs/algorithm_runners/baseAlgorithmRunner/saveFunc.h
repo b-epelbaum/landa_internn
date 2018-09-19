@@ -6,6 +6,7 @@
 #include <ppltasks.h>
 #include <filesystem>
 #include "writequeue.h"
+#include <fstream>
 
 using namespace concurrency;
 namespace fs = std::filesystem;
@@ -124,5 +125,184 @@ namespace LandaJune
 			}
 
 		}
+	}
+
+
+	static std::string getBatchRootFolder(std::shared_ptr<Parameters::ProcessParameters> processParameters)
+	{
+		return std::to_string(processParameters->JobID());
+	}
+
+	static std::string generateFullPathForRegCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> out, const std::string csvFolder, const int frameIndex )
+	{
+		return fmt::format("{0}\\Registration_{1}_{2}.csv", csvFolder, SIDE_NAMES[out->_input->_side], frameIndex );
+	}
+
+	static std::string generateFullPathForPlacementCSV(const SHEET_SIDE side, const std::string& csvFolder)
+	{
+		return fmt::format("{0}\\ImagePlacement_{1}.csv", csvFolder, SIDE_NAMES[side]);
+	}
+
+
+	static std::string getElementPrefix(const int frameIndex, const int imageIndex )
+	{
+		//file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
+		return (
+			fmt::format(
+				"{0}_{1}"
+				, frameIndex
+				, imageIndex)
+			);
+	}
+
+	static std::string generateFullPathForElement(const std::string& elementName
+										, const std::string& ext
+										, std::shared_ptr<Parameters::ProcessParameters> processParameters
+										, const int frameIndex
+										, const int imageIndex
+										, const std::string frameFolderName  )
+	{
+		// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_EDGE_LEFT or
+		// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
+
+		return (
+			fmt::format(
+				R"({0}\{1}\{2}\{3}_{4}.{5})"
+				, processParameters->RootOutputFolder().toStdString()
+				, getBatchRootFolder(processParameters)
+				, frameFolderName
+				, getElementPrefix(frameIndex, imageIndex)
+				, elementName
+				, ext)
+			);
+	}
+
+	template<typename T>
+	static std::string generateFullPathForElement(T& inout
+									, const std::string& ext
+									, std::shared_ptr<Parameters::ProcessParameters> processParameters
+									, const int frameIndex
+									, const int imageIndex
+									, const std::string frameFolderName )
+	{
+		return generateFullPathForElement(inout->getElementName(), ext, processParameters, frameIndex, imageIndex, frameFolderName);
+	}
+
+	static std::string createCSVFolder(std::shared_ptr<Parameters::ProcessParameters> processParameters)
+	{
+		auto rootPath = processParameters->RootOutputFolder().toStdString();
+		if (rootPath.empty())
+		{
+			rootPath = DEFAULT_OUT_FOLDER;
+		}
+
+		const fs::path p{ 
+			fmt::format("{0}\\{1}\\RawResults"
+			, rootPath
+			, getBatchRootFolder(processParameters) )
+		};
+
+		std::string retVal = p.generic_u8string();
+		
+		if (!is_directory(p) || !exists(p))
+		{
+			try
+			{
+				create_directories(p); // create CSV folder
+			}
+			catch (fs::filesystem_error& er)
+			{
+				// 
+			}
+		}
+
+		return retVal;
+	}
+
+	static void dumpRegistrationCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut
+				, const int jobID
+				, const int frameIndex
+				, const int imageIndex
+				, const std::string csvFolder  )
+	{
+		if ( stripOut->_c2cROIOutputs.empty() )
+		{
+			//BASE_RUNNER_SCOPED_WARNING << "C2C array is empty, aborting CSV creation...";
+			return;
+		}
+
+		std::string resultName = (stripOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+	
+		std::ostringstream ss;
+		ss << "Pattern Type :,Registration" << std::endl << std::endl
+		<< "Job Id :," <<jobID << std::endl
+		<< "Flat ID :," << frameIndex << std::endl
+		<< "ImageIndex ID :," << imageIndex << std::endl
+		<< "Registration Side :" << SIDE_NAMES[stripOut->_input->_side] << std::endl
+		<< "Registration Overall Status :," << resultName << std::endl
+		<< "Ink\\Sets,";
+	
+		for (const auto& out : stripOut->_c2cROIOutputs)
+		{
+			resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+			ss << "Set #" << out->_input->_roiIndex + 1 << " :," << resultName << ",";
+		}
+		ss << std::endl;
+
+		for ( size_t i = 0; i < stripOut->_c2cROIOutputs[0]->_input->_colors.size(); i++)
+		{
+			ss << stripOut->_c2cROIOutputs[0]->_input->_colors[i]._colorName;
+			for (const auto& out : stripOut->_c2cROIOutputs)
+			{
+				ss << "," << out->_colorCenters[i]._x << "," << out->_colorCenters[i]._y;
+			}
+			ss << std::endl;
+		}
+
+		auto const& fPath = generateFullPathForRegCSV(stripOut, csvFolder,frameIndex );
+		const auto& outString = ss.str();
+		const auto& charData = outString.c_str();
+
+		auto dataVector = std::make_shared<std::vector<unsigned char>>();
+		dataVector->assign(charData, charData + outString.size() + 1 );
+		Core::dumpThreadPostJob(dataVector, fPath);
+	}
+	
+	static void dumpPlacementCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut
+							, const int frameIndex
+							, const int imageIndex
+							, const std::string csvFolder)
+	{
+		const auto& i2sOut = stripOut->_i2sOutput;
+		static const std::string colons = ",,,,,,,";
+
+		const auto& csvOutFilePath = QString::fromStdString(generateFullPathForPlacementCSV(stripOut->_input->_side, csvFolder));
+		
+		const auto fileExists = QFileInfo(csvOutFilePath).exists();
+
+		const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
+		
+		QFile outFile(csvOutFilePath);
+		outFile.open(flags | QFile::Text);
+
+		const std::string resultName =  (i2sOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+		std::ostringstream ss;
+
+		if (!fileExists)
+			ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl ;
+
+		// TODO : move pixel density multiplication to algorithm function
+		ss << frameIndex 
+			<< "," 
+			<< imageIndex
+			<< "," 
+			<< resultName 
+			<< colons 
+			<< i2sOut->_triangeCorner._x  *  1000 
+			<< "," << i2sOut->_triangeCorner._y * 1000 
+			<< std::endl;
+
+		const auto& outString = ss.str();
+		outFile.write(outString.c_str(), outString.size());
 	}
 }

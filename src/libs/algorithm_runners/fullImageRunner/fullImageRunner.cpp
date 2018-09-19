@@ -68,7 +68,9 @@ void fullImageRunner::init(std::shared_ptr<BaseParameters> parameters)
 {
 	validateProcessParameters(parameters);
 	if (_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
-		createCSVFolder();
+	{
+		_csvFolder = createCSVFolder(_processParameters);
+	}
 
 	// C2C template image ( temporary solution ) - read from resources
 	QFile templateTifC2C(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceC2C()));
@@ -152,31 +154,4 @@ void fullImageRunner::process(const FrameRef * frame)
 
 	// process whole sheet
 	auto output = processSheet(input);
-
-	// dump C2C results to CSV
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
-	{
-#ifdef USE_PPL
-#else
-		if (_processParameters->ProcessRightSide())
-		{
-			if (_bParallelCalc)
-			{
-				TaskThreadPools::postJob(TaskThreadPools::algorithmsThreadPool(), &fullImageRunner::dumpRegistrationCSV, this, output._stripOutputParameterLeft );
-			}
-			else
-				dumpRegistrationCSV(output._stripOutputParameterRight);
-		}
-
-		dumpRegistrationCSV(output._stripOutputParameterLeft);
-
-
-		// append I2S results to CSV
-		dumpPlacementCSV(output._stripOutputParameterLeft);
-		if (_processParameters->ProcessRightSide())
-		{
-			dumpPlacementCSV(output._stripOutputParameterRight);
-		}
-#endif
-	}
 }
