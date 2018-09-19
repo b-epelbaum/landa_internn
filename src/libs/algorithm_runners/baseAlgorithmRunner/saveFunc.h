@@ -4,11 +4,15 @@
 #include "util.h"
 #include "functions.h"
 #include <ppltasks.h>
+#include <filesystem>
+#include "writequeue.h"
 
 using namespace concurrency;
+namespace fs = std::filesystem;
 
 namespace LandaJune
 {
+	static std::mutex _createDirmutex;
 	static const std::string DEFAULT_OUT_FOLDER = "c:\\temp\\june_out";
 
 	enum SAVED_IMAGE_TYPE
@@ -68,19 +72,57 @@ namespace LandaJune
 		return filePath;
 	}
 
+	static void createDirectoryIfNeeded (const std::string& pathName)
+	{
+		fs::path p{ pathName };
+		auto const parentPath = p.parent_path();
+		if (!is_directory(parentPath) || !exists(parentPath))
+		{
+			std::lock_guard<std::mutex> _lock(_createDirmutex);
+			try
+			{
+				create_directories(parentPath); // create src folder
+			}
+			catch (fs::filesystem_error& er)
+			{
+			}
+		}
+	}
+
 	static void dumpMatFile (std::shared_ptr<cv::Mat> img, const std::string& filePath, bool asyncWrite)
 	{
 		if (asyncWrite)	
 		{
-			auto targetImg = new cv::Mat(std::move(img->clone()));
-			task<void> t([targetImg, filePath]()
+			task<void> t([img, filePath]()
 			{
-				 Functions::frameSaveImage(targetImg, filePath);
+				createDirectoryIfNeeded(filePath);
+				const auto data = std::make_shared<std::vector<unsigned char>>();
+				if ( cv::imencode(".bmp",*img.get(), *data ) )
+				{
+					Core::dumpThreadPostJob(data, filePath);
+				}
+				else
+				{
+					PRINT_ERROR << "[dumpMatFile] : cannot encode data to BMP";
+					// TODO : trow exception
+				}
 			});
 		}
 		else
 		{
-			Functions::frameSaveImage(img, filePath);
+			const auto data = std::make_shared<std::vector<unsigned char>>();
+
+			if ( cv::imencode(".bmp",*img.get(), *data ) )
+			{
+				auto params = std::make_tuple(data, filePath);
+				Functions::frameSaveImage(params);
+			}
+			else
+			{
+				PRINT_ERROR << "[dumpMatFile] : cannot encode data to BMP";
+				// TODO : trow exception
+			}
+
 		}
 	}
 }

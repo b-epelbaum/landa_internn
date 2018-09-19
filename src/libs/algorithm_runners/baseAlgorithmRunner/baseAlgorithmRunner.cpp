@@ -7,6 +7,7 @@
 #include "algo_c2c_roi_impl.h"
 #include "util.h"
 #include <filesystem>
+#include "functions.h"
 #include <Windows.h>
 
 #include "typeConverters.hpp"
@@ -27,11 +28,10 @@ using namespace Core;
 #define BASE_RUNNER_SCOPED_ERROR PRINT_ERROR << "[baseAlgorithmRunner] : "
 #define BASE_RUNNER_SCOPED_WARNING PRINT_WARNING << "[baseAlgorithmRunner] : "
 
-void baseAlgorithmRunner::init(std::shared_ptr<BaseParameters> parameters)
+baseAlgorithmRunner::~baseAlgorithmRunner()
 {
-	createCSVFolder();
-	validateProcessParameters(parameters);
 }
+
 
 ////////////////////////////////////////////////////////
 /////////////////  core functions

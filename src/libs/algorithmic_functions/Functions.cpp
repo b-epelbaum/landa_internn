@@ -246,6 +246,46 @@ Mat	H_Diff(const Mat& imH1, int iH)
 
 
 
+void	Template_Data (const Mat& imTemplate, float& fAve, float& fStd, int iMode)
+{
+	int iX, iY;
+	int iMatch = 0;
+
+	float fSum_1 = 0;
+	float fSum_11 = 0;
+	
+	for (iX = 0; iX < imTemplate.cols; iX++)
+		for (iY = 0; iY < imTemplate.rows; iY++) {
+
+			float fVal1 = (float)imTemplate.at<byte>(iY, iX);
+
+			if (iMode == 1 && iX < imTemplate.cols / 2)
+				continue;
+			if (iMode == 2 && iX > imTemplate.cols / 2)
+				continue;
+			if (iMode == 3 && iY < imTemplate.rows / 2)
+				continue;
+			if (iMode == 4 && iY > imTemplate.rows / 2)
+				continue;
+
+			if (fVal1 > 0) {
+				fSum_1 += fVal1;
+				fSum_11 += fVal1 * fVal1;
+				iMatch++;
+			}
+		}
+
+	if (iMatch > 0) {
+		fSum_1 /= iMatch;
+		fSum_11 /= iMatch;
+	}
+
+	fAve = fSum_1 ;
+	fStd = sqrtf (fSum_11 - fSum_1 * fSum_1);
+}
+
+
+
 // Correlate template in an image
 // Pixels are not tested if has different Z (not used now)
 // fCorrelation - the correlation
@@ -263,7 +303,7 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 	float fSum_12 = 0;
 
 	for (iX = 0; iX < imTemplate.cols; iX++)
-		for (iY = 0; iY < imTemplate.cols; iY++) {
+		for (iY = 0; iY < imTemplate.rows; iY++) {
 
 			// out of image - correlatiion is minimum
 			if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1) {
@@ -309,6 +349,109 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 
 
 
+// Correlate template in an image
+// Pixels are not tested if has different Z (not used now)
+// fCorrelation - the correlation
+// iMatch - number of matched pixels
+// iMode - what part to correlate (0 - all template) - currently it is the only used mode
+void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int iDy, float& fCorrelation, int& iMatch, float fTempl_Ave, float fTempl_Std, int iMode)
+{
+	int iX, iY;
+	iMatch = 0;
+
+	float fSum_1 = 0;
+	float fSum_11 = 0;
+	float fSum_12 = 0;
+
+	fCorrelation = -1 ;
+
+	if (iDx < 0 || iDy < 0 || iDx + imTemplate.cols >= imImage.cols || iDy + imTemplate.rows >= imImage.rows)
+		return ;
+
+	for (iX = 0; iX < imTemplate.cols; iX++)
+		for (iY = 0; iY < imTemplate.rows; iY++) {
+
+			// out of image - correlatiion is minimum
+			// if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1) {
+				//fCorrelation = -1;
+				//return;
+			// }
+
+			float fVal1 = (float)imImage.at<byte>(iY + iDy, iX + iDx);
+			float fVal2 = (float)imTemplate.at<byte>(iY, iX);
+
+			if (iMode > 0) {
+				if (iMode == 1 && iX < imTemplate.cols / 2)
+					continue;
+				if (iMode == 2 && iX > imTemplate.cols / 2)
+					continue;
+				if (iMode == 3 && iY < imTemplate.rows / 2)
+					continue;
+				if (iMode == 4 && iY > imTemplate.rows / 2)
+					continue;
+			}
+
+			if (fVal2 > 0) {
+				fSum_1 += fVal1;
+				fSum_11 += fVal1 * fVal1;
+				fSum_12 += fVal1 * fVal2;
+				iMatch++;
+			}
+		}
+
+	if (iMatch > 0) {
+		fSum_1 /= iMatch;
+		fSum_11 /= iMatch;
+		fSum_12 /= iMatch;
+	}
+
+	float fDenom = sqrtf(fSum_11 - fSum_1 * fSum_1) * fTempl_Std ;
+	float fNomin = (fSum_12 - fSum_1 * fTempl_Ave);
+
+	fCorrelation = (fDenom > 0) ? fNomin / fDenom : 0;
+}
+
+
+
+// 3*3 parabolic estimation
+// a*X^2 + b*Y^2 + c*XY + d*X + e*Y + f
+void	Estimate_Parabolic_3x3(const Mat& imCorr, float& fDx, float& fDy)
+{
+	float fA00 = imCorr.at<float>(0, 0);
+	float fA10 = imCorr.at<float>(1, 0);
+	float fA20 = imCorr.at<float>(2, 0);
+	float fA01 = imCorr.at<float>(0, 1);
+	float fA11 = imCorr.at<float>(1, 1);
+	float fA21 = imCorr.at<float>(2, 1);
+	float fA02 = imCorr.at<float>(0, 2);
+	float fA12 = imCorr.at<float>(1, 2);
+	float fA22 = imCorr.at<float>(2, 2);
+	float fCX2 = +fA00 + fA10 + fA20 + fA02 + fA12 + fA22;
+	float fCY2 = +fA00 + fA01 + fA02 + fA20 + fA21 + fA22;
+	float fCXY = +fA00 - fA02 - fA20 + fA22;
+	float fCX1 = -fA00 - fA10 - fA20 + fA02 + fA12 + fA22;
+	float fCY1 = -fA00 - fA01 - fA02 + fA20 + fA21 + fA22;
+	float fC1 = +fA00 + fA10 + fA20 + fA01 + fA11 + fA21 + fA02 + fA12 + fA22;
+
+	float fC = fCXY / 4;
+	float fD = fCX1 / 6;
+	float fE = fCY1 / 6;
+
+	Mat tABF = (Mat_<float>(3, 3) << 0.5000, 0.0000, -0.3333, 0.0000, 0.5000, -0.3333, -0.3333, -0.3333, 0.5556);
+	Mat tRes = tABF * (Mat_<float>(3, 1) << fCX2, fCY2, fC1);
+	float fA = tRes.at<float>(0);
+	float fB = tRes.at<float>(1);
+	float fF = tRes.at<float>(2);
+
+	Mat tMin = (Mat_<float>(2, 2) << 2 * fA, fC, fC, 2 * fB);
+	tMin = tMin.inv();
+	tRes = tMin * (Mat_<float>(2, 1) << -fD, -fE);
+	fDx = tRes.at<float>(0);
+	fDy = tRes.at<float>(1);
+}
+
+
+
 // return the estimated maximum using parabolic fit, assumin fV2 is the maximum
 float fParabolic_Estimation(float fV1, float fV2, float fV3)
 {
@@ -331,12 +474,17 @@ void Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, Mat& tCor
 	// correlation matrix
 	tCorr_Matrix.setTo(-1);
 
+	// temnplate average anb s.t.d
+	float fTempl_Ave, fTempl_Std ;
+	Template_Data (imTemplate, fTempl_Ave, fTempl_Std, iMode) ;
+
 	for (int iY1 = -iHalf_iSearch_Size; iY1 <= iHalf_iSearch_Size; iY1++) {
 		for (int iX1 = -iHalf_iSearch_Size; iX1 <= iHalf_iSearch_Size; iX1++) {
 			float	fCorrelation;
 			int		iMatch;
 
-			Correlate_Templates(imImage, imTemplate, iX1 + iTemplate_X - imTemplate.cols / 2, iY1 + iTemplate_Y - imTemplate.rows / 2, fCorrelation, iMatch, iMode);
+//			Correlate_Templates(imImage, imTemplate, iX1 + iTemplate_X - imTemplate.cols / 2, iY1 + iTemplate_Y - imTemplate.rows / 2, fCorrelation, iMatch, iMode);
+			Correlate_Templates(imImage, imTemplate, iX1 + iTemplate_X - imTemplate.cols / 2, iY1 + iTemplate_Y - imTemplate.rows / 2, fCorrelation, iMatch, fTempl_Ave, fTempl_Std, iMode);
 			tCorr_Matrix.at<float>(iY1 + iHalf_iSearch_Size, iX1 + iHalf_iSearch_Size) = fCorrelation;
 		}
 	}
@@ -355,6 +503,8 @@ void Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, Mat& tCor
 	if (tMax_Pos.x == 0 || tMax_Pos.x >= iSearch_Size - 1 || tMax_Pos.y == 0 || tMax_Pos.y >= iSearch_Size - 1)
 		fCorr = 0;
 	else {	// assign parabolic distance
+
+		//Estimate_Parabolic_3x3 (tCorr_Matrix(Rect(tMax_Pos.x - 1, tMax_Pos.y - 1, 3, 3)), fSub_Pixel_X, fSub_Pixel_Y) ;
 		fSub_Pixel_X = fParabolic_Estimation(tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x - 1), tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x), tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x + 1));
 		fSub_Pixel_Y = fParabolic_Estimation(tCorr_Matrix.at<float>(tMax_Pos.y - 1, tMax_Pos.x), tCorr_Matrix.at<float>(tMax_Pos.y, tMax_Pos.x), tCorr_Matrix.at<float>(tMax_Pos.y + 1, tMax_Pos.x));
 	}

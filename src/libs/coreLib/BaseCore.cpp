@@ -9,6 +9,7 @@
 //#include "algorithm_wrappers.h"
 
 #include "BackgroundThreadPool.h"
+#include "writequeue.h"
 #include "functions.h"
 #include "ProcessParameters.h"
 
@@ -186,6 +187,8 @@ void BaseCore::start() const
 		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 
+	// start file writer
+	initFileWriter(true);
 
 	// start one and only frame consuming thread
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
@@ -219,6 +222,10 @@ void BaseCore::stop() const
 	CORE_SCOPED_LOG << "Frame producer thread finished";
 	frameConsumerThread().join();
 	CORE_SCOPED_LOG << "Frame runner thread finished";
+
+	// stop file writer
+	initFileWriter(false);
+	CORE_SCOPED_LOG << "File writer stopped";
 
 	_currentFrameProvider->cleanup();
 	FrameRefPool::frameRefPool()->cleanup();
@@ -272,4 +279,19 @@ void BaseCore::initProviders()
 void BaseCore::initAlgorithmRunners()
 {
 	_algorithmRunnerList = IAlgorithmRunner::enumerateAlgorithmRunners();
+}
+
+void BaseCore::initFileWriter(bool bInit) const
+{
+	if ( bInit )
+	{
+		fileDumpThread().setThreadFunction(frameSaveImage);
+		fileDumpThread().start();
+		CORE_SCOPED_LOG << "File writer started";
+	}
+	else
+	{
+		fileDumpThread().stop();
+		fileDumpThread().join();
+	}
 }

@@ -71,7 +71,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -87,7 +87,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
@@ -99,7 +99,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -114,7 +114,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>
@@ -126,7 +126,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -141,7 +141,7 @@
     </Link>
     <QtMoc>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;BASEALGORITHMRUNNER_LIB;BUILD_STATIC;%(PreprocessorDefinitions)</Define>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threadingLib;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(SolutionDir)include;$(SolutionDir)src\libs\algorithmic_functions;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)src\libs\functionsLib;$(SolutionDir)\thirdparty\opencv\include;$(SolutionDir)src\libs\frameLib;$(SolutionDir)src\libs\threads;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\formatLib;%(AdditionalIncludeDirectories)</IncludePath>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
     </QtMoc>

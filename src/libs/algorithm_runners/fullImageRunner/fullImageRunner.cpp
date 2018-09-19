@@ -29,12 +29,12 @@ fullImageRunner::fullImageRunner()
 
 fullImageRunner::~fullImageRunner()
 {
-	FULLIMAGE_RUNNER_SCOPED_LOG << "destroyed";
+	//FULLIMAGE_RUNNER_SCOPED_LOG << "destroyed";
 }
 
 std::unique_ptr<IAlgorithmRunner> fullImageRunner::clone()
 {
-	return std::move(std::make_unique<fullImageRunner>(*this));
+	return std::make_unique<fullImageRunner>(*this);
 }
 
 QString fullImageRunner::getName() const

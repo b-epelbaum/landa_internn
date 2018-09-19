@@ -25,12 +25,12 @@ thread_local	Mat		g_aimWave_HSV[3];
 thread_local	Mat		g_imWave_Color_Circle;
 thread_local	Mat		g_imWave_Labels, g_imWave_Stat, g_imWave_Centroids;
 thread_local	Mat		g_tWave_Corr_Matrix(50, 50, CV_32F);
-Mat		g_imWave_Template_Smooth;				// template after smoothing
 thread_local	Mat		g_imWave_Display;
 thread_local	Mat		g_imWave_Color_Circle_Dil;
 
 thread_local	float	g_afX[MAX_CIRCLES_IN_WAVE];		// position of each circle - X
 thread_local	float	g_afY[MAX_CIRCLES_IN_WAVE];		// position of each circle - Y
+Mat		g_imWave_Template_Smooth;				// template after smoothing
 
 
 void detect_wave_init(const WAVE_INIT_PARAMETER& initParam)
@@ -50,6 +50,7 @@ int Compare_Circle_Pos(const void* arg1, const void* arg2)
 	else
 		return 0;
 }
+
 
 
 void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_OUTPUT> output)
@@ -80,11 +81,11 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	int iH_Center, iH_Range;
 	if (input->_circleColor._min._iH < input->_circleColor._max._iH) {
 		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH) / 2;
-		iH_Range = input->_circleColor._max._iH - input->_circleColor._min._iH;
+		iH_Range = (input->_circleColor._max._iH - input->_circleColor._min._iH) / 2 ;
 	}
 	else {
 		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH - 180) / 2;
-		iH_Range = input->_circleColor._max._iH - input->_circleColor._min._iH + 180;
+		iH_Range = (input->_circleColor._max._iH - input->_circleColor._min._iH + 180) / 2 ;
 		if (iH_Center < 0)
 			iH_Center += 180;
 	}
@@ -123,7 +124,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 
 		// rem ve blobls - to small, too large, high aspect ratio
 		// iSize < 10000 for not removing the non-circles blob of the entire frame
-		if (((iSize < 40 || iSize > 200) || abs(iWH - iHT) > 7) && iSize < 10000)
+		if (((iSize < 50 || iSize > 200) || abs(iWH - iHT) > 7) && iSize < 10000)
 			g_imWave_Color_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
 	}
 //	imwrite("e:\\temp\\Overlay_02.tif", g_imWave_Color_Circle);
@@ -142,71 +143,81 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 
 			Point tCircle_Center = cv::Point((int)round(g_afX[iCircle]), round(g_afY[iCircle]));
 
-			output->_colorCenters[iLabel-1]._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			output->_colorCenters[iLabel-1]._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			output->_colorDetectionResults[iLabel-1] = ALG_STATUS_SUCCESS ;
+			output->_colorCenters[iCircle]._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_colorCenters[iCircle]._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_colorDetectionResults[iCircle] = ALG_STATUS_SUCCESS ;
+
+			if (input->_GenerateOverlay) {
+				// draw cross around center
+				for (int iY = -5; iY < 5; iY++) {
+					Draw_Point(*output->_colorOverlay, g_afX[iCircle], g_afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+					Draw_Point(*output->_colorOverlay, g_afX[iCircle] + iY, g_afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
+				}
+			}
 		}
 		else {
-			output->_colorCenters[iLabel - 1]._x = 0 ;
-			output->_colorCenters[iLabel - 1]._y = 0 ;
+			output->_colorCenters[iCircle]._x = 0 ;
+			output->_colorCenters[iCircle]._y = 0 ;
 			output->_colorDetectionResults[iLabel - 1] = ALG_STATUS_FAILED;
-		}
-
-		if (input->_GenerateOverlay) {
-			int iX, iY;
-			dilate(g_imWave_Color_Circle, g_imWave_Color_Circle_Dil, Mat::ones(3, 3, CV_8U));
-			g_imWave_Color_Circle_Dil = g_imWave_Color_Circle_Dil - g_imWave_Color_Circle;
-
-			// cout << iCircle << '\t' << g_afX[iCircle] << '\t' << g_afY[iCircle] << endl;
-
-			int iStart_X = max((int)g_afX[iCircle] - 20, 0);
-			int iEnd_X = min((int)g_afX[iCircle] + 20, g_imWave_Color_Circle_Dil.cols - 1);
-			int iStart_Y = max((int)g_afY[iCircle] - 20, 0);
-			int iEnd_Y = min((int)g_afY[iCircle] + 20, g_imWave_Color_Circle_Dil.rows - 1);
-
-			// draw detection overlay - after threshold result
-			for (iY = iStart_Y; iY < iEnd_Y; iY++)
-				for (iX = iStart_X; iX < iEnd_X; iX++)
-					if (g_imWave_Color_Circle_Dil.at<byte>(iY, iX))
-						Draw_Point(*output->_colorOverlay, iX, iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
-
-			// draw cross around center
-			for (iY = -5; iY < 5; iY++) {
-				Draw_Point(*output->_colorOverlay, g_afX[iCircle], g_afY[iCircle] + iY, tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
-				Draw_Point(*output->_colorOverlay, g_afX[iCircle] + iY, g_afY[iCircle], tRGB.at<Vec3b>(0)[0], tRGB.at<Vec3b>(0)[1], tRGB.at<Vec3b>(0)[2]);
-			}
 		}
 	}
 
-#if 0
+	if (input->_GenerateOverlay) {
+		int iX, iY;
+		dilate(g_imWave_Color_Circle, g_imWave_Color_Circle_Dil, Mat::ones(3, 3, CV_8U));
+		g_imWave_Color_Circle_Dil = g_imWave_Color_Circle_Dil - g_imWave_Color_Circle;
+
+		int iStart_X = 0;
+		int iStart_Y = 0;
+		int iEnd_X = g_imWave_Color_Circle_Dil.cols ;
+		int iEnd_Y = g_imWave_Color_Circle_Dil.rows ;
+
+		// draw detection overlay - after threshold result
+		for (iY = iStart_Y; iY < iEnd_Y; iY++)
+			for (iX = iStart_X; iX < iEnd_X; iX++)
+				if (g_imWave_Color_Circle_Dil.at<byte>(iY, iX)) {
+					(*output->_colorOverlay).at<Vec3b>(iY, iX)[0] = tRGB.at<Vec3b>(0)[2] ;
+					(*output->_colorOverlay).at<Vec3b>(iY, iX)[1] = tRGB.at<Vec3b>(0)[1];
+					(*output->_colorOverlay).at<Vec3b>(iY, iX)[2] = tRGB.at<Vec3b>(0)[0];
+				}
+	}
+
+//#if 0
+//	char sOvl_Name[256];
+//	sprintf_s(sOvl_Name, "e:\\temp\\wv_%03d.jpg", iSeq);
+//	imwrite(sOvl_Name, *output->_colorOverlay);
+//	iSeq++;
+
 // for checking accuracy
 	int iCnt;
 	Circle_Pos atPos[1000];
-	for (iCnt = 0; iCnt < iLabels - 1; iCnt++) {
-		atPos[iCnt].x = g_afX[iCnt];
-		atPos[iCnt].y = g_afY[iCnt];
-	}
-	qsort(atPos, iLabels - 1, sizeof(atPos[0]), Compare_Circle_Pos);
+
+	int iAcc_Samples = 0 ;
+	for (iCnt = 0; iCnt < iLabels - 1; iCnt++)
+		if (output->_colorDetectionResults[iCnt] == ALG_STATUS_SUCCESS) {
+			atPos[iAcc_Samples].x = g_afX[iCnt];
+			atPos[iAcc_Samples].y = g_afY[iCnt];
+			iAcc_Samples ++ ;
+		}
+	qsort(atPos, iAcc_Samples, sizeof(atPos[0]), Compare_Circle_Pos);
 
 	float fErr_X = 0;
 	float fErr_Y = 0;
-	for (iCnt = 1; iCnt < iLabels - 2; iCnt++) {
+	for (iCnt = 1; iCnt < iAcc_Samples - 1; iCnt++) {
 		float fCurrent_Err_X = atPos[iCnt].x - (atPos[iCnt - 1].x + atPos[iCnt + 1].x) / 2;
 		float fCurrent_Err_Y = atPos[iCnt].y - (atPos[iCnt - 1].y + atPos[iCnt + 1].y) / 2;
 		fErr_X += fabsf(fCurrent_Err_X);
 		fErr_Y += fabsf(fCurrent_Err_Y);
+
+		if (fabsf(fCurrent_Err_X) > 1 || fabsf(fCurrent_Err_Y) > 1)
+			fCurrent_Err_X = fCurrent_Err_X ;
+
 	}
 
 	std::fstream tRes ("e:\\temp\\Wave.txt", std::ios::app) ;
-	tRes << "Number, Error X, Y: " << iLabels  << '\t' << fErr_X / iLabels << '\t' << fErr_Y / iLabels << std::endl;
+	tRes << "Number, Error X, Y: " << iLabels  << '\t' << iAcc_Samples << '\t' << fErr_X / (iAcc_Samples - 2) << '\t' << fErr_Y / (iAcc_Samples - 1 - 2) << std::endl;
 	tRes.close () ;
-#endif
-
-//	char sOvl_Name[256];
-//	sprintf_s(sOvl_Name, "e:\\temp\\wv_%03d.jpg", iSeq);
-//	imwrite(sOvl_Name, output->_colorOverlay);
-//	iSeq++;
-
+//#endif
 }
 
 

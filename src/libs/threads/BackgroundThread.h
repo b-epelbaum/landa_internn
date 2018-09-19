@@ -3,6 +3,7 @@
 #include <mutex>
 #include <future>
 #include <utility>
+#include "global.h"
 
 namespace LandaJune
 {
@@ -11,14 +12,14 @@ namespace LandaJune
 		enum class THREAD_STATE { IDLE = 0, BUSY };
 		enum THREAD_PRIORITY { NORMAL = 0, HIGH };
 
-		class BackgroundThread
+		class THREADS_EXPORT BackgroundThread
 		{
 			friend class ThreadPool;
 			using autolock = std::lock_guard<std::mutex>;
 			static void default_error_handler(std::exception &) {}
 
 		public:
-			BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP = NORMAL) : _priority(tP), _name(std::move(name)), _index(index) {}
+			BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP = NORMAL);
 			BackgroundThread(const BackgroundThread &) = delete;
 			BackgroundThread(BackgroundThread &&) = delete;
 			~BackgroundThread();

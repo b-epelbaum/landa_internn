@@ -1,5 +1,9 @@
 #pragma once
 #include <string>
+#include <vector>
+#include <memory>
+#include <tuple>
+
 
 namespace LandaJune {
 	namespace FrameProviders {
@@ -32,9 +36,7 @@ namespace LandaJune
 		void frameGenerate(std::shared_ptr<FrameProviders::IFrameProvider> frameProvider);
 		void frameConsume(std::shared_ptr<Algorithms::IAlgorithmRunner> algorithmRunner);
 		void frameRunAlgorithms(Core::FrameRef *frame, const std::unique_ptr<Algorithms::IAlgorithmRunner>& algorithmHandler);
-		void frameProcessOutput();
-		void frameSaveImage(std::shared_ptr<cv::Mat> image, std::string pathName);
-		void frameSaveImage(cv::Mat * pimage, std::string pathName);
+		void frameSaveImage(std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string> & args);
 	}
 }
 

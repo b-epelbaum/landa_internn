@@ -1,11 +1,20 @@
+#include "stdafx.h"
 #include "BackgroundThread.h"
-#include <Windows.h>
-#include "applog.h"
+//#include "applog.h"
 
 using namespace LandaJune::Threading;
 
-#define THREAD_SCOPED_LOG PRINT_INFO7 << " -- [BackgroundThread : " << _name.c_str() << "] : "
-#define THREAD_SCOPED_ERROR PRINT_ERROR << " -- [BackgroundThread : " << _name.c_str() << "] : "
+//#define THREAD_SCOPED_LOG PRINT_INFO7 << " -- [BackgroundThread : " << _name.c_str() << "] : "
+//#define THREAD_SCOPED_ERROR PRINT_ERROR << " -- [BackgroundThread : " << _name.c_str() << "] : "
+
+BackgroundThread::BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP ) 
+	: _error_handler(default_error_handler)
+	, _priority(tP)
+	, _name(std::move(name))
+	, _index(index)
+{
+	
+}
 
 BackgroundThread::~BackgroundThread()
 {
@@ -51,7 +60,7 @@ bool BackgroundThread::join()
 
 void BackgroundThread::threadFunction(BackgroundThread *pThis)
 {
-	PRINT_INFO7 << "[BackgroundThread: " << pThis->_name.c_str() << "; IDX: " << pThis->_index << "(" << GetCurrentThreadId() << ")] started on CPU #" << GetCurrentProcessorNumber();
+	//PRINT_INFO7 << "[BackgroundThread: " << pThis->_name.c_str() << "; IDX: " << pThis->_index << "(" << GetCurrentThreadId() << ")] started on CPU #" << GetCurrentProcessorNumber();
 	pThis->setState(THREAD_STATE::BUSY);
 
 	// TODO : think about removing sleep

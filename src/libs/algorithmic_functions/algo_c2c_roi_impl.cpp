@@ -101,11 +101,11 @@ void detect_c2c_roi(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, std::shared_ptr
 		int iH_Center, iH_Range ;
 		if (input->_colors[iCircle]._min._iH < input->_colors[iCircle]._max._iH) {
 			iH_Center = (input->_colors[iCircle]._min._iH + input->_colors[iCircle]._max._iH) / 2 ;
-			iH_Range = input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH ;
+			iH_Range = (input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH) / 2 ;
 		}
 		else {
 			iH_Center = (input->_colors[iCircle]._min._iH + input->_colors[iCircle]._max._iH - 180) / 2;
-			iH_Range = input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH + 180;
+			iH_Range = (input->_colors[iCircle]._max._iH - input->_colors[iCircle]._min._iH + 180) / 2;
 			if (iH_Center < 0)
 				iH_Center += 180 ;
 		}

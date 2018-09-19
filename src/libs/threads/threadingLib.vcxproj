@@ -17,6 +17,7 @@
   <ItemGroup>
     <ClInclude Include="BackgroundThreadPool.h" />
     <ClInclude Include="BackgroundThread.h" />
+	<ClInclude Include="writequeue.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BackgroundThread.cpp" />

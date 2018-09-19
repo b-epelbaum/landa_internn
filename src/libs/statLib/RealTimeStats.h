@@ -31,6 +31,7 @@ namespace LandaJune
 				objectsPerSec_performedAlgoResultFail,
 				objectsPerSec_createdRegionsFail,
 				objectsPerSec_savedBitmapsFail,
+				objects_saveQueleLength,
 				statsNumber
 
 			};

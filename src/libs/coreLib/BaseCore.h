@@ -64,6 +64,7 @@ namespace LandaJune
 			void initFramePool() const;
 			void initProviders();
 			void initAlgorithmRunners();
+			void initFileWriter( bool bInit ) const;
 			bool _bInited = false;
 
 			std::list<FrameProviderPtr> _providerList;

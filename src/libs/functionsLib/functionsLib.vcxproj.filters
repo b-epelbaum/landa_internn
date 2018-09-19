@@ -37,9 +37,6 @@
     <ClCompile Include="frameGenerate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="frameProcessOutput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="frameRunAlgorithms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

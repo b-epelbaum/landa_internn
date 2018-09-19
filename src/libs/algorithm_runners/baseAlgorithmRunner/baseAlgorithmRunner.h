@@ -53,18 +53,16 @@ namespace LandaJune
 			}
 
 			baseAlgorithmRunner(baseAlgorithmRunner &&) = delete;
-			virtual ~baseAlgorithmRunner() = default;
+			virtual ~baseAlgorithmRunner();
 
 			const baseAlgorithmRunner & operator = (const baseAlgorithmRunner &) = delete;
 			baseAlgorithmRunner & operator = (baseAlgorithmRunner &&) = delete;
 
-			void init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			void process(const Core::FrameRef * frame) override;
 
 			std::shared_ptr<Parameters::BaseParameters> getParameters() const override { return _processParameters; }
 
 		protected:
-
 			virtual void validateProcessParameters(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 
 			virtual void fillCommonProcessParameters(std::shared_ptr<ABSTRACT_INPUT> input);

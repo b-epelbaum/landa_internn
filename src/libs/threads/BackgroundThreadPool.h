@@ -7,7 +7,7 @@ namespace LandaJune
 {
 	namespace Threading
 	{
-		class BackgroundThreadPool 
+		class THREADS_EXPORT BackgroundThreadPool 
 		{
 			using autolock = std::lock_guard<std::mutex>;
 
@@ -15,7 +15,7 @@ namespace LandaJune
 				explicit BackgroundThreadPool(const THREAD_PRIORITY tP = NORMAL, std::string alias = "Anonymous") : _alias(std::move(alias)), _priority(tP) {}
 				BackgroundThreadPool(const BackgroundThreadPool &) = delete;
 				BackgroundThreadPool(BackgroundThreadPool &&) = delete;
-				~BackgroundThreadPool() { stop(); }
+				~BackgroundThreadPool();
 
 				const BackgroundThreadPool & operator = (const BackgroundThreadPool &) = delete;
 				BackgroundThreadPool & operator = (BackgroundThreadPool &&) = delete;
@@ -24,7 +24,6 @@ namespace LandaJune
 				std::string alias() const { return _alias;  }
 
 				bool start(const uint64_t len = std::thread::hardware_concurrency());
-				void stop();
 
 				void setErrorHandler(std::function<void(std::exception &)> handler);
 
@@ -57,43 +56,16 @@ namespace LandaJune
 		 * Declaration of thread pools
 		 */
 
-		 /**
-		 * \brief processingPool provides the thread pool for frame processing
-		 * \return
-		 */
-		ThreadPool& processingPool();
-
-		/**
-		  * \brief copyRegionsPool provides the thread pool for independent region copy copying ( obsolete )
-		  * \return
-		  */
-		ThreadPool& copyRegionsPool();
-
-		/**
-		  * \brief saveBitmapPool provides the thread pool for saving data to disk ( in various formats )
-		  * \return
-		  */
-		ThreadPool& saveBitmapPool();
-
-
 		/**
 		* \brief imageGenerationThread the only thread which deals with image acquisition ( emulation/generation/capture ), e.g. Frame Producer
 		* \return
 		*/
-		inline BackgroundThread& frameProducerThread()
-		{
-			static BackgroundThread __th("Frame Producer Thread", 100);
-			return __th;
-		}
+		THREADS_EXPORT BackgroundThread& frameProducerThread();
 
 		/**
 		* \brief imageProcessingThread the only thread which deals with image processing, including in-memory region copying and algorithmic image processing, e.g. Frame Consumer
 		* \return
 		*/
-		inline BackgroundThread& frameConsumerThread()
-		{
-			static BackgroundThread __th("Frame Consumer Thread", 200);
-			return __th;
-		}
+		THREADS_EXPORT BackgroundThread& frameConsumerThread();
 	}
 }

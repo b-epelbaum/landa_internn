@@ -130,15 +130,10 @@ namespace LandaJune
 				PARAMS_I2S_INPUT & operator = (PARAMS_I2S_INPUT &&) = delete;
 				virtual ~PARAMS_I2S_INPUT () = default;
 
-				std::string getElementName() const override
+				std::string getElementName() const  override
 				{
-					return fmt::format("I2S_{0}_[{1},{2}]"
-						, SIDE_NAMES[_side]
-						, _approxTriangeROI.left()
-						, _approxTriangeROI.top()
-					);
+					return fmt::format("I2S_{0}", SIDE_NAMES[_side]);
 				}
-
 
 				SHEET_SIDE					_side = LEFT;
 				ROIRect						_approxTriangeROI {};
@@ -264,7 +259,7 @@ namespace LandaJune
 
 			std::string getElementName() const  override
 			{
-				return fmt::format("Edge_{0}", SIDE_NAMES[_side]);
+				return fmt::format("Strip_{0}", SIDE_NAMES[_side]);
 			}
 
 			SHEET_SIDE											_side = LEFT;
@@ -322,7 +317,7 @@ namespace LandaJune
 				ABSTRACT_OUTPUT & operator = (ABSTRACT_OUTPUT &&) = delete;
 				virtual ~ABSTRACT_OUTPUT() = default;
 
-				virtual std::string getElementName() const = 0;
+				virtual std::string getElementName() = 0;
 				virtual std::shared_ptr<cv::Mat> overlay() const  = 0;
 
 				OUT_STATUS	_result = ALG_STATUS_FAILED;
@@ -351,14 +346,9 @@ namespace LandaJune
 
 				std::shared_ptr<PARAMS_I2S_INPUT>	_input;
 
-
-				std::string getElementName() const override
+				std::string getElementName() override
 				{
-					return fmt::format("I2S_{0}_[{1},{2}]_overlay"
-						, SIDE_NAMES[_input->_side]
-						, _input->_approxTriangeROI.left()
-						, _input->_approxTriangeROI.top()
-					);
+					return fmt::format("I2S_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 			
 				std::shared_ptr<cv::Mat> overlay()  const override
@@ -387,12 +377,10 @@ namespace LandaJune
 				uint32_t								_exactDistanceFromEdgeX = -1;
 				std::shared_ptr<cv::Mat>				_edgeOverlay;
 				std::shared_ptr<PARAMS_PAPEREDGE_INPUT>	_input;
-							
-				std::string getElementName() const override
+			
+				std::string getElementName() override
 				{
-					return fmt::format("Edge_{0}_overlay"
-						, SIDE_NAMES[_input->_side]
-					);
+					return fmt::format("Edge_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 				
 				std::shared_ptr<cv::Mat> overlay() const override
@@ -424,13 +412,10 @@ namespace LandaJune
 				std::shared_ptr<PARAMS_C2C_ROI_INPUT>	_input;
 
 			///
-				std::string getElementName() const override
+				std::string getElementName() override
 				{
-					return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay"
-							, SIDE_NAMES[_input->_side]
-							, _input->_roiIndex
-							, _input->_ROI.left()
-							, _input->_ROI.top());
+					const auto castInput = std::static_pointer_cast<PARAMS_C2C_ROI_INPUT>(_input);
+					return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[castInput->_side], castInput->_roiIndex, castInput->_ROI.left(), castInput->_ROI.top());
 				}
 
 				std::shared_ptr<cv::Mat> overlay() const  override
@@ -461,7 +446,7 @@ namespace LandaJune
 				std::shared_ptr<cv::Mat>				_colorOverlay;
 				std::shared_ptr<PARAMS_WAVE_INPUT>		_input;
 				
-				std::string getElementName() const override
+				std::string getElementName() override
 				{
 					return fmt::format("Wave_[{0}]", std::static_pointer_cast<PARAMS_WAVE_INPUT>(_input)->_circleColor._colorName);
 				}
@@ -497,7 +482,7 @@ namespace LandaJune
 				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>									_input;
 				
 								
-				std::string getElementName() const override
+				std::string getElementName() override
 				{
 					return fmt::format("Strip_{0}_overlay", SIDE_NAMES[std::static_pointer_cast<PARAMS_C2C_STRIP_INPUT>(_input)->_side]);
 				}
@@ -534,7 +519,7 @@ namespace LandaJune
 				std::shared_ptr<PARAMS_C2C_SHEET_INPUT>											_input;
 				///
 
-				std::string getElementName() const override
+				std::string getElementName() override
 				{
 					return "Frame_overlay";
 				}
