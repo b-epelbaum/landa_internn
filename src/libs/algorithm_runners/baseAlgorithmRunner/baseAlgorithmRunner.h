@@ -80,6 +80,7 @@ namespace LandaJune
 			virtual void generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const;
 
 			virtual void processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput);
+			virtual void processWaveOutputs(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs );
 
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
 

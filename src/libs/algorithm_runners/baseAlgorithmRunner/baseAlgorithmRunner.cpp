@@ -368,6 +368,8 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 			func();
 		});
 	}
+
+	processWaveOutputs(retVal->_waveOutputs);
 	return retVal;
 }
 
@@ -683,11 +685,11 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 	const auto& circleCount = input->_circlesCount;
 
 	retVal->_result = ALG_STATUS_FAILED;
-	//retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
-	//retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
+	retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
+	retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
 
-	retVal->_colorDetectionResults.reserve(static_cast<const uint64_t>(circleCount));
-	retVal->_colorCenters.reserve(static_cast<const uint64_t>(circleCount));
+	//retVal->_colorDetectionResults.reserve(static_cast<const uint64_t>(circleCount));
+	//retVal->_colorCenters.reserve(static_cast<const uint64_t>(circleCount));
 	
 	BASE_RUNNER_SCOPED_LOG << "WAVE Detection [color : " << input->_circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
 	try
@@ -824,6 +826,36 @@ void baseAlgorithmRunner::processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OU
 				{
 					dumpPlacementCSV(stripOutput, _frameIndex, _imageIndex, _csvFolder  );
 				}
+			}
+		}
+	}
+}
+
+
+void baseAlgorithmRunner::processWaveOutputs(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
+{
+	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
+	{
+		const auto csvFolder = _csvFolder;
+		const auto imgIndex = _imageIndex;
+		const auto frameIndex = _frameIndex;
+		const auto jobID = _processParameters->JobID();
+
+		if (_bParallelCalc)
+		{
+			if (_processParameters->SaveWaveCSV())
+			{
+				task<void> tWaveCSV([csvFolder, imgIndex, frameIndex, jobID, waveOutputs]()
+				{
+					dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder );
+				});
+			}
+		}
+		else
+		{
+			if (_processParameters->SaveWaveCSV())
+			{
+				dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder );
 			}
 		}
 	}

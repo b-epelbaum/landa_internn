@@ -143,6 +143,11 @@ namespace LandaJune
 		return fmt::format("{0}\\ImagePlacement_{1}.csv", csvFolder, SIDE_NAMES[side]);
 	}
 
+	static std::string generateFullPathForWaveCSV(const std::string csvFolder, const int frameIndex )
+	{
+		return fmt::format("{0}\\WaveY_{1}.csv", csvFolder, frameIndex );
+	}
+
 
 	static std::string getElementPrefix(const int frameIndex, const int imageIndex )
 	{
@@ -217,6 +222,60 @@ namespace LandaJune
 		}
 
 		return retVal;
+	}
+
+
+	static void dumpWaveCSV(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs
+				, const int jobID
+				, const int frameIndex
+				, const int imageIndex
+				, const std::string csvFolder  )
+	{
+		auto overallResult = 
+		std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& colorWave) { return colorWave->_result == ALG_STATUS_SUCCESS; } )
+		? ALG_STATUS_SUCCESS
+		: ALG_STATUS_FAILED;
+
+		std::string resultName = (overallResult == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+
+		std::ostringstream ss;
+		ss << "Pattern Type :,WaveY" << std::endl << std::endl
+		<< "Job Id :," <<jobID << std::endl
+		<< "Flat ID :," << frameIndex << std::endl
+		<< "ImageIndex ID :," << imageIndex << std::endl
+		<< "Mark Index In Layout Id :,2" << std::endl
+		<< "Wave Y Overall Status :," << resultName << std::endl
+		<< "DotIndex\\Separation,";
+
+		const auto colorCount = waveOutputs.size();
+		auto counter = 0;
+		for (const auto& out : waveOutputs)
+		{
+			resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+			ss << out->_input->_circleColor._colorName << "(" << resultName << ")";
+			if ( counter < colorCount -1 )
+				ss << ",";
+			counter++;
+		}
+		ss << std::endl;
+
+		for ( size_t i = 0; i < waveOutputs[0]->_colorCenters.size(); i++)
+		{
+			ss << i << ",";
+			for ( size_t j = 0; j <colorCount-1; j++)
+			{
+				ss <<  waveOutputs[j]->_colorCenters[i]._y << ",";
+			}
+			ss <<  waveOutputs[colorCount-1]->_colorCenters[i]._y << std::endl;
+		}
+
+		auto const& fPath = generateFullPathForWaveCSV(csvFolder,frameIndex );
+		const auto& outString = ss.str();
+		const auto& charData = outString.c_str();
+
+		auto dataVector = std::make_shared<std::vector<unsigned char>>();
+		dataVector->assign(charData, charData + outString.size() + 1 );
+		Core::dumpThreadPostJob(dataVector, fPath);
 	}
 
 	static void dumpRegistrationCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut

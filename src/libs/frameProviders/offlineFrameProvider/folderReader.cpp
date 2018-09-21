@@ -56,7 +56,7 @@ FRAME_PROVIDER_ERROR folderReader::prepareData(FrameRef* frameRef)
 		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
+	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
 }
 
@@ -76,8 +76,7 @@ FRAME_PROVIDER_ERROR folderReader::accessData(FrameRef* frameRef)
 	}
 
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
-	++_lastAcquiredImage;
-	
+
 	const auto w = tempMatObject->cols;
 	const auto h = tempMatObject->rows;
 	const auto s = tempMatObject->step[0] * tempMatObject->rows;

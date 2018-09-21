@@ -41,7 +41,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 		static auto _droppedFrameCount = 0;
 		if (frameProvider->warnAboutDroppedFrames())
 		{
-			FRAMEGENERATE_SCOPED_WARNING << "No free FrameRef object in pool ! [ FRAME # " << frameProvider->getCurrentFrameIndex() << " DROPPED] Total dropped : " << ++_droppedFrameCount;
+			//FRAMEGENERATE_SCOPED_WARNING << "No free FrameRef object in pool ! [ FRAME # " << frameProvider->getCurrentFrameIndex() << " DROPPED] Total dropped : " << ++_droppedFrameCount;
 			//RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, 1.0e-6);
 		}
 
