@@ -39,7 +39,7 @@ using namespace Functions;
 
 #define CHECK_IF_INITED if (!_bInited ) \
 { \
-	throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NOT_INITIALIZED, ""); \
+	throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NOT_INITIALIZED), ""); \
 }
 
 
@@ -110,7 +110,7 @@ void BaseCore::selectFrameProvider(FrameProviderPtr provider)
 	{
 		if (_currentFrameProvider->isBusy())
 		{
-			throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY, "");
+			throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY), "");
 		}
 
 		_currentFrameProvider->cleanup();
@@ -147,17 +147,17 @@ void BaseCore::start() const
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED, "");
+		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED), "");
 	}
 
 	if (!_currentAlgorithmRunner)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED, "");
+		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED), "");
 	}
 
 	if (_currentFrameProvider->isBusy())
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY, "");
+		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY), "");
 	}
 
 	// call algorithms initialization functions
@@ -168,7 +168,7 @@ void BaseCore::start() const
 	}
 	catch(...)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
+		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION), "");
 	}
 
 
@@ -179,12 +179,12 @@ void BaseCore::start() const
 		const auto& err = _currentFrameProvider->init();
 		if ( err != FRAME_PROVIDER_ERROR::ERR_NO_ERROR )
 		{
-			throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT, "");
+			throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT), "");
 		}
 	}
 	catch (...)
 	{
-		throw CoreEngineException(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION, "");
+		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION), "");
 	}
 
 	// start file writer
@@ -201,11 +201,12 @@ void BaseCore::start() const
 	// the entry point of this thread is the "frameGenerate" static function, which invokes the data generation functions of IAbstractImageProvider object
 	// see "frameGenerate" implementation
 	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider);
+	frameProducerThread().setErrorHandler(providerExceptionHandler, (void*)this);
 	frameProducerThread().start();
 	
 }
 
-void BaseCore::stop() const
+void BaseCore::stop( int error )
 {
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
@@ -231,8 +232,8 @@ void BaseCore::stop() const
 	FrameRefPool::frameRefPool()->cleanup();
 	if ( _currentAlgorithmRunner)
 		_currentAlgorithmRunner->cleanup();
-
-
+		
+	emit coreStopped(error);
 }
 
 bool BaseCore::isBusy()
@@ -243,6 +244,11 @@ bool BaseCore::isBusy()
 		return false;
 
 	return _currentFrameProvider->isBusy();
+}
+
+void BaseCore::onException(int error)
+{
+	stop(error);
 }
 
 QString BaseCore::getDefaultConfigurationFileName() const
@@ -265,9 +271,9 @@ void BaseCore::initFramePool() const
 	{
 		FrameRefPool::frameRefPool()->init(_currentFrameProvider->getRecommendedFramePoolSize());
 	}
-	catch (FrameRefException& e)
+	catch (BaseException& e)
 	{
-		CORE_SCOPED_ERROR << "Error initializing frame pool; error ID : " << toInt(e.error());
+		CORE_SCOPED_ERROR << "Error initializing frame pool; error ID : " << e.error();
 	}
 }
 
@@ -285,7 +291,7 @@ void BaseCore::initFileWriter(bool bInit) const
 {
 	if ( bInit )
 	{
-		fileDumpThread().setThreadFunction(frameSaveImage);
+		fileDumpThread().setThreadFunction(frameSaveData);
 		fileDumpThread().start();
 		CORE_SCOPED_LOG << "File writer started";
 	}
@@ -294,4 +300,9 @@ void BaseCore::initFileWriter(bool bInit) const
 		fileDumpThread().stop();
 		fileDumpThread().join();
 	}
+}
+
+void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex )
+{
+	auto bRes = QMetaObject::invokeMethod(static_cast<BaseCore*>(pThis), "onException", Qt::QueuedConnection, Q_ARG(int, ex.error()));
 }

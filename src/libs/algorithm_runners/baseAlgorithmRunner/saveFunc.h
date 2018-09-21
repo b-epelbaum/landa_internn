@@ -116,7 +116,7 @@ namespace LandaJune
 			if ( cv::imencode(".bmp",*img.get(), *data ) )
 			{
 				auto params = std::make_tuple(data, filePath);
-				Functions::frameSaveImage(params);
+				Functions::frameSaveData(params);
 			}
 			else
 			{

@@ -36,7 +36,7 @@ namespace LandaJune
 		void frameGenerate(std::shared_ptr<FrameProviders::IFrameProvider> frameProvider);
 		void frameConsume(std::shared_ptr<Algorithms::IAlgorithmRunner> algorithmRunner);
 		void frameRunAlgorithms(Core::FrameRef *frame, const std::unique_ptr<Algorithms::IAlgorithmRunner>& algorithmHandler);
-		void frameSaveImage(std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string> & args);
+		void frameSaveData(std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string> & args);
 	}
 }
 

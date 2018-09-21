@@ -683,8 +683,11 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 	const auto& circleCount = input->_circlesCount;
 
 	retVal->_result = ALG_STATUS_FAILED;
-	retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
-	retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
+	//retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
+	//retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
+
+	retVal->_colorDetectionResults.reserve(static_cast<const uint64_t>(circleCount));
+	retVal->_colorCenters.reserve(static_cast<const uint64_t>(circleCount));
 	
 	BASE_RUNNER_SCOPED_LOG << "WAVE Detection [color : " << input->_circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
 	try

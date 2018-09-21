@@ -146,6 +146,8 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="cmdHdr.h" />
+    <ClInclude Include="ensureCleanup.h" />
     <ClInclude Include="util.h" />
     <ClInclude Include="utillib_global.h" />
   </ItemGroup>

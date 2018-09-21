@@ -50,63 +50,42 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 		return;
 	}
 
-	FRAME_PROVIDER_ERROR retVal;
-	std::string msg;
 	const auto& tStart = Utility::now_in_microseconds();
-	try
+	// set provider name to the frame
+	frameRef->setNamedParameter(NAMED_PROPERTY_PROVIDER_NAME, frameProvider->getName().toStdString());
+
+	// assign postData callback to the frameRefObject
+	using namespace std::placeholders;
+	std::function<void(Core::FrameRef*)> f = std::bind(&IFrameProvider::releaseData, frameProvider, _1);
+	frameRef->setPostDataFunction(f);
+
+	// prepare data for pushing to the frameObject
+	FRAME_PROVIDER_ERROR retVal = frameProvider->prepareData(frameRef.get());
+	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
 	{
-		// set provider name to the frame
-		frameRef->setNamedParameter(NAMED_PROPERTY_PROVIDER_NAME, frameProvider->getName().toStdString());
-
-		// assign postData callback to the frameRefObject
-		using namespace std::placeholders;
-		std::function<void(Core::FrameRef*)> f = std::bind(&IFrameProvider::releaseData, frameProvider, _1);
-		frameRef->setPostDataFunction(f);
-
-		// prepare data for pushing to the frameObject
-		retVal = frameProvider->prepareData(frameRef.get());
-		if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+		framePool->release(std::move(frameRef));
+		if (frameProvider->canContinue(retVal))
 		{
-			framePool->release(std::move(frameRef));
-			if (frameProvider->canContinue(retVal))
-			{
-				return;
-			}
-			throw std::runtime_error(msg.c_str());
+			return;
 		}
+		throw BaseException(toInt(retVal));
+	}
 
 
-		// perform an actual acquisition
-		retVal = frameProvider->accessData (frameRef.get());
-		if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
-		{
-			framePool->release(std::move(frameRef));
-			FRAMEGENERATE_SCOPED_ERROR << "Image provider failed getting frame. Error : " << toInt(retVal);
-			if (frameProvider->canContinue(retVal))
-				return;
-			throw std::runtime_error(msg.c_str());
-		}
+	// perform an actual acquisition
+	retVal = frameProvider->accessData (frameRef.get());
+	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+	{
+		framePool->release(std::move(frameRef));
+		FRAMEGENERATE_SCOPED_ERROR << "Image provider failed getting frame. Error : " << toInt(retVal);
+		if (frameProvider->canContinue(retVal))
+			return;
+		throw BaseException(toInt(retVal));
+	}
+
+	// push loaded frame reference object to queue
+	framePool->pushNextLoaded(std::move(frameRef));
 	
-		// push loaded frame reference object to queue
-		framePool->pushNextLoaded(std::move(frameRef));
-	}
-
-	catch (ProviderException &fpe)
-	{
-		auto err = fpe.error();
-		retVal = FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
-	}
-
-	catch (std::exception &e)
-	{
-		msg = e.what();
-		retVal = FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
-	}
-	catch (...)
-	{
-		msg = "Unknown error";
-		retVal = FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
-	}
 	const auto& tFinish = Utility::now_in_microseconds();
 
 	if (retVal == FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
@@ -116,10 +95,5 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	else
 	{
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFail, (tFinish - tStart) * 1.0e-6);
-	}
-
-	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
-	{
-		throw std::runtime_error(msg.c_str());
 	}
 }

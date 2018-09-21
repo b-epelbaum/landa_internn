@@ -22,6 +22,7 @@ namespace LandaJune
 
 		private slots:
 
+			void onCoreStopped( int error );
 			//void browseForFolder();
 			void zoomIn();
 			void zoomOut();

@@ -4,6 +4,7 @@
 
 #include <QObject>
 #include <QMetaObject>
+#include "baseProviderLib/BaseFrameProvider.h"
 
 namespace LandaJune
 {
@@ -41,8 +42,10 @@ namespace LandaJune
 			void selectAlgorithmRunner(AlgorithmRunnerPtr algoRUnner) override;
 			AlgorithmRunnerPtr getSelectedAlgorithmRunner() const override;
 
+			QObject * getClassObject () override { return this; }
+
 			void start() const override;
-			void stop() const override;
+			void stop( int error ) override;
 
 			bool isBusy() override;
 
@@ -50,6 +53,14 @@ namespace LandaJune
 			{
 				delete this;
 			}
+
+		signals :
+
+			void coreStopped( int coreError );
+
+		private slots:
+
+			void onException (int error);
 
 		protected :
 			
@@ -74,6 +85,7 @@ namespace LandaJune
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
 
 			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
+			static void providerExceptionHandler ( void * pThis, BaseException& ex );
 		};
 	}
 }

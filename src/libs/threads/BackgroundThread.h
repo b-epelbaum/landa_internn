@@ -1,8 +1,9 @@
 #pragma once
-#include <exception>
 #include <mutex>
 #include <future>
 #include <utility>
+
+#include "common/june_exceptions.h"
 #include "global.h"
 
 namespace LandaJune
@@ -16,7 +17,7 @@ namespace LandaJune
 		{
 			friend class ThreadPool;
 			using autolock = std::lock_guard<std::mutex>;
-			static void default_error_handler(std::exception &) {}
+			static void default_error_handler(void*, BaseException &) {}
 
 		public:
 			BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP = NORMAL);
@@ -31,9 +32,10 @@ namespace LandaJune
 			void stop();
 			bool join();
 
-			void setErrorHandler(const std::function<void(std::exception &)>& handler)
+			void setErrorHandler(const std::function<void(void*, BaseException &)>& handler, void* userObject )
 			{
 				autolock l(_mutex);
+				_userObject = userObject;
 				_error_handler = handler;
 			}
 
@@ -113,13 +115,14 @@ namespace LandaJune
 		protected:
 			std::mutex _mutex;
 			std::unique_ptr<std::thread> _thread;
-			std::function<void(std::exception &)> _error_handler = default_error_handler;
+			std::function<void(void*, BaseException &)> _error_handler = default_error_handler;
 			
 			std::packaged_task<void()> _threafFunc;
 			
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;
 			std::string _name;
+			void* _userObject = nullptr;
 			int _index = 0;
 		};
 	}

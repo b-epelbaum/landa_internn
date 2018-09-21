@@ -40,7 +40,10 @@ bool cyclicGenerator::canContinue(FRAME_PROVIDER_ERROR lastError)
 FRAME_PROVIDER_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 {
 	if ( _sourceImage.empty() )
-		throw ProviderException(FRAME_PROVIDER_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES, "cyclicGenerator has no images loaded. Has you forgot calling init ?");
+		return FRAME_PROVIDER_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
+
+	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
+		return FRAME_PROVIDER_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(_FrameFrequencyInMSec));
 	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
@@ -90,6 +93,7 @@ void cyclicGenerator::validateParameters(std::shared_ptr<BaseParameters> paramet
 	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 	_SourceFilePath = _processParameters->SourceFilePath();
 	_FrameFrequencyInMSec = _processParameters->FrameFrequencyInMSec();
+	_ImageMaxCount = _processParameters->ImageMaxCount();
 
 	CYCLIC_GENERATOR_SCOPED_LOG << "Validating provider parameters : ";
 	CYCLIC_GENERATOR_SCOPED_LOG << "---------------------------------------";

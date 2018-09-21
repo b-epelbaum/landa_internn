@@ -21,7 +21,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(SourceFilePath, QString, "", true)
 			DECLARE_PARAM_PROPERTY(FrameFrequencyInMSec, int, 500, true)
 			DECLARE_PARAM_PROPERTY(CycleImage, bool, true, true)
-			DECLARE_PARAM_PROPERTY(ImageMaxCount, int, 1000, true)
+			DECLARE_PARAM_PROPERTY(ImageMaxCount, int, -1, true)
 
 			DECLARE_PARAM_PROPERTY(SisoProvider, PARAM_GROUP_HEADER, { "Silicon Software Frame grabber parameters" }, true)
 			DECLARE_PARAM_PROPERTY(SISO_AppletFilePath, QString, "", true)
@@ -172,7 +172,7 @@ namespace LandaJune
 			DECLARE_PARAM_PROPERTY(C2CROIArrayLeft, QVector<QRect>, {}, false)
 			DECLARE_PARAM_PROPERTY(C2CROIArrayRight, QVector<QRect>, {}, false)
 
-			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, true)
+			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, false)
 			DECLARE_PARAM_PROPERTY(WaveROI, QRect, {}, false) 
 			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false) // 367
 			DECLARE_PARAM_PROPERTY(WaveTriangleROIRect, QRect, {}, false) 

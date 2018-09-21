@@ -173,6 +173,10 @@
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\include\interfaces\IQBAse.h" />
+    <ClInclude Include="..\interfaces\IFrameProvider.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
     <Import Project="$(QtMsBuild)\qt.targets" />

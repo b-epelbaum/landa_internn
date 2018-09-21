@@ -127,6 +127,8 @@ void JuneUIWnd::initCore()
 {
 	CLIENT_SCOPED_LOG << "Initializing core engine...";
 	auto core = ICore::get();
+
+	connect (core.get()->getClassObject(), SIGNAL(coreStopped(int)), this, SLOT(onCoreStopped(int)) );
 	//try
 	//{
 		core->init();
@@ -136,6 +138,22 @@ void JuneUIWnd::initCore()
 
 	//}
 	CLIENT_SCOPED_LOG << "Core engine initialized";
+}
+
+void JuneUIWnd::onCoreStopped( int error )
+{
+	if ( error == JUNE_NO_ERROR )
+		CLIENT_SCOPED_LOG << "Core engine stopped";
+	else
+	{
+		CLIENT_SCOPED_ERROR << "Core engine stopped with error : " << error;
+	}
+
+	Helpers::RealTimeStats::rtStats()->reset();
+	_updateStatsTimer->stop();
+	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
+	enableUIForProcessing(true);
+	_bRunning = false;
 }
 
 void JuneUIWnd::enumerateFrameProviders() 
@@ -508,7 +526,7 @@ void JuneUIWnd::stop()
 	
 	//try
 	//{
-		ICore::get()->stop();
+		ICore::get()->stop(JUNE_NO_ERROR);
 	//}
 	//catch (CoreEngineException& ex)
 	//{

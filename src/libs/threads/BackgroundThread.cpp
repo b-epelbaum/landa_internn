@@ -80,11 +80,18 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 				fut.get();
 			}
 		} 
-		catch (std::exception & e) 
+		catch (BaseException& e) 
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get(); 
-			handler(e);
+			handler(pThis->_userObject, e);
+		}
+		catch (std::runtime_error& re) 
+		{
+			auto wrapper = pThis->getErrorHandler();
+			const auto handler = wrapper.get();
+			BaseException ex(JUNE_GENERAL_ERROR, re.what());
+			handler(pThis->_userObject, ex);
 		}
 		taskbg_ptr.reset();
 	}

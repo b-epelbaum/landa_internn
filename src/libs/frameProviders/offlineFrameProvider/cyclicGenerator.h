@@ -37,6 +37,7 @@ namespace LandaJune
 
 			DECLARE_PARAM_PROPERTY(SourceFilePath, QString, "", true)
 			DECLARE_PARAM_PROPERTY(FrameFrequencyInMSec, int, 1000, true)
+			DECLARE_PARAM_PROPERTY(ImageMaxCount, int, -1, true)
 
 		protected:
 
