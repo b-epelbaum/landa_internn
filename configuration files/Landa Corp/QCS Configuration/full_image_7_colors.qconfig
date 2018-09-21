@@ -7,7 +7,7 @@
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
-            "ColorName": "Cyan",
+            "ColorName": "Black",
             "Max": {
                 "ColorName": "",
                 "H": 255,
@@ -22,7 +22,7 @@
             }
         },
         {
-            "ColorName": "Yellow",
+            "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
                 "H": 110,
@@ -52,7 +52,7 @@
             }
         },
         {
-            "ColorName": "Black",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
                 "H": 35,
@@ -63,11 +63,11 @@
                 "ColorName": "",
                 "H": 15,
                 "S": 100,
-                "V": 255
+                "V": 170
             }
         },
         {
-            "ColorName": "Color4",
+            "ColorName": "Orange",
             "Max": {
                 "ColorName": "",
                 "H": 14,
@@ -82,7 +82,7 @@
             }
         },
         {
-            "ColorName": "Color5",
+            "ColorName": "Green",
             "Max": {
                 "ColorName": "",
                 "H": 70,
@@ -97,7 +97,7 @@
             }
         },
         {
-            "ColorName": "Color6",
+            "ColorName": "Blue",
             "Max": {
                 "ColorName": "",
                 "H": 130,

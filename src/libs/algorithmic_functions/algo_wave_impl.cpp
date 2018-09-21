@@ -91,7 +91,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	}
 
 	int iS_Center = (input->_circleColor._min._iS + 3 * input->_circleColor._max._iS) / 4;
-	int iV_Center = input->_circleColor._max._iV / 2;
+	int iV_Center = input->_circleColor._max._iV ;
 
 	g_imWave_Color_Circle = H_Diff(g_aimWave_HSV[0], iH_Center) <= iH_Range &
 		g_aimWave_HSV[1] >= input->_circleColor._min._iS & g_aimWave_HSV[1] <= input->_circleColor._max._iS & g_aimWave_HSV[2] >= input->_circleColor._min._iV & g_aimWave_HSV[2] <= input->_circleColor._max._iV;
@@ -135,6 +135,9 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 		int iCircle = iLabel - 1;
 		Find_Template_In_Image(g_imWave_Part_GL_Smooth, g_imWave_Template_Smooth, g_tWave_Corr_Matrix, (int)g_imWave_Centroids.at<double>(iLabel * 2), (int)g_imWave_Centroids.at<double>(iLabel * 2 + 1), 5, fX, fY, fCorr, 0);
 
+		if (iCircle >= MAX_CIRCLES_IN_WAVE)
+			break ;
+
 		if (fCorr >= 0.5) {
 			//		g_afX[iCircle] = g_imWave_Centroids.at<double>(iLabel * 2) ;
 			//		g_afY[iCircle] = g_imWave_Centroids.at<double>(iLabel * 2 + 1) ;
@@ -143,9 +146,11 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 
 			Point tCircle_Center = cv::Point((int)round(g_afX[iCircle]), round(g_afY[iCircle]));
 
-			output->_colorCenters[iCircle]._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			output->_colorCenters[iCircle]._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			output->_colorDetectionResults[iCircle] = ALG_STATUS_SUCCESS ;
+			LandaJune::Algorithms::APOINT tPoint ;
+			tPoint._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			tPoint._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_colorCenters.push_back (tPoint) ;
+			output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
 
 			if (input->_GenerateOverlay) {
 				// draw cross around center
@@ -156,9 +161,11 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 			}
 		}
 		else {
-			output->_colorCenters[iCircle]._x = 0 ;
-			output->_colorCenters[iCircle]._y = 0 ;
-			output->_colorDetectionResults[iLabel - 1] = ALG_STATUS_FAILED;
+			LandaJune::Algorithms::APOINT tPoint;
+			tPoint._x = 0 ;
+			tPoint._y = 0 ;
+			output->_colorCenters.push_back(tPoint);
+			output->_colorDetectionResults.push_back(ALG_STATUS_FAILED);
 		}
 	}
 

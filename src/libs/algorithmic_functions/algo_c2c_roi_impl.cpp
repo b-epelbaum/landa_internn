@@ -113,7 +113,7 @@ void detect_c2c_roi(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, std::shared_ptr
 		// int iS_Center = (input->_colors[iCircle]._min._iS + input->_colors[iCircle]._max._iS) / 2 ;
 		int iS_Center = (input->_colors[iCircle]._min._iS + 3 * input->_colors[iCircle]._max._iS) / 4 ;
 		//		int iV_Center = (input->_colors[iCircle]._min._iV + input->_colors[iCircle]._max._iV) / 2 ;
-		int iV_Center = input->_colors[iCircle]._max._iV / 2;
+		int iV_Center = input->_colors[iCircle]._max._iV ;
 
 		g_imColor_Circle = H_Diff(g_aimHSV[0], iH_Center) <= iH_Range &
 							g_aimHSV[1] >= input->_colors[iCircle]._min._iS & g_aimHSV[1] <= input->_colors[iCircle]._max._iS &
@@ -167,13 +167,13 @@ void detect_c2c_roi(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, std::shared_ptr
 			afX[iCircle] = (int)g_imCentroids.at<double>(2) + afDx[0];
 			afY[iCircle] = (int)g_imCentroids.at<double>(3) + afDy[0] ;
 
-			output->_colorCenters[iCircle]._x = (int)round(afX[iCircle] * input->Pixel2MM_X() * 1000);
-			output->_colorCenters[iCircle]._y = (int)round(afX[iCircle] * input->Pixel2MM_Y() * 1000);
+			output->_colorCenters[iCircle]._x = (int)round((afX[iCircle] + (float)input->_ROI.left()) *	input->Pixel2MM_X() * 1000);
+			output->_colorCenters[iCircle]._y = (int)round((afY[iCircle] + (float)input->_ROI.top()) *	input->Pixel2MM_Y() * 1000);
 			output->_colorStatuses[iCircle] =  ALG_STATUS_SUCCESS ;
 		}
 		else {
-			output->_colorCenters[iCircle]._x = (int)round((afX[iCircle] + (float)input->_ROI.left()) *	input->Pixel2MM_X() * 1000);
-			output->_colorCenters[iCircle]._y = (int)round((afY[iCircle] + (float)input->_ROI.top()) *	input->Pixel2MM_Y() * 1000);
+			output->_colorCenters[iCircle]._x = 0;
+			output->_colorCenters[iCircle]._y = 0;
 			output->_colorStatuses[iCircle] = (iLabels > 2 ? ALG_STATUS_TOO_MANY_CIRCLES : ALG_STATUS_CIRCLE_NOT_FOUND);
 			output->_result = ALG_STATUS_FAILED ;
 		}
