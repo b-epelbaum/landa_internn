@@ -2,8 +2,9 @@
 #include <opencv2/imgproc/imgproc.hpp> 
 #include <opencv2/highgui/highgui.hpp> 
 
-using namespace LandaJune::Algorithms;
 using namespace cv;
+using namespace LandaJune;
+using namespace Algorithms;
 
 #ifndef byte
 typedef unsigned char byte;

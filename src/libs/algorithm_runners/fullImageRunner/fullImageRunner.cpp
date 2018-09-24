@@ -134,24 +134,31 @@ void fullImageRunner::process(const FrameRef * frame)
 	baseAlgorithmRunner::process(frame);
 
 	const auto input = std::make_shared<PARAMS_C2C_SHEET_INPUT>(_frame);
-	
-	// fill process parameters
-	fillSheetProcessParameters(input);
 
-	// generate ROIs for all required elements
-	auto tStart = Utility::now_in_microseconds();
-	IMAGE_REGION_LIST regionList;
-	generateSheetRegions(input, regionList);
-	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsGeneratedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
+	try
+	{
+		// fill process parameters
+		fillSheetProcessParameters(input);
 
-	// and perform a deep copy
-	tStart = Utility::now_in_microseconds();
-	copyRegions(regionList);
-	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsCopiedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
+		// generate ROIs for all required elements
+		auto tStart = Utility::now_in_microseconds();
+		IMAGE_REGION_LIST regionList;
+		generateSheetRegions(input, regionList);
+		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsGeneratedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
-	if ( !_processParameters->EnableAlgorithmProcessing() )
-		return;
+		// and perform a deep copy
+		tStart = Utility::now_in_microseconds();
+		copyRegions(regionList);
+		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsCopiedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
-	// process whole sheet
-	auto output = processSheet(input);
+		if ( !_processParameters->EnableAlgorithmProcessing() )
+			return;
+
+		// process whole sheet
+		auto output = processSheet(input);
+	}
+	catch ( BaseException& bex)
+	{
+		throw;
+	}
 }

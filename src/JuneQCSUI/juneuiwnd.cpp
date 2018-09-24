@@ -128,7 +128,8 @@ void JuneUIWnd::initCore()
 	CLIENT_SCOPED_LOG << "Initializing core engine...";
 	auto core = ICore::get();
 
-	connect (core.get()->getClassObject(), SIGNAL(coreStopped(int)), this, SLOT(onCoreStopped(int)) );
+	connect (core.get()->getClassObject(), SIGNAL(coreStopped()), this, SLOT(onCoreStopped()) );
+	connect (core.get()->getClassObject(), SIGNAL(coreException(const LandaJune::BaseException&)), this, SLOT(onCoreException(const LandaJune::BaseException&)) );
 	//try
 	//{
 		core->init();
@@ -140,20 +141,17 @@ void JuneUIWnd::initCore()
 	CLIENT_SCOPED_LOG << "Core engine initialized";
 }
 
-void JuneUIWnd::onCoreStopped( int error )
+void JuneUIWnd::onCoreStopped()
 {
-	if ( error == JUNE_NO_ERROR )
-		CLIENT_SCOPED_LOG << "Core engine stopped";
-	else
-	{
-		CLIENT_SCOPED_ERROR << "Core engine stopped with error : " << error;
-	}
-
 	Helpers::RealTimeStats::rtStats()->reset();
 	_updateStatsTimer->stop();
 	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
 	enableUIForProcessing(true);
 	_bRunning = false;
+}
+
+void JuneUIWnd::onCoreException(const LandaJune::BaseException& ex)
+{
 }
 
 void JuneUIWnd::enumerateFrameProviders() 
@@ -526,7 +524,7 @@ void JuneUIWnd::stop()
 	
 	//try
 	//{
-		ICore::get()->stop(JUNE_NO_ERROR);
+		ICore::get()->stop();
 	//}
 	//catch (CoreEngineException& ex)
 	//{
@@ -591,8 +589,6 @@ void JuneUIWnd::onAlgoRunnerComboChanged(int index)
 void JuneUIWnd::updateStats() const
 {
 	ui.statView->clear(); // unless you know the editor is empty
-
-	auto txt = Helpers::RealTimeStats::rtStats()->to_string();
 	ui.statView->appendPlainText(QString::fromStdString(Helpers::RealTimeStats::rtStats()->to_string()));
 }
 

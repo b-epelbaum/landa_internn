@@ -7,6 +7,7 @@
 #include <filesystem>
 #include "writequeue.h"
 #include <fstream>
+#include "common/june_errors.h"
 
 using namespace concurrency;
 namespace fs = std::filesystem;
@@ -86,6 +87,8 @@ namespace LandaJune
 			}
 			catch (fs::filesystem_error& er)
 			{
+				PRINT_ERROR << "[createDirectoryIfNeeded] : Cannot create folder " << pathName.c_str() << "; exception caught : " << er.what();
+				std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + pathName }, __FILE__, __LINE__));
 			}
 		}
 	}
@@ -97,23 +100,31 @@ namespace LandaJune
 			task<void> t([img, filePath]()
 			{
 				createDirectoryIfNeeded(filePath);
-				const auto data = std::make_shared<std::vector<unsigned char>>();
-				if ( cv::imencode(".bmp",*img.get(), *data ) )
+				try
 				{
-					Core::dumpThreadPostJob(data, filePath);
+					const auto data = std::make_shared<std::vector<unsigned char>>();
+					if ( imencode(".bmp",*img.get(), *data ) )
+					{
+						Core::dumpThreadPostJob(data, filePath);
+					}
+					else
+					{
+						throw std::runtime_error ("[dumpMatFile] : cannot encode data to BMP");
+					}
 				}
-				else
+				catch ( const std::exception& ex)
 				{
-					PRINT_ERROR << "[dumpMatFile] : cannot encode data to BMP";
-					// TODO : trow exception
+					PRINT_ERROR << "[dumpMatFile] : exception caught : " << ex.what();
+					std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP, "" }, __FILE__, __LINE__));
 				}
+
 			});
 		}
 		else
 		{
+			createDirectoryIfNeeded(filePath);
 			const auto data = std::make_shared<std::vector<unsigned char>>();
-
-			if ( cv::imencode(".bmp",*img.get(), *data ) )
+			if ( imencode(".bmp",*img.get(), *data ) )
 			{
 				auto params = std::make_tuple(data, filePath);
 				Functions::frameSaveData(params);
@@ -121,9 +132,7 @@ namespace LandaJune
 			else
 			{
 				PRINT_ERROR << "[dumpMatFile] : cannot encode data to BMP";
-				// TODO : trow exception
 			}
-
 		}
 	}
 
@@ -211,14 +220,7 @@ namespace LandaJune
 		
 		if (!is_directory(p) || !exists(p))
 		{
-			try
-			{
-				create_directories(p); // create CSV folder
-			}
-			catch (fs::filesystem_error& er)
-			{
-				// 
-			}
+			create_directories(p); // create CSV folder
 		}
 
 		return retVal;
@@ -231,6 +233,7 @@ namespace LandaJune
 				, const int imageIndex
 				, const std::string csvFolder  )
 	{
+
 		auto overallResult = 
 		std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& colorWave) { return colorWave->_result == ALG_STATUS_SUCCESS; } )
 		? ALG_STATUS_SUCCESS
@@ -253,7 +256,7 @@ namespace LandaJune
 		{
 			resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
 			ss << out->_input->_circleColor._colorName << "(" << resultName << ")";
-			if ( counter < colorCount -1 )
+			if ( counter < static_cast<int>(colorCount) -1 )
 				ss << ",";
 			counter++;
 		}

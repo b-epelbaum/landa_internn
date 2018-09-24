@@ -32,24 +32,24 @@ cyclicGenerator::~cyclicGenerator()
 	CYCLIC_GENERATOR_SCOPED_LOG << "destroyed";
 }
 
-bool cyclicGenerator::canContinue(FRAME_PROVIDER_ERROR lastError)
+bool cyclicGenerator::canContinue(CORE_ERROR lastError)
 {
 	return false;
 }
 
-FRAME_PROVIDER_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
+CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 {
 	if ( _sourceImage.empty() )
-		return FRAME_PROVIDER_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
+		return CORE_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
 
 	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
-		return FRAME_PROVIDER_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
+		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(_FrameFrequencyInMSec));
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
-FRAME_PROVIDER_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
+CORE_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 {
 	const auto w = _sourceImage.cols;
 	const auto h = _sourceImage.rows;
@@ -57,14 +57,14 @@ FRAME_PROVIDER_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 
 	frameRef->setBits(++_lastAcquiredImage, w, h, s, _sourceImage.data);
 	CYCLIC_GENERATOR_SCOPED_LOG << "Received frame #" << _lastAcquiredImage;
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
 void cyclicGenerator::releaseData(FrameRef* frameRef)
 {
 }
 
-FRAME_PROVIDER_ERROR cyclicGenerator::init()
+CORE_ERROR cyclicGenerator::init()
 {
 	_lastAcquiredImage = -1;
 	_sourceImage.release();
@@ -77,12 +77,12 @@ FRAME_PROVIDER_ERROR cyclicGenerator::init()
 	if (_sourceImage.empty() )
 	{
 		CYCLIC_GENERATOR_SCOPED_ERROR << "cannot load image file from " << pathName;
-		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 	else
 		CYCLIC_GENERATOR_SCOPED_LOG << "finished loading file " << pathName << " in " << Utility::now_in_millisecond() - t1 << " msec";
 	
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
 void cyclicGenerator::validateParameters(std::shared_ptr<BaseParameters> parameters)
@@ -101,9 +101,9 @@ void cyclicGenerator::validateParameters(std::shared_ptr<BaseParameters> paramet
 	CYCLIC_GENERATOR_SCOPED_LOG << "_FrameFrequencyInMSec = " << _FrameFrequencyInMSec;
 }
 
-FRAME_PROVIDER_ERROR cyclicGenerator::cleanup()
+CORE_ERROR cyclicGenerator::cleanup()
 {
 	_sourceImage.release();
 	CYCLIC_GENERATOR_SCOPED_LOG << "cleaned up";
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }

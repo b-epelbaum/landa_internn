@@ -174,7 +174,7 @@ void baseAlgorithmRunner::fillWaveProcessParameters(std::vector<std::shared_ptr<
 		fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 		input->_circleColor = color2HSV(color);
 		input->_waveROI = toROIRect(_processParameters->WaveROI());
-		input->_circlesCount = _processParameters->NumberOfColorDotsPerLine();
+		input->_circlesCount = _processParameters->WaveNumberOfColorDotsPerLine();
 		inputs.emplace_back(std::move(input));
 	}
 }
@@ -343,6 +343,7 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 
 	const auto leftStripLambda = [&] { retVal->_stripOutputParameterLeft = processStrip(sheetInput->_stripInputParamLeft); };
 	const auto rightStripLambda = [&] { retVal->_stripOutputParameterRight = processStrip(sheetInput->_stripInputParamRight); };
+	//const auto waveI2SLambda = [&] { retVal->_waveOutputs = processWaves(sheetInput->_waveInputs); };
 	const auto waveLambda = [&] { retVal->_waveOutputs = processWaves(sheetInput->_waveInputs); };
 	
 	std::vector<std::function<void()>> processLambdas;
@@ -354,22 +355,38 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 		processLambdas.emplace_back(waveLambda);
 
 
-	if (_bParallelCalc)
+	try
 	{
- 		parallel_for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
+		if (_bParallelCalc)
 		{
-			func();
-		});
+ 			parallel_for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
+			{
+				func();
+			});
+		}
+		else
+		{
+			std::for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
+			{
+				func();
+			});
+		}
 	}
-	else
+	catch ( BaseException& bex)
 	{
-		std::for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
-		{
-			func();
-		});
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+	}
+	catch (...)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
 	}
 
-	processWaveOutputs(retVal->_waveOutputs);
+	if ( _processParameters->ProcessWave())
+		processWaveOutputs(retVal->_waveOutputs);
 	return retVal;
 }
 
@@ -419,54 +436,71 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 			processLambdas.emplace_back(calculateC2CfuncSec);
 	}
 
-	if (_bParallelCalc)
+	try
 	{
- 		parallel_for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
+		if (_bParallelCalc)
 		{
-			func();
-		});
-	}
-	else
-	{
-		std::for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
-		{
-			func();
-		});
-	}
-
-
-	// update C2C centers with I2S coordinates offsets
-	auto const offsetX = retVal->_i2sOutput->_triangeCorner._x;
-	auto const offsetY = retVal->_i2sOutput->_triangeCorner._y;
-	if (_bParallelCalc)
-	{
- 		parallel_for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
-		{
-			std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+ 			parallel_for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
 			{
-				colorCenter._x -= offsetX;
-				colorCenter._y -= offsetY;
+				func();
 			});
-		});
-	}
-	else
-	{
-		std::for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
+		}
+		else
 		{
-			std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+			std::for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
 			{
-				colorCenter._x -= offsetX;
-				colorCenter._y -= offsetY;
+				func();
 			});
-		});
+		}
+	
+	
+
+
+		// update C2C centers with I2S coordinates offsets
+		auto const offsetX = retVal->_i2sOutput->_triangeCorner._x;
+		auto const offsetY = retVal->_i2sOutput->_triangeCorner._y;
+		if (_bParallelCalc)
+		{
+ 			parallel_for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
+			{
+				std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+				{
+					colorCenter._x -= offsetX;
+					colorCenter._y -= offsetY;
+				});
+			});
+		}
+		else
+		{
+			std::for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
+			{
+				std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+				{
+					colorCenter._x -= offsetX;
+					colorCenter._y -= offsetY;
+				});
+			});
+		}
+
+		retVal->_result = 
+			std::all_of(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [](auto& out) { return out->_result == ALG_STATUS_SUCCESS; } )
+			? ALG_STATUS_SUCCESS
+			: ALG_STATUS_FAILED;
+
+		processStripOutput(retVal);
 	}
-
-	retVal->_result = 
-		std::all_of(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [](auto& out) { return out->_result == ALG_STATUS_SUCCESS; } )
-		? ALG_STATUS_SUCCESS
-		: ALG_STATUS_FAILED;
-
-	processStripOutput(retVal);
+	catch ( BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+	}
+	catch (...)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_stripsHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	return retVal;
 }
@@ -480,6 +514,7 @@ void baseAlgorithmRunner::initEdge(const INIT_PARAMETER& initParam) const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_edge_init has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_INIT_EDGE_FAILED);
 	}
 }
 
@@ -507,6 +542,7 @@ std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::s
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_edge has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
+		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_EDGE_FAILED);
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_edgeHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
@@ -523,6 +559,7 @@ void baseAlgorithmRunner::shutdownEdge() const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_edge_shutdown has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_SHUTDOWN_EDGE_FAILED);
 	}
 }
 
@@ -538,6 +575,7 @@ void baseAlgorithmRunner::initI2S(const INIT_PARAMETER& initParam) const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_i2s_init has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_INIT_I2S_FAILED);
 	}
 }
 
@@ -561,6 +599,7 @@ std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_p
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_i2s has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
+		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_I2S_FAILED);
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_I2SHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	dumpOverlay<std::shared_ptr<PARAMS_I2S_OUTPUT>>(retVal);
@@ -576,6 +615,7 @@ void baseAlgorithmRunner::shutdownI2S() const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_i2s_shutdown has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_SHUTDOWN_I2S_FAILED);
 	}
 }
 
@@ -597,6 +637,7 @@ void baseAlgorithmRunner::initC2CRoi(const INIT_PARAMETER& initParam) const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_c2c_roi_init has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_INIT_C2C_FAILED);
 	}
 }
 
@@ -630,6 +671,8 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_c2c_roi has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_C2C_FAILED}, __FILE__, __LINE__));
+		//THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_C2C_FAILED);
 	}
 
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_C2CHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
@@ -646,6 +689,7 @@ void baseAlgorithmRunner::shutdownC2CRoi() const
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_c2c_roi_shutdown has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_SHUTDOWN_C2C_FAILED);
 	}
 }
 
@@ -665,6 +709,7 @@ void baseAlgorithmRunner::initWave(const INIT_PARAMETER& initParam)
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_wave_init has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_INIT_WAVE_FAILED);
 	}
 }
 
@@ -700,6 +745,7 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_wave has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
+		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_WAVE_FAILED);
 	}
 
 	dumpOverlay<std::shared_ptr<PARAMS_WAVE_OUTPUT>>(retVal);
@@ -709,19 +755,34 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> baseAlgorithmRunner::processWaves(const std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs)
 {
 	concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> retVal;
-	if (_bParallelCalc)
+	try
 	{
-		parallel_for_each (inputs.begin(), inputs.end(), [&](auto &in) 
+		if (_bParallelCalc)
 		{
-			retVal.push_back(processWave(in));
-		});
+			parallel_for_each (inputs.begin(), inputs.end(), [&](auto &in) 
+			{
+				retVal.push_back(processWave(in));
+			});
+		}
+		else
+		{
+			std::for_each (inputs.begin(), inputs.end(), [&](auto &in) 
+			{
+				retVal.push_back(processWave(in));
+			});
+		}
 	}
-	else
+	catch ( BaseException& bex)
 	{
-		std::for_each (inputs.begin(), inputs.end(), [&](auto &in) 
-		{
-			retVal.push_back(processWave(in));
-		});
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_WAVE_FAILED }, __FILE__, __LINE__));	
+	}
+	catch (...)
+	{
+		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_WAVE_FAILED }, __FILE__, __LINE__));	
 	}
 
 	return retVal;
@@ -736,6 +797,7 @@ void baseAlgorithmRunner::shutdownWave()
 	catch (...)
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_wave_shutdown has thrown exception";
+		THROW_EX_INT(CORE_ERROR::ALGO_SHUTDOWN_WAVE_FAILED);
 	}
 }
 
@@ -746,8 +808,6 @@ std::string baseAlgorithmRunner::getFrameFolderName() const
 	
 void baseAlgorithmRunner::getSourceFrameIndexString()
 {
-	std::pair<std::string,bool> retVal;
-
 	// get source frame ID from custom parameter passed by provider
 	_sourceFrameIndexStr.clear();
 	try
@@ -841,8 +901,33 @@ void baseAlgorithmRunner::processWaveOutputs(const concurrent_vector<std::shared
 		const auto frameIndex = _frameIndex;
 		const auto jobID = _processParameters->JobID();
 
+		const auto sumProc = [&](auto &singleOut) 
+		{
+			auto & resArray = singleOut->_colorDetectionResults;
+			if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
+			{
+				singleOut->_result = ALG_STATUS_FAILED;
+				return;
+			}
+			
+			if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
+			{
+				auto & resPoints = singleOut->_colorCenters;
+				resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
+				resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
+				singleOut->_result = ALG_STATUS_FAILED;
+				return;
+			}
+
+			singleOut->_result = 
+				std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
+				? ALG_STATUS_SUCCESS
+				: ALG_STATUS_FAILED;
+		};
+
 		if (_bParallelCalc)
 		{
+			parallel_for_each(waveOutputs.begin(), waveOutputs.end(), sumProc ); 
 			if (_processParameters->SaveWaveCSV())
 			{
 				task<void> tWaveCSV([csvFolder, imgIndex, frameIndex, jobID, waveOutputs]()
@@ -853,6 +938,15 @@ void baseAlgorithmRunner::processWaveOutputs(const concurrent_vector<std::shared
 		}
 		else
 		{
+			for ( auto& singleOut : waveOutputs) 
+			{
+				auto & resArray = singleOut->_colorDetectionResults;
+				singleOut->_result = 
+					std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
+					? ALG_STATUS_SUCCESS
+					: ALG_STATUS_FAILED;
+			}
+
 			if (_processParameters->SaveWaveCSV())
 			{
 				dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder );

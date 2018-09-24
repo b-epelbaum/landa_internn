@@ -97,7 +97,7 @@ void ProcessParameters::_recalculate()
 		_I2SApproximateTriangleRectLeft.left(),
 		_I2SApproximateTriangleRectLeft.top() + _C2CDistanceFromTriangle2FirstSet_px,
 		_I2SROIWidth_px,
-		static_cast<int>((ceil(_ColorArray.size() / 2) - 1) * _C2CDistanceBetweenDots_px) + 2 *_I2SMarginY_px
+		static_cast<int>((ceil(_ColorArray.size() / 2) ) * _C2CDistanceBetweenDots_px) + 2 *_I2SMarginY_px
 	};
 
 	_C2CROIArrayLeft << Roi0L;
@@ -134,7 +134,7 @@ void ProcessParameters::_recalculate()
 	);
 
 	// wave dots count
-	_NumberOfColorDotsPerLine = (_SubstrateWidth_mm- 2 * _WaveImageMarginX_um / 1000) / (_WaveDistanceBetweenDotsX_um / 1000 );
+	_WaveNumberOfColorDotsPerLine = (_SubstrateWidth_mm- 2 * _WaveImageMarginX_um / 1000) / (_WaveDistanceBetweenDotsX_um / 1000 );
 
 	emit updateCalculated();
 }

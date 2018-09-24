@@ -140,7 +140,7 @@
     "SubstrateImageMargin_mm": 2.5,
     "SubstrateWidth_mm": 1000,
     "WaveCircleDiameter_um": 1016,
-    "WaveDistanceBetweenDotsX_um": 2709.3,
+    "WaveDistanceBetweenDotsX_um": 2719.3,
     "WaveDistanceBetweenDotsY_um": 3283,
     "WaveDistanceBetweenTriangleAndFirstRow_um": 9589,
     "WaveImageMarginX_um": 10,

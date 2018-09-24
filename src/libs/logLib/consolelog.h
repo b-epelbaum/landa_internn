@@ -42,6 +42,16 @@ namespace LandaJune
 			{
 			}
 
+			copyableContext & operator = (const copyableContext & other)
+			{
+				_version = other._version;
+				_line = other._line;
+				_file = other._file;
+				_function = other._function;
+				_category = other._category;
+				return *this;
+			}
+
 			~copyableContext() = default;
 
 			int _version = 0;

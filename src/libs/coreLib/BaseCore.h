@@ -1,7 +1,7 @@
 #pragma once
-#include "corelib_global.h"
+#include "coreLib_global.h"
 #include "interfaces/ICore.h"
-
+#include <mutex>
 #include <QObject>
 #include <QMetaObject>
 #include "baseProviderLib/BaseFrameProvider.h"
@@ -17,6 +17,9 @@ namespace LandaJune
 			Q_INTERFACES(LandaJune::Core::ICore)
 
 			friend class ICore;
+
+			using autolock = std::lock_guard<std::mutex>;
+
 		
 		public:
 
@@ -45,7 +48,7 @@ namespace LandaJune
 			QObject * getClassObject () override { return this; }
 
 			void start() const override;
-			void stop( int error ) override;
+			void stop() override;
 
 			bool isBusy() override;
 
@@ -56,11 +59,12 @@ namespace LandaJune
 
 		signals :
 
-			void coreStopped( int coreError );
+			void coreStopped();
+			void coreException(const LandaJune::BaseException ec);
 
 		private slots:
 
-			void onException (int error);
+			void onException (BaseException ex);
 
 		protected :
 			
@@ -85,8 +89,14 @@ namespace LandaJune
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
 
 			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
+			bool _bCanAcceptExceptions = true;
+			std::mutex _mutex;
+
 			static void providerExceptionHandler ( void * pThis, BaseException& ex );
+			static void consumerExceptionHandler ( void * pThis, BaseException& ex );
 		};
 	}
 }
+
+Q_DECLARE_METATYPE(LandaJune::BaseException)
 

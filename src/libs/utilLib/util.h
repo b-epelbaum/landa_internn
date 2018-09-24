@@ -5,6 +5,7 @@
 #include <optional>
 #include <chrono>
 #include <vector>
+#include <algorithm>
 
 #define TIME_STAMP std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::system_clock::now().time_since_epoch()).count()
 
@@ -15,7 +16,8 @@ namespace LandaJune
 		class Utility
 		{
 		public:
-			
+
+			static unsigned long threadId();
 			static long long now_in_microseconds()
 			{
 				const auto& t = std::chrono::system_clock::now().time_since_epoch();

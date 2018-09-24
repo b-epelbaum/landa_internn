@@ -61,7 +61,11 @@ std::string RealTimeStats::to_string()
 	std::string txt;
 	for (auto i = 0; i < statsNumber; ++i) 
 	{
-		if (!_values[i]) { continue; }
+		if (_values[i] < 0.0001)
+		{
+			continue;
+		}
+
 		txt.append(names[i]).append(":\t").append(std::to_string(_values[i]))
 			.append("\t").append(std::to_string(_values[i] / _times[i]))
 			.append("\t").append(std::to_string(_times[i] / _values[i])).append("\n");

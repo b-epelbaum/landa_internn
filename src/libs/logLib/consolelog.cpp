@@ -497,13 +497,13 @@ void ConsoleLog::AddLine (const int dwStatus, const QString& msg, const copyable
 		QString strExt; 
 		strExt.reserve(msg.size() + 200);
 		strExt = msg;
-		strExt += "   [File : ";
+		strExt += "\r\n\t[File     : ";
 		strExt += context._file;
-		strExt += "] [Function : ";
+		strExt += "]\r\n\t[Function : ";
 		strExt += context._function;
-		strExt += "] [Line : ";
+		strExt += "]\r\n\t[Line     : ";
 		strExt += QString::number(context._line);
-        strExt += "]";
+        strExt += "]\r\n";
 		
 		if (m_bIsConsole)
 		{

@@ -50,7 +50,7 @@ namespace LandaJune
 				{
 					if (_fullSavePath.empty())
 					{
-						throw BaseException(toInt(ALGORITHM_ERROR::ALGO_EMPTY_ROI_NAME_TO_SAVE), "ROI requested for saving, but no name provided");
+						THROW_EX_ERR_STR(CORE_ERROR::ALGO_EMPTY_ROI_NAME_TO_SAVE, "ROI requested for saving, but no name provided");
 					}
 				}
 			}
@@ -80,7 +80,7 @@ namespace LandaJune
 				// TODO : implement exception handler
 				if (_srcRequestedRect.empty() || _srcRequestedRect.width == 0 || _srcRequestedRect.height == 0)
 				{
-					throw BaseException(toInt(ALGORITHM_ERROR::ALGO_ROI_INVALID_RECT), "ROI rectangle is invalid. Batch input parameters init problem ?");
+					THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_INVALID_RECT, "ROI rectangle is invalid. Batch input parameters init problem ?");
 				}
 				// todo : think about exceeding frame dimensions
 				if (regReqLeft < 0
@@ -89,7 +89,7 @@ namespace LandaJune
 					|| regReqBottom > srcHeight
 					)
 				{
-					//throw AlgorithmException(ALGORITHM_ERROR::ALGO_ROI_RECT_EXCEEDS_FRAME_RECT, "ROI rectangle limits exceed frame dimensions");
+					//THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_RECT_EXCEEDS_FRAME_RECT, "ROI rectangle limits exceed frame dimensions");
 				}
 
 				cv::Rect retValRect;

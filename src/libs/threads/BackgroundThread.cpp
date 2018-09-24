@@ -90,7 +90,7 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get();
-			BaseException ex(JUNE_GENERAL_ERROR, re.what());
+			BaseException ex(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, re.what()}, __FILE__, __LINE__);
 			handler(pThis->_userObject, ex);
 		}
 		taskbg_ptr.reset();

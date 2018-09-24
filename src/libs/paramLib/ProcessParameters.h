@@ -174,7 +174,7 @@ namespace LandaJune
 
 			DECLARE_PARAM_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" }, false)
 			DECLARE_PARAM_PROPERTY(WaveROI, QRect, {}, false) 
-			DECLARE_PARAM_PROPERTY(NumberOfColorDotsPerLine, int, 0, false) // 367
+			DECLARE_PARAM_PROPERTY(WaveNumberOfColorDotsPerLine, int, 0, false) // 367
 			DECLARE_PARAM_PROPERTY(WaveTriangleROIRect, QRect, {}, false) 
 
 		protected:

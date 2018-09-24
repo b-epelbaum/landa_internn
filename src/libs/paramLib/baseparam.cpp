@@ -95,9 +95,10 @@ bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString&
 	const auto count = metaobject->propertyCount();
 	for (auto i = 0; i<count; ++i)
 	{
-		const auto propName = metaobject->property(i).name();
-		const auto typeName = metaobject->property(i).typeName();
-		if (strcmp(propName, "objectName") == 0 || !metaobject->property(i).isUser() )
+		const auto& metaProp = metaobject->property(i);
+		const auto propName = metaProp.name();
+		const auto typeName = metaProp.typeName();
+		if (strcmp(propName, "objectName") == 0 || !metaProp.isUser() )
 			continue;
 			
 		if ( !obj.contains(propName) && strcmp(typeName, "PARAM_GROUP_HEADER") != 0 )

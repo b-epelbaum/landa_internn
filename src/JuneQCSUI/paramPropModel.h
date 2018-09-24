@@ -96,8 +96,8 @@ private:
 	ParamPropItem * setupGroupHeader(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 
 	ParamPropItem *getItem(const QModelIndex &index) const;
-	ParamPropItem *_rootItem;
-	ParamPropItem * _currentRoot;
+	ParamPropItem *_rootItem = nullptr;
+	ParamPropItem * _currentRoot = nullptr;
 
 	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData, _iconColors, _iconColorArray;
 

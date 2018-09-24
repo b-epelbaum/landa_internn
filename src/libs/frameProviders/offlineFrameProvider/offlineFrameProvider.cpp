@@ -42,19 +42,19 @@ offlineFrameProvider::~offlineFrameProvider()
 	OFFLINE_GENERATORSCOPED_LOG << "destroyed";
 }
 
-bool offlineFrameProvider::canContinue(FRAME_PROVIDER_ERROR lastError)
+bool offlineFrameProvider::canContinue(CORE_ERROR lastError)
 {
 	return _currentOfflineProvider ? _currentOfflineProvider->canContinue(lastError) : false;
 }
 
-FRAME_PROVIDER_ERROR offlineFrameProvider::prepareData(FrameRef* frameRef)
+CORE_ERROR offlineFrameProvider::prepareData(FrameRef* frameRef)
 {
-	return _currentOfflineProvider ? _currentOfflineProvider->prepareData(frameRef) : FRAME_PROVIDER_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
+	return _currentOfflineProvider ? _currentOfflineProvider->prepareData(frameRef) : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
 }
 
-FRAME_PROVIDER_ERROR offlineFrameProvider::accessData(FrameRef* frameRef)
+CORE_ERROR offlineFrameProvider::accessData(FrameRef* frameRef)
 {
-	return _currentOfflineProvider ? _currentOfflineProvider->accessData(frameRef) : FRAME_PROVIDER_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
+	return _currentOfflineProvider ? _currentOfflineProvider->accessData(frameRef) : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
 }
 
 void offlineFrameProvider::releaseData(FrameRef* frameRef)
@@ -63,7 +63,7 @@ void offlineFrameProvider::releaseData(FrameRef* frameRef)
 		_currentOfflineProvider->releaseData(frameRef);
 }
 
-FRAME_PROVIDER_ERROR offlineFrameProvider::init()
+CORE_ERROR offlineFrameProvider::init()
 {
 	if (_CyclicGeneration)
 	{
@@ -104,9 +104,9 @@ void offlineFrameProvider::validateParameters(std::shared_ptr<BaseParameters> pa
 		_currentOfflineProvider->validateParameters(parameters);
 }
 
-FRAME_PROVIDER_ERROR offlineFrameProvider::cleanup()
+CORE_ERROR offlineFrameProvider::cleanup()
 {
-	auto retVal =  _currentOfflineProvider ? _currentOfflineProvider->cleanup() : FRAME_PROVIDER_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
+	auto retVal =  _currentOfflineProvider ? _currentOfflineProvider->cleanup() : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
 	_currentOfflineProvider.reset();
 	return  retVal;
 }

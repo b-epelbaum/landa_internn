@@ -45,22 +45,22 @@ SiSoProvider::~SiSoProvider()
 	SISO_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
-bool SiSoProvider::canContinue(const FRAME_PROVIDER_ERROR lastError)
+bool SiSoProvider::canContinue(const CORE_ERROR lastError)
 {
-	if (lastError == FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+	if (lastError == RESULT_OK)
 		return true;
 
 	auto _canContinue = false;
 	switch (lastError)
 	{
-		case FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_SKIPPED: _canContinue = true;  break;
+		case CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_SKIPPED: _canContinue = true;  break;
 		default:
 			;
 	}
 	return _canContinue;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::prepareData(FrameRef* frameRef)
+CORE_ERROR SiSoProvider::prepareData(FrameRef* frameRef)
 {
 #ifdef ENABLE_FGRAB
 	const auto targetChannel = _camPort1;
@@ -70,20 +70,20 @@ FRAME_PROVIDER_ERROR SiSoProvider::prepareData(FrameRef* frameRef)
 	{
 		_lastAcquiredImage = imageIndex;
 		return (_lastAcquiredImage % 2 != 0)
-			? FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_SKIPPED
-			: FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+			? CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_SKIPPED
+			: CORE_ERROR::ERR_NO_ERROR;
 	}
 
 	if (imageIndex == FG_TIMEOUT_ERR)
 	{
 		SISO_PROVIDER_SCOPED_LOG << "Frame grabber is OFF. No images have been captured in 10 sec";
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_TIMEOUT;
+		return CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_TIMEOUT;
 	}
 #endif	
-	return FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
+	return RESULT_NOT_IMPLEMENTED;
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::accessData(FrameRef* frameRef)
+CORE_ERROR SiSoProvider::accessData(FrameRef* frameRef)
 {
 #ifdef ENABLE_FGRAB
 	const auto targetChannel = _camPort1;
@@ -92,7 +92,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::accessData(FrameRef* frameRef)
 
 	if (imageBits == nullptr)
 	{
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_INVALID_DATA_POINTER;
+		return CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_INVALID_DATA_POINTER;
 	}
 	int imageSizeReceived = _lastAcquiredImage;
 	Fg_getParameterWithType(_fg, FG_TRANSFER_LEN, &imageSizeReceived, 0, FG_PARAM_TYPE_UINT32_T );
@@ -104,14 +104,14 @@ FRAME_PROVIDER_ERROR SiSoProvider::accessData(FrameRef* frameRef)
 	frameRef->setBits(_lastAcquiredImage, width, height, static_cast<size_t>(imageSizeReceived), imageBits);
 
 #endif	
-	return FRAME_PROVIDER_ERROR::ERR_GENERAL_ERROR;
+	return RESULT_NOT_IMPLEMENTED;
 }
 
 void SiSoProvider::releaseData(FrameRef* frameRef)
 {
 }
 
-FRAME_PROVIDER_ERROR SiSoProvider::init()
+CORE_ERROR SiSoProvider::init()
 {
 	_lastAcquiredImage = -1;
 	//300m_1200m_300rgb_Windows_AMD64.hap
@@ -148,7 +148,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	if ((_fg = Fg_InitEx(applet.c_str(), _BoardIndex, 0)) == nullptr)
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed loading applet : " << applet.c_str() << ". Error : " << QString(Fg_getLastErrorDescription(nullptr));
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_LOAD_APPLET_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_LOAD_APPLET_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Applet : " << applet.c_str() << " loaded OK";
 
@@ -158,7 +158,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed loading configuration file. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_LOAD_CONFIG_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_LOAD_CONFIG_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Configuration file loaded OK";
 
@@ -220,7 +220,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image WIDTH for channel A. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 
 	SISO_PROVIDER_SCOPED_LOG << "-------------------------------------------------";
@@ -230,7 +230,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image HEIGHT for channel A. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Channel A image height : " << _height1 << "px";
 	SISO_PROVIDER_SCOPED_LOG << "-------------------------------------------------";
@@ -240,7 +240,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image WIDTH for channel B. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Channel B image width : " << _width2 << "px";
 
@@ -248,7 +248,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image HEIGHT for channel B. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Channel B image height : " << _height2 << "px";
 	SISO_PROVIDER_SCOPED_LOG << "-------------------------------------------------";
@@ -258,7 +258,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image WIDTH for channel C. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Channel C image width : " << _width3 << "px";
 
@@ -266,7 +266,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Failed getting image HEIGHT for channel C. Error : " << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
+		return CORE_ERROR::ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Channel C image height : " << _height1 << "px";
 	SISO_PROVIDER_SCOPED_LOG << "-------------------------------------------------";
@@ -282,7 +282,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 	{
 		PRINT_ERROR << "[SiSoImageProvider] : Allocating memory buffer of " << totalBufferSize1 << "bytes for channel 0 FAILED with error :" << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "\n-------------------------------------------------";
 	SISO_PROVIDER_SCOPED_LOG << totalBufferSize1 << " bytes has been allocated for channel 0";
@@ -294,7 +294,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 		PRINT_ERROR << "[SiSoImageProvider] : Allocating memory buffer of " << totalBufferSize2 << "bytes for channel 1 FAILED with error :" << QString(Fg_getLastErrorDescription(_fg));
 		Fg_FreeMem(_fg, PORT_A);
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "\n-------------------------------------------------";
 	SISO_PROVIDER_SCOPED_LOG << totalBufferSize2 << " bytes has been allocated for channel 1";
@@ -306,7 +306,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 		Fg_FreeMem(_fg, PORT_A);
 		Fg_FreeMem(_fg, PORT_B);
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "\n-------------------------------------------------";
 	SISO_PROVIDER_SCOPED_LOG << totalBufferSize3 << " bytes has been allocated for channel 2";
@@ -322,7 +322,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 		Fg_FreeMem(_fg, PORT_B);
 		Fg_FreeMem(_fg, PORT_C);
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Image acquisition started on CHANNEL 0 - SUCCESS";
 
@@ -334,7 +334,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 		Fg_FreeMem(_fg, PORT_B);
 		Fg_FreeMem(_fg, PORT_C);
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "Image acquisition started on CHANNEL 1 - SUCCESS";
 
@@ -345,14 +345,14 @@ FRAME_PROVIDER_ERROR SiSoProvider::init()
 		Fg_FreeMem(_fg, PORT_B);
 		Fg_FreeMem(_fg, PORT_C);
 		Fg_FreeGrabber(_fg);
-		return FRAME_PROVIDER_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
+		return CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_ACQUISITION_FAILED;
 	}
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
 	SISO_PROVIDER_SCOPED_LOG << "Frame grabber has been initialized successfully";
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return CORE_ERROR::ERR_NO_ERROR;
 #endif
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
 void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
@@ -368,7 +368,7 @@ void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters
 	setBoardIndex(_processParameters->SISO_BoardIndex());
 
 }
-FRAME_PROVIDER_ERROR SiSoProvider::cleanup()
+CORE_ERROR SiSoProvider::cleanup()
 {
 #ifdef ENABLE_FGRAB
 
@@ -389,7 +389,7 @@ FRAME_PROVIDER_ERROR SiSoProvider::cleanup()
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
 	SISO_PROVIDER_SCOPED_LOG << "Frame grabber has been cleaned up";
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
 

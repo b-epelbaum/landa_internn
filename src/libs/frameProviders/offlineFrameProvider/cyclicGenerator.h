@@ -25,15 +25,15 @@ namespace LandaJune
 			const cyclicGenerator & operator = (const cyclicGenerator &) = delete;
 			cyclicGenerator & operator = (cyclicGenerator &&) = delete;
 
-			bool canContinue(FRAME_PROVIDER_ERROR lastError) override;
+			bool canContinue(CORE_ERROR lastError) override;
 
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency();  }
-			FRAME_PROVIDER_ERROR prepareData(Core::FrameRef* frameRef) override;
-			FRAME_PROVIDER_ERROR accessData(Core::FrameRef* frameRef) override;
+			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
+			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			FRAME_PROVIDER_ERROR init() override;
-			FRAME_PROVIDER_ERROR cleanup() override;
+			CORE_ERROR init() override;
+			CORE_ERROR cleanup() override;
 
 			DECLARE_PARAM_PROPERTY(SourceFilePath, QString, "", true)
 			DECLARE_PARAM_PROPERTY(FrameFrequencyInMSec, int, 1000, true)

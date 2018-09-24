@@ -5,6 +5,7 @@
 
 #include <QProgressBar>
 #include <QTimer>
+#include "common/june_exceptions.h"
 
 namespace LandaJune
 {
@@ -22,7 +23,9 @@ namespace LandaJune
 
 		private slots:
 
-			void onCoreStopped( int error );
+			void onCoreStopped();
+			void onCoreException(const LandaJune::BaseException& ex);
+
 			//void browseForFolder();
 			void zoomIn();
 			void zoomOut();

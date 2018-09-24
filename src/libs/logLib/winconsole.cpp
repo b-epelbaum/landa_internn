@@ -29,9 +29,9 @@ bool WinLogConsole::Create(const wchar_t* szTitle, const bool bNoClose, bool& bU
 
 
 		// sync stdio with the console
-		_wfreopen(L"CONIN$", L"r", stdin);
-		_wfreopen(L"CONOUT$", L"w", stdout);
-		_wfreopen(L"CONOUT$", L"w", stderr);
+		(void)_wfreopen(L"CONIN$", L"r", stdin);
+		(void)_wfreopen(L"CONOUT$", L"w", stdout);
+		(void)_wfreopen(L"CONOUT$", L"w", stderr);
 
 		auto bRet = SetStdHandle(STD_OUTPUT_HANDLE, hConsole);
 	}

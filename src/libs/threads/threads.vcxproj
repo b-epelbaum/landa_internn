@@ -95,7 +95,7 @@
       <PreprocessorDefinitions>_DEBUG;THREADS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);THREADS_LIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\libs\logLib;$(SolutionDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\libs\logLib;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,7 +145,7 @@
       <PreprocessorDefinitions>NDEBUG;THREADS_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions);THREADS_LIB</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)src\libs\logLib;$(SolutionDir)include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)src\libs\logLib;$(SolutionDir)include;$(SolutionDir)src\libs\utilLib</AdditionalIncludeDirectories>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>

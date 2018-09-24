@@ -4,7 +4,8 @@
 #include <opencv2/highgui/highgui.hpp> 
 
 using namespace cv;
-using namespace LandaJune::Algorithms;
+using namespace LandaJune;
+using namespace Algorithms;
 
 #ifndef byte
 typedef unsigned char byte;

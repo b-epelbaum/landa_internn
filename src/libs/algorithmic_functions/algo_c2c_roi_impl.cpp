@@ -4,7 +4,8 @@
 #include <opencv2/highgui/highgui.hpp> 
 
 using namespace cv;
-using namespace LandaJune::Algorithms;
+using namespace LandaJune;
+using namespace Algorithms;
 
 //#include <fstream>
 //std::fstream tData ("e:\\temp\\hsv.txt", std::ios::app) ;

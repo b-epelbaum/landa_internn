@@ -36,31 +36,31 @@ folderReader::~folderReader()
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
-bool folderReader::canContinue(FRAME_PROVIDER_ERROR lastError)
+bool folderReader::canContinue(CORE_ERROR lastError)
 {
 	auto _canContinue = true;
 	switch (lastError) 
 	{ 
-		case FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES: _canContinue = false;  break;
+		case CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES: _canContinue = false;  break;
 		default: 
 		;
 	}
 	return _canContinue;
 }
 
-FRAME_PROVIDER_ERROR folderReader::prepareData(FrameRef* frameRef)
+CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 {
 	if (_imagePaths.empty())
 	{
 		FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
-		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
+		return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
-FRAME_PROVIDER_ERROR folderReader::accessData(FrameRef* frameRef)
+CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 {
 	// read image to cv::Mat object
 	const auto srcFullPath = _imagePaths.first();
@@ -72,7 +72,7 @@ FRAME_PROVIDER_ERROR folderReader::accessData(FrameRef* frameRef)
 	if (!tempMatObject->data)            // Check for invalid input
 	{
 		FOLDER_READER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
-		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
@@ -89,7 +89,7 @@ FRAME_PROVIDER_ERROR folderReader::accessData(FrameRef* frameRef)
 
 	// pass source image path to frame
 	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
 void folderReader::releaseData(FrameRef* frameRef)
@@ -127,7 +127,7 @@ void folderReader::validateParameters(std::shared_ptr<BaseParameters> parameters
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "_ImageMaxCount = " << _ImageMaxCount;
 }
 
-FRAME_PROVIDER_ERROR folderReader::init()
+CORE_ERROR folderReader::init()
 {
 	_lastAcquiredImage = -1;
 	_imagePaths.clear();
@@ -135,7 +135,7 @@ FRAME_PROVIDER_ERROR folderReader::init()
 	const auto imageFolder = _SourceFolderPath; 
 	if ( !QFileInfo(imageFolder).exists())
 	{
-		return FRAME_PROVIDER_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
+		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
 	}
 
 	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
@@ -143,12 +143,12 @@ FRAME_PROVIDER_ERROR folderReader::init()
 	while (it.hasNext()) {
 		_imagePaths.push_back(it.next());
 	}
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }
 
-FRAME_PROVIDER_ERROR folderReader::cleanup()
+CORE_ERROR folderReader::cleanup()
 {
 	_imagePaths.clear();
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
-	return FRAME_PROVIDER_ERROR::ERR_NO_ERROR;
+	return RESULT_OK;
 }

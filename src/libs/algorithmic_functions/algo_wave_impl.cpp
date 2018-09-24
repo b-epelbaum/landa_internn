@@ -5,7 +5,8 @@
 #include <opencv2/highgui/highgui.hpp> 
 
 using namespace cv;
-using namespace LandaJune::Algorithms;
+using namespace LandaJune;
+using namespace Algorithms;
 
 
 #ifndef byte
@@ -76,25 +77,25 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	split(*input->_waveImageSource, g_aimWave_BGR);
 	split(g_imWave_Part_HSV, g_aimWave_HSV);
 
-
+	const auto& circleColor = input->_circleColor;
 	// find center of H
 	int iH_Center, iH_Range;
-	if (input->_circleColor._min._iH < input->_circleColor._max._iH) {
-		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH) / 2;
-		iH_Range = (input->_circleColor._max._iH - input->_circleColor._min._iH) / 2 ;
+	if (circleColor._min._iH < circleColor._max._iH) {
+		iH_Center = (circleColor._min._iH + circleColor._max._iH) / 2;
+		iH_Range = (circleColor._max._iH - circleColor._min._iH) / 2 ;
 	}
 	else {
-		iH_Center = (input->_circleColor._min._iH + input->_circleColor._max._iH - 180) / 2;
-		iH_Range = (input->_circleColor._max._iH - input->_circleColor._min._iH + 180) / 2 ;
+		iH_Center = (circleColor._min._iH + circleColor._max._iH - 180) / 2;
+		iH_Range = (circleColor._max._iH - circleColor._min._iH + 180) / 2 ;
 		if (iH_Center < 0)
 			iH_Center += 180;
 	}
 
-	int iS_Center = (input->_circleColor._min._iS + 3 * input->_circleColor._max._iS) / 4;
-	int iV_Center = input->_circleColor._max._iV ;
+	int iS_Center = (circleColor._min._iS + 3 * circleColor._max._iS) / 4;
+	int iV_Center = circleColor._max._iV ;
 
 	g_imWave_Color_Circle = H_Diff(g_aimWave_HSV[0], iH_Center) <= iH_Range &
-		g_aimWave_HSV[1] >= input->_circleColor._min._iS & g_aimWave_HSV[1] <= input->_circleColor._max._iS & g_aimWave_HSV[2] >= input->_circleColor._min._iV & g_aimWave_HSV[2] <= input->_circleColor._max._iV;
+		g_aimWave_HSV[1] >= circleColor._min._iS & g_aimWave_HSV[1] <= circleColor._max._iS & g_aimWave_HSV[2] >= circleColor._min._iV & g_aimWave_HSV[2] <= circleColor._max._iV;
 
 //	imwrite("e:\\temp\\Overlay_00.tif", g_imWave_Color_Circle);
 	dilate(g_imWave_Color_Circle, g_imWave_Color_Circle, Mat::ones(3, 3, CV_8U));
@@ -148,7 +149,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 
 			LandaJune::Algorithms::APOINT tPoint ;
 			tPoint._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			tPoint._y = (int)round((g_afY[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+			tPoint._y = (int)round((g_afY[iCircle] + input->_waveROI.top()) * input->Pixel2MM_Y() * 1000);
 			output->_colorCenters.push_back (tPoint) ;
 			output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
 
@@ -196,6 +197,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 //	iSeq++;
 
 // for checking accuracy
+#if 0
 	int iCnt;
 	Circle_Pos atPos[1000];
 
@@ -224,6 +226,7 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	std::fstream tRes ("e:\\temp\\Wave.txt", std::ios::app) ;
 	tRes << "Number, Error X, Y: " << iLabels  << '\t' << iAcc_Samples << '\t' << fErr_X / (iAcc_Samples - 2) << '\t' << fErr_Y / (iAcc_Samples - 1 - 2) << std::endl;
 	tRes.close () ;
+#endif
 //#endif
 }
 

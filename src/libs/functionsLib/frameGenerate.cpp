@@ -60,27 +60,29 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	frameRef->setPostDataFunction(f);
 
 	// prepare data for pushing to the frameObject
-	FRAME_PROVIDER_ERROR retVal = frameProvider->prepareData(frameRef.get());
-	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+	auto retVal = frameProvider->prepareData(frameRef.get());
+	if (retVal != RESULT_OK)
 	{
 		framePool->release(std::move(frameRef));
 		if (frameProvider->canContinue(retVal))
 		{
 			return;
 		}
-		throw BaseException(toInt(retVal));
+		THROW_EX_ERR(retVal);
 	}
 
 
 	// perform an actual acquisition
 	retVal = frameProvider->accessData (frameRef.get());
-	if (retVal != FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+	if (retVal != RESULT_OK)
 	{
 		framePool->release(std::move(frameRef));
-		FRAMEGENERATE_SCOPED_ERROR << "Image provider failed getting frame. Error : " << toInt(retVal);
+		FRAMEGENERATE_SCOPED_ERROR << "Image provider failed getting frame. Error : " << retVal;
 		if (frameProvider->canContinue(retVal))
 			return;
-		throw BaseException(toInt(retVal));
+		THROW_EX_ERR(retVal);
+		
+		//THROW_EX_ERR(retVal);
 	}
 
 	// push loaded frame reference object to queue
@@ -88,7 +90,7 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 	
 	const auto& tFinish = Utility::now_in_microseconds();
 
-	if (retVal == FRAME_PROVIDER_ERROR::ERR_NO_ERROR)
+	if (retVal == RESULT_OK)
 	{
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesOk, (tFinish - tStart) * 1.0e-6);
 	}

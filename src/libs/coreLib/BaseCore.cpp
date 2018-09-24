@@ -12,8 +12,8 @@
 #include "writequeue.h"
 #include "functions.h"
 #include "ProcessParameters.h"
-
 #include "FrameRefPool.h"
+#include <iomanip>
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -39,7 +39,7 @@ using namespace Functions;
 
 #define CHECK_IF_INITED if (!_bInited ) \
 { \
-	throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NOT_INITIALIZED), ""); \
+	THROW_EX_INT(CORE_ERROR::ERR_CORE_NOT_INITIALIZED); \
 }
 
 
@@ -57,6 +57,7 @@ void BaseCore::loadConfiguration(QString strJSON)
 
 void BaseCore::init()
 {
+	qRegisterMetaType<BaseException>("BaseException");
 	if (_bInited)
 	{
 		CORE_SCOPED_WARNING << "Core is already initialized";
@@ -110,7 +111,7 @@ void BaseCore::selectFrameProvider(FrameProviderPtr provider)
 	{
 		if (_currentFrameProvider->isBusy())
 		{
-			throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY), "");
+			THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_IS_BUSY);
 		}
 
 		_currentFrameProvider->cleanup();
@@ -147,17 +148,17 @@ void BaseCore::start() const
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
 	{
-		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED), "");
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED);
 	}
 
 	if (!_currentAlgorithmRunner)
 	{
-		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED), "");
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED);
 	}
 
 	if (_currentFrameProvider->isBusy())
 	{
-		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_IS_BUSY), "");
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_IS_BUSY);
 	}
 
 	// call algorithms initialization functions
@@ -168,23 +169,27 @@ void BaseCore::start() const
 	}
 	catch(...)
 	{
-		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION), "");
+		// TODO : rethrow nested exception
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION);
 	}
 
 
 	initFramePool();
 
+	CORE_ERROR initErr;
 	try
 	{
-		const auto& err = _currentFrameProvider->init();
-		if ( err != FRAME_PROVIDER_ERROR::ERR_NO_ERROR )
-		{
-			throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT), "");
-		}
+		initErr = _currentFrameProvider->init();
 	}
 	catch (...)
 	{
-		throw BaseException(toInt(CORE_ENGINE_ERROR::ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION), "");
+		// TODO : rethrow nested exception
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION);
+	}
+
+	if ( initErr != NO_ERROR )
+	{
+		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT);
 	}
 
 	// start file writer
@@ -194,6 +199,7 @@ void BaseCore::start() const
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
 	// see "frameConsume" implementation
 	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmRunner );
+	frameConsumerThread().setErrorHandler(consumerExceptionHandler, (void*)this);
 	frameConsumerThread().start();
 
 	
@@ -206,7 +212,7 @@ void BaseCore::start() const
 	
 }
 
-void BaseCore::stop( int error )
+void BaseCore::stop()
 {
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
@@ -232,8 +238,9 @@ void BaseCore::stop( int error )
 	FrameRefPool::frameRefPool()->cleanup();
 	if ( _currentAlgorithmRunner)
 		_currentAlgorithmRunner->cleanup();
-		
-	emit coreStopped(error);
+
+	_bCanAcceptExceptions = true;
+	emit coreStopped();
 }
 
 bool BaseCore::isBusy()
@@ -246,9 +253,10 @@ bool BaseCore::isBusy()
 	return _currentFrameProvider->isBusy();
 }
 
-void BaseCore::onException(int error)
+void BaseCore::onException(BaseException ex)
 {
-	stop(error);
+	stop();
+	emit coreException(ex);
 }
 
 QString BaseCore::getDefaultConfigurationFileName() const
@@ -273,7 +281,7 @@ void BaseCore::initFramePool() const
 	}
 	catch (BaseException& e)
 	{
-		CORE_SCOPED_ERROR << "Error initializing frame pool; error ID : " << e.error();
+		CORE_SCOPED_ERROR << "Error initializing frame pool; error ID : " << e.errorID();
 	}
 }
 
@@ -304,5 +312,51 @@ void BaseCore::initFileWriter(bool bInit) const
 
 void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex )
 {
-	auto bRes = QMetaObject::invokeMethod(static_cast<BaseCore*>(pThis), "onException", Qt::QueuedConnection, Q_ARG(int, ex.error()));
+	const auto pCore = static_cast<BaseCore*>(pThis);
+	autolock lock(pCore->_mutex);
+	if ( !pCore->_bCanAcceptExceptions )
+		return;
+
+	pCore->_bCanAcceptExceptions = false;
+	std::ostringstream ss;
+	print_exception(ex, ss);
+	auto str = ss.str();
+
+	CORE_SCOPED_ERROR << "-------- CORE EXCEPTION CAUGHT ---------------";
+	CORE_SCOPED_ERROR << str.c_str();
+
+	CORE_SCOPED_ERROR << "----------------------------------------------";
+	auto bRes = QMetaObject::invokeMethod(static_cast<BaseCore*>(pThis), "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
+}
+
+void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex )
+{
+	const auto pCore = static_cast<BaseCore*>(pThis);
+	autolock lock(pCore->_mutex);
+	if ( !pCore->_bCanAcceptExceptions )
+		return;
+
+	pCore->_bCanAcceptExceptions = false;
+	std::ostringstream ss;
+	print_exception(ex, ss);
+	auto str = ss.str();
+
+	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(ex.timeStamp().time_since_epoch()) % 1000;
+	auto in_time_t = std::chrono::system_clock::to_time_t(ex.timeStamp());
+	std::tm bt = *std::localtime(&in_time_t);
+	std::ostringstream st;
+	st <<  std::put_time(&bt, "%Y-%m-%d %H:%M:%S");
+	st << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+
+	CORE_SCOPED_ERROR << "-------- CORE EXCEPTION CAUGHT ---------------\r\n"
+					<< " Thread#	: \t" << ex.thread() << "\r\n"
+					<< " Timestamp	: \t" << st.str().c_str() << "\r\n"
+					<< " Source	    : \t" << ex.file() << "\r\n"
+					<< " Line		: \t" << ex.line() << "\r\n"
+					<< "--------------------------------------------------\r\n"
+					<< str.c_str()
+					<< "\r\n----------------------------------------------";
+
+	auto bRes = QMetaObject::invokeMethod(pCore, "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
 }
