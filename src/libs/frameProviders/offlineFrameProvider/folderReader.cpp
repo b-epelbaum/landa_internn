@@ -36,12 +36,64 @@ folderReader::~folderReader()
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
+CORE_ERROR folderReader::init(std::shared_ptr<BaseParameters> parameters)
+{
+	validateParameters(parameters);
+	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+		
+	_lastAcquiredImage = -1;
+	_imagePaths.clear();
+
+	const auto imageFolder = _SourceFolderPath; 
+	if ( !QFileInfo(imageFolder).exists())
+	{
+		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
+	}
+
+	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
+
+	while (it.hasNext()) {
+		_imagePaths.push_back(it.next());
+	}
+	return RESULT_OK;
+}
+
+CORE_ERROR folderReader::cleanup()
+{
+	disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+	_imagePaths.clear();
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
+	return RESULT_OK;
+}
+
+
+void folderReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
+{
+	// TODO : query BaseParameters for named parameters
+	// currently hardcoded
+
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(parameters);
+
+	_SourceFolderPath = processParams->SourceFolderPath();
+	_ImageMaxCount = processParams->ImageMaxCount();
+		
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "Validating provider parameters : ";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "---------------------------------------";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "_SourceFolderPath = " << _SourceFolderPath;
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "_ImageMaxCount = " << _ImageMaxCount;
+
+	_providerParameters = parameters;
+}
+
 bool folderReader::canContinue(CORE_ERROR lastError)
 {
 	auto _canContinue = true;
 	switch (lastError) 
 	{ 
-		case CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES: _canContinue = false;  break;
+		case CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES:
+		case CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT:
+			_canContinue = false;  
+		break;
 		default: 
 		;
 	}
@@ -56,6 +108,10 @@ CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 		return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
+	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
+		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
+
+
 	std::this_thread::sleep_for(std::chrono::milliseconds(200));
 	return RESULT_OK;
 }
@@ -64,7 +120,7 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 {
 	// read image to cv::Mat object
 	const auto srcFullPath = _imagePaths.first();
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "loading BMP registration image : " << srcFullPath << "...";
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "loading source file " << srcFullPath << "...";
 	_imagePaths.pop_front();
 
 	const auto& stdPath = srcFullPath.toStdString();
@@ -110,45 +166,4 @@ void folderReader::releaseData(FrameRef* frameRef)
 			}
 		}
 	}
-}
-
-void folderReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
-{
-	// TODO : query BaseParameters for named parameters
-	// currently hardcoded
-
-	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
-	_SourceFolderPath = _processParameters->SourceFolderPath();
-	_ImageMaxCount = _processParameters->ImageMaxCount();
-
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "Validating provider parameters : ";
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "---------------------------------------";
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "_SourceFolderPath = " << _SourceFolderPath;
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "_ImageMaxCount = " << _ImageMaxCount;
-}
-
-CORE_ERROR folderReader::init()
-{
-	_lastAcquiredImage = -1;
-	_imagePaths.clear();
-
-	const auto imageFolder = _SourceFolderPath; 
-	if ( !QFileInfo(imageFolder).exists())
-	{
-		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
-	}
-
-	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
-
-	while (it.hasNext()) {
-		_imagePaths.push_back(it.next());
-	}
-	return RESULT_OK;
-}
-
-CORE_ERROR folderReader::cleanup()
-{
-	_imagePaths.clear();
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
-	return RESULT_OK;
 }

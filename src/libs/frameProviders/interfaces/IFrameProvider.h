@@ -40,7 +40,6 @@ namespace LandaJune
 			virtual QString getDescription() const = 0;
 			virtual int getRecommendedFramePoolSize() = 0;
 			
-			virtual void setProviderParameters(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 			virtual std::shared_ptr<Parameters::BaseParameters> getProviderParameters() const = 0;
 
 			virtual CORE_ERROR prepareData(Core::FrameRef* frameRef) = 0;
@@ -50,7 +49,7 @@ namespace LandaJune
 			virtual bool canContinue(CORE_ERROR lastError) = 0;
 			virtual bool warnAboutDroppedFrames() = 0;
 
-			virtual CORE_ERROR init() = 0;
+			virtual CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 			virtual CORE_ERROR cleanup() = 0;
 
 			virtual int32_t getFrameDropDelayTimeout() const = 0;

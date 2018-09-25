@@ -53,8 +53,10 @@ namespace LandaJune
 			virtual void selectAlgorithmRunner(AlgorithmRunnerPtr algoRunner) = 0;
 			virtual AlgorithmRunnerPtr getSelectedAlgorithmRunner() const = 0;
 
-			virtual void start() const = 0;
+			virtual void runAll() = 0;
+			virtual void runOne() = 0;
 			virtual void stop() = 0;
+		
 
 			virtual bool isBusy() = 0;
 			virtual QObject * getClassObject () = 0;

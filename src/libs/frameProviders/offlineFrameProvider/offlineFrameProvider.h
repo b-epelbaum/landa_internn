@@ -34,7 +34,7 @@ namespace LandaJune
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			CORE_ERROR init() override;
+			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			CORE_ERROR cleanup() override;
 
 			DECLARE_PARAM_PROPERTY(SourceFolderPath, QString, "", true)
@@ -49,9 +49,7 @@ namespace LandaJune
 			
 			std::shared_ptr<BaseFrameProvider> _currentOfflineProvider;
 
-
 		private :
-
 
 			std::vector<cv::Mat> _images;
 			uint64_t _next = 0ULL;

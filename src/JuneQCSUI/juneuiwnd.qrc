@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="JuneUIWnd">
+    <file>Resources/start_once.png</file>
     <file>Resources/green_led.png</file>
     <file>Resources/grey_led.png</file>
     <file>Resources/color_add.png</file>

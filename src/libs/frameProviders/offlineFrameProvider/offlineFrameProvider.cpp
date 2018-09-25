@@ -63,8 +63,9 @@ void offlineFrameProvider::releaseData(FrameRef* frameRef)
 		_currentOfflineProvider->releaseData(frameRef);
 }
 
-CORE_ERROR offlineFrameProvider::init()
+CORE_ERROR offlineFrameProvider::init(std::shared_ptr<BaseParameters> parameters)
 {
+	validateParameters(parameters);
 	if (_CyclicGeneration)
 	{
 		_currentOfflineProvider.reset(new cyclicGenerator);
@@ -74,23 +75,20 @@ CORE_ERROR offlineFrameProvider::init()
 		_currentOfflineProvider.reset(new folderReader);
 	}
 
-	_currentOfflineProvider->validateParameters(_providerParameters);
-	return _currentOfflineProvider->init();
+	return _currentOfflineProvider->init(parameters);
 }
 
 void offlineFrameProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
-	
-	const auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 
-
-	_SourceFolderPath = _processParameters->SourceFolderPath();
-	_SourceFilePath = _processParameters->SourceFilePath();
-	_ImageMaxCount = _processParameters->ImageMaxCount();
-	_CyclicGeneration = _processParameters->CycleImage();
-	_FrameFrequencyInMSec = _processParameters->FrameFrequencyInMSec();
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(parameters);
+	_SourceFolderPath = processParams->SourceFolderPath();
+	_SourceFilePath = processParams->SourceFilePath();
+	_ImageMaxCount = processParams->ImageMaxCount();
+	_CyclicGeneration = processParams->CycleImage();
+	_FrameFrequencyInMSec = processParams->FrameFrequencyInMSec();
 
 	OFFLINE_GENERATORSCOPED_LOG << "Validating provider parameters : ";
 	OFFLINE_GENERATORSCOPED_LOG << "---------------------------------------";
@@ -99,6 +97,8 @@ void offlineFrameProvider::validateParameters(std::shared_ptr<BaseParameters> pa
 	OFFLINE_GENERATORSCOPED_LOG << "_ImageMaxCount = " << _ImageMaxCount;
 	OFFLINE_GENERATORSCOPED_LOG << "_CyclicGeneration = " << _CyclicGeneration;
 	OFFLINE_GENERATORSCOPED_LOG << "_FrameFrequencyInMSec = " << _FrameFrequencyInMSec;
+
+	_providerParameters = parameters;
 
 	if(_currentOfflineProvider)
 		_currentOfflineProvider->validateParameters(parameters);

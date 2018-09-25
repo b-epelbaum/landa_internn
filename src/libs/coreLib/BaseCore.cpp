@@ -66,8 +66,7 @@ void BaseCore::init()
 	CORE_SCOPED_LOG << "-------------------------------------------------------------";
 	CORE_SCOPED_LOG << " Core Initialization started...";
 
-	// init global parameters
-	initGlobalParameters();
+	initProcessParameters();
 
 	// scan and init frame providers
 	initProviders();
@@ -100,12 +99,13 @@ std::shared_ptr<Parameters::BaseParameters> BaseCore::getProcessParameters()
 	return _processParameters;
 }
 
+
 void BaseCore::selectFrameProvider(FrameProviderPtr provider)
 {
 	CHECK_IF_INITED
 
-		if (_currentFrameProvider == provider)
-			return;
+	if (_currentFrameProvider == provider)
+		return;
 
 	if (_currentFrameProvider)
 	{
@@ -118,7 +118,6 @@ void BaseCore::selectFrameProvider(FrameProviderPtr provider)
 	}
 
 	_currentFrameProvider = std::move(provider);
-	_currentFrameProvider->setProviderParameters(_processParameters);
 }
 
 FrameProviderPtr BaseCore::getSelectedFrameProvider() const
@@ -134,6 +133,9 @@ void BaseCore::selectAlgorithmRunner(AlgorithmRunnerPtr algoRunner)
 	if (_currentAlgorithmRunner == algoRunner)
 		return;
 
+	if (_currentAlgorithmRunner)
+		_currentAlgorithmRunner->cleanup();
+
 	_currentAlgorithmRunner = std::move(algoRunner);
 }
 
@@ -143,7 +145,23 @@ AlgorithmRunnerPtr BaseCore::getSelectedAlgorithmRunner() const
 	return _currentAlgorithmRunner;
 }
 
-void BaseCore::start() const
+void BaseCore::runOne()
+{
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
+	std::shared_ptr<ProcessParameters> processParametersOnce;
+	processParametersOnce.reset(new ProcessParameters(*processParams.get()));
+	processParametersOnce->setImageMaxCount(1);
+	run(processParametersOnce);
+}
+
+void BaseCore::runAll()
+{
+	// init global parameters
+	run(_processParameters);
+}
+
+
+void BaseCore::run(std::shared_ptr<BaseParameters> params)
 {
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
@@ -165,7 +183,7 @@ void BaseCore::start() const
 
 	try
 	{
-		_currentAlgorithmRunner->init(_processParameters);
+		_currentAlgorithmRunner->init(params);
 	}
 	catch(...)
 	{
@@ -173,13 +191,12 @@ void BaseCore::start() const
 		THROW_EX_INT(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION);
 	}
 
-
 	initFramePool();
 
 	CORE_ERROR initErr;
 	try
 	{
-		initErr = _currentFrameProvider->init();
+		initErr = _currentFrameProvider->init(params);
 	}
 	catch (...)
 	{
@@ -209,7 +226,6 @@ void BaseCore::start() const
 	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider);
 	frameProducerThread().setErrorHandler(providerExceptionHandler, (void*)this);
 	frameProducerThread().start();
-	
 }
 
 void BaseCore::stop()
@@ -234,8 +250,10 @@ void BaseCore::stop()
 	initFileWriter(false);
 	CORE_SCOPED_LOG << "File writer stopped";
 
-	_currentFrameProvider->cleanup();
+	if ( _currentFrameProvider)
+		_currentFrameProvider->cleanup();
 	FrameRefPool::frameRefPool()->cleanup();
+	
 	if ( _currentAlgorithmRunner)
 		_currentAlgorithmRunner->cleanup();
 
@@ -268,7 +286,7 @@ void BaseCore::saveConfiguration()
 {
 }
 
-void BaseCore::initGlobalParameters()
+void BaseCore::initProcessParameters()
 {
 	_processParameters = std::make_shared<ProcessParameters>();
 }

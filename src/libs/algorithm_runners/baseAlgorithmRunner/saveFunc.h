@@ -262,14 +262,28 @@ namespace LandaJune
 		}
 		ss << std::endl;
 
-		for ( size_t i = 0; i < waveOutputs[0]->_colorCenters.size(); i++)
+		const static std::string nan = "NaN";
+
+		int i, j;
+		const auto printVals = [&ss, &i, &j, &waveOutputs] ()
+		{
+			if ( const auto& val =  waveOutputs[j]->_colorCenters[i]._y; val != -1 )
+					ss <<  val;
+				else
+					ss <<  nan;
+		};
+
+		for ( i = 0; i < waveOutputs[0]->_colorCenters.size(); i++)
 		{
 			ss << i << ",";
-			for ( size_t j = 0; j <colorCount-1; j++)
+			for ( j = 0; j < colorCount-1; j++)
 			{
-				ss <<  waveOutputs[j]->_colorCenters[i]._y << ",";
+				printVals();
+				ss  << ",";
 			}
-			ss <<  waveOutputs[colorCount-1]->_colorCenters[i]._y << std::endl;
+			j = colorCount-1;
+			printVals();
+			ss << std::endl;
 		}
 
 		auto const& fPath = generateFullPathForWaveCSV(csvFolder,frameIndex );

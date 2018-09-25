@@ -111,8 +111,11 @@ void SiSoProvider::releaseData(FrameRef* frameRef)
 {
 }
 
-CORE_ERROR SiSoProvider::init()
+CORE_ERROR SiSoProvider::init(std::shared_ptr<Parameters::BaseParameters> parameters)
 {
+	validateParameters(parameters);
+	connect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+
 	_lastAcquiredImage = -1;
 	//300m_1200m_300rgb_Windows_AMD64.hap
 	std::string applet;
@@ -360,14 +363,18 @@ void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
 
-	auto _processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
-	setAppletFilePath (_processParameters->SISO_AppletFilePath() );
-	setConfigurationFilePath (_processParameters->SISO_ConfigurationFilePath());
-	setOutputImageFormat(_processParameters->SISO_OutputImageFormat());
-	setBoardList(_processParameters->SISO_BoardList());
-	setBoardIndex(_processParameters->SISO_BoardIndex());
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 
+	setAppletFilePath (processParams->SISO_AppletFilePath() );
+	setConfigurationFilePath (processParams->SISO_ConfigurationFilePath());
+	setOutputImageFormat(processParams->SISO_OutputImageFormat());
+	setBoardList(processParams->SISO_BoardList());
+	setBoardIndex(processParams->SISO_BoardIndex());
+
+	_providerParameters = parameters;
 }
+
+
 CORE_ERROR SiSoProvider::cleanup()
 {
 #ifdef ENABLE_FGRAB
@@ -386,6 +393,7 @@ CORE_ERROR SiSoProvider::cleanup()
 	Fg_FreeGrabber(_fg);
 	SISO_PROVIDER_SCOPED_LOG << "Aqcuisition stopped on all channels";
 #endif
+	disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
 	SISO_PROVIDER_SCOPED_LOG << "Frame grabber has been cleaned up";
 	SISO_PROVIDER_SCOPED_LOG << "================================================";

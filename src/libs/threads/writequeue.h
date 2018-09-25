@@ -40,6 +40,7 @@ namespace LandaJune
 		public:
 			NativeThreadQueue() {
 				InitializeCriticalSection(&_cs);
+				InitializeConditionVariable(&_cv);
 			}
 			NativeThreadQueue(const NativeThreadQueue &) = delete;
 			NativeThreadQueue(NativeThreadQueue &&) = delete;
@@ -47,17 +48,24 @@ namespace LandaJune
 			NativeThreadQueue & operator = (NativeThreadQueue &&) = delete;
 
 			~NativeThreadQueue() {
+				WakeAllConditionVariable(&_cv);
 				LeaveCriticalSection(&_cs);
 			}
 
 			void push(const std::tuple<Args...> & v) {
-				NativeThreadAutoLock l(_cs);
-				_queue.push(v);
+				{
+					NativeThreadAutoLock l(_cs);
+					_queue.push(v);
+				}
+				WakeConditionVariable(&_cv);
 			}
 
 			bool next(std::tuple<Args...> & v) {
 				NativeThreadAutoLock l(_cs);
 
+				if (_queue.empty()) {
+					SleepConditionVariableCS(&_cv, &_cs, 100);
+				}
 				if (_queue.empty()) {
 					return false;
 				}
@@ -65,8 +73,20 @@ namespace LandaJune
 				_queue.pop(); return true;
 			}
 
+			bool empty(void) {
+				NativeThreadAutoLock l(_cs);
+				return _queue.empty();
+			}
+
+			size_t size()
+			{
+				NativeThreadAutoLock l(_cs);
+				return _queue.size();
+			}
+
 		protected:
 			CRITICAL_SECTION _cs;
+			CONDITION_VARIABLE _cv;
 			std::queue<std::tuple<Args...>> _queue;
 		};
 
@@ -188,31 +208,24 @@ namespace LandaJune
 				NativeThread *pThis = static_cast<NativeThread*>(pParam);
 				pThis->setState(THREAD_STATE::BUSY);
 
-				while (pThis->getState() == THREAD_STATE::BUSY) 
+				for (;;)
 				{
-					Sleep(1);
 					try {
 						auto q = pThis->getQueue();
-						if (!q)
-						{
-							continue;
+						if (!q) { throw std::runtime_error("unknown message queue"); }
+
+						if (q->empty() && pThis->getState() != THREAD_STATE::BUSY) {
+							break;
 						}
 
 						std::tuple<Args...> params;
-						if (!q->next(params))
-						{
-							continue;
-						}
+						if (!q->next(params)) { continue; }
 
 						auto cbf = pThis->getThreadFunction();
-						if (cbf)
-						{
-							cbf(params);
-						}
+						if (cbf) { cbf(params); }
 
 					}
-					catch (std::exception & e) 
-					{
+					catch (std::exception & e) {
 						auto ehandler = pThis->getErrorHandler();
 						if (ehandler) { ehandler(e); }
 					}

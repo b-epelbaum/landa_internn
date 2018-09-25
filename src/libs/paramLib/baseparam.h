@@ -43,6 +43,8 @@ namespace LandaJune
 			virtual QJsonObject toJson();
 			virtual bool fromJson(const QJsonObject& obj, bool bRootObject, QString& error );
 
+			QString paramFilePath () const { return _jsonFilePath; }
+
 			signals:
 
 				void updateCalculated();
@@ -55,6 +57,8 @@ namespace LandaJune
 			inline static bool _metaTypeRegistered = false;
 			using OBJ_PROP_PAIR = QPair<QString, QVariant>;
 			using OBJ_PROP_LIST = QVector<OBJ_PROP_PAIR>;
+
+			QString _jsonFilePath;
 
 		};
 		

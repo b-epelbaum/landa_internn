@@ -35,7 +35,9 @@ namespace LandaJune
 			void scaleImage(double factor);
 			void updateActions() const;
 
-			void start();
+			void runAll();
+			void runOnce();
+
 			void stop();
 			void onAboutToQuit();
 
@@ -84,6 +86,8 @@ namespace LandaJune
 
 			void addNewColor(const QString& colorName );
 
+			void run( bool bAll );
+
 			std::unique_ptr<ParamPropModel> _providerParamModel;
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
@@ -94,6 +98,7 @@ namespace LandaJune
 			QAction *fitToWindowAct{};
 
 			QAction * startAct = nullptr;
+			QAction * startOnceAct = nullptr;
 			QAction * stopAct = nullptr;
 
 			QAction * addColor = nullptr;

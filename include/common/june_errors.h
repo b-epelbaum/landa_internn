@@ -37,12 +37,14 @@ namespace LandaJune
 			: _error (error)
 			, _errorString(std::move(strError))
 		{
+			/*
 			if (_errorString.empty() )
 			{
 				auto const iter = _errorStringMap.map().find(error); 
 				if ( iter != _errorStringMap.map().end())
 					_errorString = iter->second;
 			}
+			*/
 		}
 	
 		CORE_ERROR & operator = (const CORE_ERROR & other)
@@ -113,6 +115,7 @@ namespace LandaJune
 		static const int ERR_OFFLINEREADER_NO_MORE_FILES						= 114;
 		static const int ERR_SIMULATOR_HAVE_NO_IMAGES							= 115;
 		static const int ERR_SIMULATOR_REACHED_MAX_COUNT						= 116;
+		static const int ERR_PROVIDER_INVALID_PARAMETERS						= 117;
 
 		static const int ERR_CORE_NOT_INITIALIZED								= 200;
 		static const int ERR_CORE_NO_PROVIDER_SELECTED							= 201;
@@ -150,11 +153,13 @@ namespace LandaJune
 		static const int ALGO_PROCESS_C2C_FAILED								= 411;
 		static const int ALGO_PROCESS_WAVE_FAILED								= 412;
 
+		/*
 		inline static auto _errorStringMap = create_map<int, std::string>
 			(ERR_PROVIDER_INVALID_SELECTED_PROVIDER,				"Selected provider is invalid")
 			(ERR_FRAMEGRABBER_LOAD_APPLET_FAILED,					"Failed loading Silicon Software applet")
 			(ERR_FRAMEGRABBER_LOAD_CONFIG_FAILED,					"Failed loading Silicon Software configuraion file")
 			(ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, 		"Runtime exception has been caught");
+		*/
 	};
 
 	#define RESULT_OK CORE_ERROR::JUNE_NO_ERROR

@@ -47,9 +47,10 @@ namespace LandaJune
 
 			QObject * getClassObject () override { return this; }
 
-			void start() const override;
+			void runOne() override;
+			void runAll() override;
 			void stop() override;
-
+						
 			bool isBusy() override;
 
 			void deleteThis() const
@@ -74,8 +75,10 @@ namespace LandaJune
 
 			virtual QString getDefaultConfigurationFileName() const ;
 			virtual void saveConfiguration();
+
+			virtual void run(std::shared_ptr<Parameters::BaseParameters> params);
 			
-			void initGlobalParameters();
+			void initProcessParameters();
 			void initFramePool() const;
 			void initProviders();
 			void initAlgorithmRunners();
@@ -87,7 +90,7 @@ namespace LandaJune
 
 			FrameProviderPtr	_currentFrameProvider;
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
-
+			
 			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
 			bool _bCanAcceptExceptions = true;
 			std::mutex _mutex;

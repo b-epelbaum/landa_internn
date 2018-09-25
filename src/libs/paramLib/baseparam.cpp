@@ -32,9 +32,6 @@ BaseParameters::BaseParameters()
 	_metaTypeRegistered = true;
 
 }
-BaseParameters::BaseParameters(const QJsonObject& obj)
-{
-}
 
 BaseParameters::BaseParameters(const BaseParameters& other)
 {
@@ -260,6 +257,7 @@ bool BaseParameters::load(QString fileName, QString& error)
 		return false;
 	}
 
+	_jsonFilePath = fileName;
 	QJsonParseError pError;
 	auto const doc = QJsonDocument::fromJson(jsonFile.readAll(), &pError);
 	if (pError.error != QJsonParseError::NoError )

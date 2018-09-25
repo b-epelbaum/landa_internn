@@ -342,7 +342,7 @@
                    </font>
                   </property>
                   <property name="text">
-                   <string>Editable parameters</string>
+                   <string>Process parameters</string>
                   </property>
                  </widget>
                 </item>

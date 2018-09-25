@@ -284,8 +284,17 @@ void JuneUIWnd::initProcessParameters() const
 	//}
 }
 
+void JuneUIWnd::runAll()
+{
+	run (true);
+}
 
-void JuneUIWnd::start()
+void JuneUIWnd::runOnce()
+{
+	run (false);
+}
+
+void JuneUIWnd::run( bool bAll )
 {
 	if (ui.frameSourceCombo->currentIndex() == -1)
 	{
@@ -315,7 +324,10 @@ void JuneUIWnd::start()
 
 			ICore::get()->selectAlgorithmRunner(selectedAlgoRunner);
 			ICore::get()->selectFrameProvider(selectedProvider);
-			ICore::get()->start();
+			if ( bAll )
+				ICore::get()->runAll();
+			else
+				ICore::get()->runOne();
 		}
 	//}
 	//catch (CoreEngineException& ex)
@@ -360,8 +372,9 @@ void JuneUIWnd::createActions()
 
 	QMenu *helpMenu = menuBar()->addMenu(tr("&Help"));
 
-	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start"), this);
-	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop"), this);
+	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start processing"), this);
+	startOnceAct = new QAction(QIcon(":/JuneUIWnd/Resources/start_once.png"), tr("&Start Single processing"), this);
+	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop processing"), this);
 
 	loadConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_open.png"), tr("&Load"), this);
 	saveConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_save.png"), tr("&Save"), this);
@@ -374,7 +387,8 @@ void JuneUIWnd::createActions()
 
 	stopAct->setEnabled(false);
 
-	connect(startAct, &QAction::triggered, this, &JuneUIWnd::start);
+	connect(startAct, &QAction::triggered, this, &JuneUIWnd::runAll);
+	connect(startOnceAct, &QAction::triggered, this, &JuneUIWnd::runOnce);
 	connect(stopAct, &QAction::triggered, this, &JuneUIWnd::stop);
 
 
@@ -395,6 +409,8 @@ void JuneUIWnd::createStatusBar()
 	_greyLed.load(":/JuneUIWnd/Resources/grey_led.png");
 	_greenLed.load(":/JuneUIWnd/Resources/green_led.png");
 
+	ui.mainToolBar->addAction(startOnceAct);
+	ui.mainToolBar->addSeparator();
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
 	ui.mainToolBar->setIconSize(QSize(48, 48));
@@ -774,6 +790,7 @@ void JuneUIWnd::onLoadConfig()
 void JuneUIWnd::enableUIForProcessing(bool bEnable)
 {
 	startAct->setEnabled(bEnable);
+	startOnceAct->setEnabled(bEnable);
 	stopAct->setEnabled(!bEnable);
 	ui.dockWidgetContents->setEnabled(bEnable);
 
@@ -878,6 +895,12 @@ void JuneUIWnd::onTimerTick()
 
 void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const  QModelIndex& prev)
 {
+	if ( !current.isValid())
+	{
+		removeColor->setEnabled(false);
+		return;
+	}
+
 	const auto typeName = _processParamModelEditable->itemType(current);
 	removeColor->setEnabled( typeName == "LandaJune::Parameters::COLOR_TRIPLET" );
 }

@@ -32,7 +32,7 @@ namespace LandaJune
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			CORE_ERROR init() override;
+			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			CORE_ERROR cleanup() override;
 
 			DECLARE_PARAM_PROPERTY(SourceFilePath, QString, "", true)

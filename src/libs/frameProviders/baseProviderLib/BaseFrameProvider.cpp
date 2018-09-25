@@ -14,14 +14,6 @@ using namespace Parameters;
 #define BASEPROVIDER_SCOPED_WARNING PRINT_WARNING << "[BaseFrameProvider] : "
 
 
-void BaseFrameProvider::setProviderParameters(std::shared_ptr<BaseParameters> parameters)
-{
-	validateParameters(parameters);
-	_providerParameters = parameters;
-	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-}
-
-
 IPropertyList BaseFrameProvider::getProviderProperties() const
 {
 	IPropertyList retVal;
