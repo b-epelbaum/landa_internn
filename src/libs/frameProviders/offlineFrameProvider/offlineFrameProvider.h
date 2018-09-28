@@ -37,11 +37,11 @@ namespace LandaJune
 			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			CORE_ERROR cleanup() override;
 
-			DECLARE_PARAM_PROPERTY(SourceFolderPath, QString, "", true)
-			DECLARE_PARAM_PROPERTY(SourceFilePath, QString, "", true)
-			DECLARE_PARAM_PROPERTY(FrameFrequencyInMSec, int, 1000, true)
-			DECLARE_PARAM_PROPERTY(ImageMaxCount, int, -1, true)
-			DECLARE_PARAM_PROPERTY(CyclicGeneration, bool, true, true)
+			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(SourceFilePath, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(FrameFrequencyInMSec, int, 1000)
+			DECLARE_NORMAL_PARAM_PROPERTY(ImageMaxCount, int, -1)
+			DECLARE_NORMAL_PARAM_PROPERTY(CyclicGeneration, bool, true)
 
 		protected:
 

@@ -116,6 +116,8 @@ namespace LandaJune
 		static const int ERR_SIMULATOR_HAVE_NO_IMAGES							= 115;
 		static const int ERR_SIMULATOR_REACHED_MAX_COUNT						= 116;
 		static const int ERR_PROVIDER_INVALID_PARAMETERS						= 117;
+		static const int ERR_PROVIDER_DLL_CANNOT_BE_LOADED						= 118;
+		static const int ERR_RUNNER_DLL_CANNOT_BE_LOADED						= 119;
 
 		static const int ERR_CORE_NOT_INITIALIZED								= 200;
 		static const int ERR_CORE_NO_PROVIDER_SELECTED							= 201;

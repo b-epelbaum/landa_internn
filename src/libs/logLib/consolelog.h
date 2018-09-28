@@ -164,6 +164,7 @@ namespace LandaJune
 				S_LOG_DEBUG,
 				S_LOG_WARNING,
 				S_LOG_ERROR,
+				S_LOG_ERROR_DETAILS,
 			};
 
 

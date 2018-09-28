@@ -4,6 +4,7 @@
 #include <QFile>
 #include "applog.h"
 #include <QJsonDocument>
+#include <QtWidgets/QFileDialog>
 
 #define PARAM_SCOPED_LOG PRINT_INFO7 << "[BaseParameters] : "
 #define PARAM_SCOPED_ERROR PRINT_ERROR << "[BaseParameters] : "
@@ -55,9 +56,10 @@ QJsonObject BaseParameters::toJson()
 		auto metaproperty = metaobject->property(i);
 		const auto name = metaproperty.name();
 		const auto& var = property(name); 
-		if (strcmp(name, "objectName") != 0 && metaproperty.isUser() )
-		{
-			if (var.userType() > 100 ) // user custom type
+		if (strcmp(name, "objectName") == 0 || !metaproperty.isStored() )
+			continue;
+		
+		if (var.userType() > 100 ) // user custom type
 		{
 			if (var.canConvert<COLOR_TRIPLET_SINGLE>())
 			{
@@ -80,8 +82,6 @@ QJsonObject BaseParameters::toJson()
 		}
 		else
 			retVal[name] = var.toJsonValue();
-			
-		}
 	}
 	return retVal;
 }
@@ -95,10 +95,10 @@ bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString&
 		const auto& metaProp = metaobject->property(i);
 		const auto propName = metaProp.name();
 		const auto typeName = metaProp.typeName();
-		if (strcmp(propName, "objectName") == 0 || !metaProp.isUser() )
+		if (strcmp(propName, "objectName") == 0 || !metaProp.isUser() || !metaProp.isStored() )
 			continue;
 			
-		if ( !obj.contains(propName) && strcmp(typeName, "PARAM_GROUP_HEADER") != 0 )
+		if ( !obj.contains(propName) )
 		{
 			PARAM_SCOPED_WARNING << "Required parameter " << propName << " has not been found";
 			continue;
@@ -250,7 +250,7 @@ bool BaseParameters::setParamProperty(const QString& strValName, const QVariant&
 
 bool BaseParameters::load(QString fileName, QString& error)
 {
-	QFile jsonFile(fileName);
+	QFile jsonFile(QFileInfo(fileName).absoluteFilePath());
 	if (!jsonFile.open(QFile::ReadOnly) )
 	{
 		error = jsonFile.errorString();

@@ -3,6 +3,7 @@
 #include <QPluginLoader>
 #include <QCoreApplication>
 #include "interfaces/IQBAse.h"
+#include "common/june_exceptions.h"
 
 
 namespace LandaJune {
@@ -85,5 +86,5 @@ inline IAlgorithmRunner* IAlgorithmRunner::loadNextAlgorithmRunner(const QString
 	{
 		return qobject_cast<IAlgorithmRunner*>(plugin);
 	}
-	return nullptr;
+	THROW_EX_ERR_STR (CORE_ERROR::ERR_PROVIDER_DLL_CANNOT_BE_LOADED, loader.errorString().toStdString());
 }

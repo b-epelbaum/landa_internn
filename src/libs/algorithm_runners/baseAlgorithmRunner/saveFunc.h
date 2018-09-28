@@ -88,7 +88,7 @@ namespace LandaJune
 			catch (fs::filesystem_error& er)
 			{
 				PRINT_ERROR << "[createDirectoryIfNeeded] : Cannot create folder " << pathName.c_str() << "; exception caught : " << er.what();
-				std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + pathName }, __FILE__, __LINE__));
+				RETHROW(CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + pathName);
 			}
 		}
 	}
@@ -115,7 +115,7 @@ namespace LandaJune
 				catch ( const std::exception& ex)
 				{
 					PRINT_ERROR << "[dumpMatFile] : exception caught : " << ex.what();
-					std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP, "" }, __FILE__, __LINE__));
+					RETHROW(CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP, "");
 				}
 
 			});

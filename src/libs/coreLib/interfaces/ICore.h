@@ -33,12 +33,7 @@ namespace LandaJune
 		public:
 			using CorePtr = std::shared_ptr<ICore>;
 
-		public:
-
-			virtual void loadDefaultConfiguration() = 0;
-			virtual void loadConfiguration(QIODevice& strJSONFile) = 0;
-			virtual void loadConfiguration(QString strJSON) = 0;
-			
+		
 			virtual void init() = 0;
 			virtual void cleanup() = 0;
 
@@ -56,7 +51,8 @@ namespace LandaJune
 			virtual void runAll() = 0;
 			virtual void runOne() = 0;
 			virtual void stop() = 0;
-		
+
+			virtual std::string getRootFolderForOneRun() const = 0;
 
 			virtual bool isBusy() = 0;
 			virtual QObject * getClassObject () = 0;

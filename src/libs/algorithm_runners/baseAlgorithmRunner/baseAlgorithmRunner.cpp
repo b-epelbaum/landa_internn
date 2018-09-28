@@ -378,11 +378,11 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 	}
 	catch ( std::exception& ex)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, ""});
 	}
 	catch (...)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 
 	if ( _processParameters->ProcessWave())
@@ -495,11 +495,11 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 	}
 	catch ( std::exception& ex)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 	catch (...)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_stripsHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 	return retVal;
@@ -671,8 +671,7 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 	{
 		BASE_RUNNER_SCOPED_ERROR << "Function detect_c2c_roi has thrown exception";
 		retVal->_result = ALG_STATUS_EXCEPTION_THROWN;
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_C2C_FAILED}, __FILE__, __LINE__));
-		//THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_C2C_FAILED);
+		RETHROW(CORE_ERROR::ALGO_PROCESS_C2C_FAILED, "");
 	}
 
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_C2CHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
@@ -778,11 +777,11 @@ concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> baseAlgorithmRunner::proc
 	}
 	catch ( std::exception& ex)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_WAVE_FAILED }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR::ALGO_PROCESS_WAVE_FAILED, "");
 	}
 	catch (...)
 	{
-		std::throw_with_nested(BaseException(CORE_ERROR{CORE_ERROR::ALGO_PROCESS_WAVE_FAILED }, __FILE__, __LINE__));	
+		RETHROW(CORE_ERROR::ALGO_PROCESS_WAVE_FAILED, "");
 	}
 
 	return retVal;

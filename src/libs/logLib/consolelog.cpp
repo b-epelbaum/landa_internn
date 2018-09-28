@@ -196,6 +196,7 @@ void DumpWorker::initFileHeaders() const
 	*_textStream << ".debug .message_dark{ color: " <<	htmlStatusColorsLight[ConsoleLog::S_LOG_DEBUG] << "; }\r\n";
 	*_textStream << ".warning .message_dark{ color: " << htmlStatusColorsLight[ConsoleLog::S_LOG_WARNING] << "; background-color : " << szWarningColor << "; }\r\n";
 	*_textStream << ".error .message_dark{ color: " <<	htmlStatusColorsLight[ConsoleLog::S_LOG_ERROR] << "; background-color : " << szErrorColor << "; font-weight: bold; }\r\n";
+	*_textStream << ".error .message_dark{ color: " <<	htmlStatusColorsLight[ConsoleLog::S_LOG_ERROR_DETAILS] << "; background-color : " << szErrorColor << "; font-weight: bold; }\r\n";
 
 
 	*_textStream << ".info .message_light{ color: " <<	htmlStatusColorsLight[ConsoleLog::S_LOG_INFO] << "; }\r\n";
@@ -210,6 +211,7 @@ void DumpWorker::initFileHeaders() const
 	*_textStream << ".debug .message_light{ color: " << htmlStatusColorsLight[ConsoleLog::S_LOG_DEBUG] << "; }\r\n";
 	*_textStream << ".warning .message_light{ color: " << htmlStatusColorsLight[ConsoleLog::S_LOG_WARNING] << "; background-color : " << szWarningColor << "; }\r\n";
 	*_textStream << ".error .message_light{ color: " << htmlStatusColorsLight[ConsoleLog::S_LOG_ERROR] << "; background-color : " << szErrorColor << "; font-weight: bold; }\r\n";
+	*_textStream << ".error .message_light{ color: " << htmlStatusColorsLight[ConsoleLog::S_LOG_ERROR_DETAILS] << "; background-color : " << szErrorColor << "; font-weight: bold; }\r\n";
 
 
 	*_textStream << ".fixed{ position: fixed ;} \r\n.header{ top: 0; left: 0; right: 0; height: 30px; width: 200 px; background-color: #000; opacity: 0.5; }r\n";
@@ -486,13 +488,13 @@ void ConsoleLog::AddLine (const int dwStatus, const QString& msg, const copyable
 			return;
 		}
 
-		if (_logLevel == LOG_LEVEL_ERRORS_AND_WARNINGS && !(dwStatus == S_LOG_ERROR || dwStatus == S_LOG_WARNING))
+		if (_logLevel == LOG_LEVEL_ERRORS_AND_WARNINGS && !(dwStatus == S_LOG_ERROR || dwStatus == S_LOG_ERROR_DETAILS || dwStatus == S_LOG_WARNING))
 		{
 			return;
 		}
 	}
 	
-	if ( dwStatus == S_LOG_ERROR)
+	if ( dwStatus == S_LOG_ERROR_DETAILS)
 	{
 		QString strExt; 
 		strExt.reserve(msg.size() + 200);

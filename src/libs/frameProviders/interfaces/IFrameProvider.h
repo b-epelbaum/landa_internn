@@ -89,7 +89,7 @@ inline IFrameProvider* IFrameProvider::loadNextProvider(const QString& strPath)
 	{
 		return qobject_cast<IFrameProvider*>(plugin);
 	}
-	return nullptr;
+	THROW_EX_ERR_STR (CORE_ERROR::ERR_RUNNER_DLL_CANNOT_BE_LOADED, loader.errorString().toStdString());
 }
 
 
@@ -109,7 +109,5 @@ inline std::list<LandaJune::FrameProviderPtr> IFrameProvider::enumerateImageProv
 			retVal.emplace_back(ptr);
 		}
 	}
-	//BASEPROVIDER_SCOPED_LOG << "Finished frame providers enumeration";
-	//BASEPROVIDER_SCOPED_LOG << "--------------------------------------------------";
 	return retVal;
 }

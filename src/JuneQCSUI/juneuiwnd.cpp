@@ -22,20 +22,69 @@
 #include <QMessageBox>
 
 
-using namespace LandaJune::UI;
-using namespace LandaJune::Core;
-using namespace LandaJune::Loggers;
-using namespace LandaJune::FrameProviders;
-using namespace LandaJune::Parameters;
+using namespace LandaJune;
+using namespace UI;
+using namespace Core;
+using namespace Loggers;
+using namespace FrameProviders;
+using namespace Parameters;
 
 #define CLIENT_SCOPED_LOG PRINT_INFO8 << "[JuneUIWnd] : "
 #define CLIENT_SCOPED_WARNING PRINT_WARNING << "[JuneUIWnd] : "
 #define CLIENT_SCOPED_ERROR PRINT_ERROR << "[JuneUIWnd] : "
 
-JuneUIWnd::JuneUIWnd(QWidget *parent)
+JuneUIWnd::JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString strConfig, QWidget *parent)
 	: QMainWindow(parent)
+	, _savelogToFile(savelogToFile)
+	, _strProcessingConfig(strConfig)
 {
-	Q_UNUSED(AppLogger::createLogger());
+	bool bLevelOk = false;
+	_logLevel = AppLogger::stringToLevel(logLevel, bLevelOk);
+
+	bool bModeOk = false;
+	_runMode = stringToMode(runMode, bModeOk);
+
+	if ( logLevel != LOG_LEVEL_NONE )
+		Q_UNUSED(AppLogger::createLogger(_logLevel, savelogToFile));
+
+	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
+	CLIENT_SCOPED_LOG << "				Started Landa June QCS Client";
+	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
+
+	PRINT_DEBUG <<		"[Console colors : ]";
+	PRINT_INFO <<		"\t--- INFO sample";
+	PRINT_INFO1 <<		"\t--- INFO 1 sample";
+	PRINT_INFO2 <<		"\t--- INFO 2 sample";
+	PRINT_INFO3 <<		"\t--- INFO 3 sample";
+	PRINT_INFO4 <<		"\t--- INFO 4 sample";
+	PRINT_INFO5 <<		"\t--- INFO 5 sample";
+	PRINT_INFO6 <<		"\t--- INFO 6 sample";
+	PRINT_INFO7 <<		"\t--- INFO 7 sample";
+	PRINT_INFO8 <<		"\t--- INFO 8 sample";
+	PRINT_DEBUG <<		"\t--- DEBUG sample";
+	PRINT_WARNING <<	"\t--- WARNING sample";
+	PRINT_ERROR <<		"\t--- ERROR sample";
+	PRINT_DEBUG_BREAK;
+
+	if ( !bModeOk)
+	{
+		CLIENT_SCOPED_WARNING << "command line parameter \"mode\" has invalid value : " << runMode << "; defaulting to UI mode...";
+	}
+
+	init();
+}
+
+
+JuneUIWnd::JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString strConfig, QWidget *parent)
+	: QMainWindow(parent)
+	, _runMode(runMode)
+	, _logLevel(logLevel)
+	, _savelogToFile(savelogToFile)
+	, _strProcessingConfig(strConfig)
+{
+	if ( logLevel != LOG_LEVEL_NONE )
+		Q_UNUSED(AppLogger::createLogger(logLevel, savelogToFile));
+
 	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
 	CLIENT_SCOPED_LOG << "				Started Landa June QCS Client";
 	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
@@ -58,19 +107,60 @@ JuneUIWnd::JuneUIWnd(QWidget *parent)
 	init();
 }
 
+RUN_MODE JuneUIWnd::stringToMode(const QString& mode, bool& bOk)
+{
+	const auto strMode = mode.toLower();
+
+	bOk = true;
+	if (strMode == "ui")
+	{
+		return RUN_UI;
+	}
+
+	if (strMode == "noui" || strMode == "console" || strMode == "headless" )
+	{
+		return RUN_NO_UI;
+	}
+
+	if (strMode == "batch")
+	{
+		return RUN_BATCH;
+	}
+
+	bOk = false;
+	return RUN_UI;
+}
+
+
 void JuneUIWnd::init()
 {
-	initUI();
-	setWindowState(Qt::WindowMaximized);
+	if (isUIMode() )
+	{
+		initUI();
+		setWindowState(Qt::WindowMaximized);
+	}
+
 	initCore();
-	enumerateFrameProviders();
-	enumerateAlgoRunners();
+	if (isUIMode() )
+	{
+		enumerateFrameProviders();
+		enumerateAlgoRunners();
+	}
+
+
 	initProcessParameters();
 
-	connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
-	connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoRunnerComboChanged);
+	if (isUIMode() )
+	{
+		connect(ui.frameSourceCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onFrameProviderComboChanged);
+		connect(ui.algoHandlerCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &JuneUIWnd::onAlgoRunnerComboChanged);
+	}
 
 
+	if (isBatchMode())
+	{
+		runAll();
+	}
 }
 
 void JuneUIWnd::initUI()
@@ -78,6 +168,8 @@ void JuneUIWnd::initUI()
 	CLIENT_SCOPED_LOG << "Initializing UI...";
 	_imageBox = new QLabel(this);
 	ui.setupUi(this);
+
+	_onRunViewer = ui.oneRunPlaceholder;
 
 	_scrollArea = ui.scrollArea;
 	_imageBox->setBackgroundRole(QPalette::Base);
@@ -130,36 +222,51 @@ void JuneUIWnd::initCore()
 
 	connect (core.get()->getClassObject(), SIGNAL(coreStopped()), this, SLOT(onCoreStopped()) );
 	connect (core.get()->getClassObject(), SIGNAL(coreException(const LandaJune::BaseException&)), this, SLOT(onCoreException(const LandaJune::BaseException&)) );
-	//try
-	//{
+	try
+	{
 		core->init();
-	//}
-	//catch (CoreEngineException& e)
-	//{
+	}
+	catch (BaseException& e)
+	{
+		handleException(e);
+	}
 
-	//}
+	_onRunViewer->setTargetFolder(QString::fromStdString(core->getRootFolderForOneRun()));
 	CLIENT_SCOPED_LOG << "Core engine initialized";
 }
 
 void JuneUIWnd::onCoreStopped()
 {
-	Helpers::RealTimeStats::rtStats()->reset();
-	_updateStatsTimer->stop();
+	if (isUIMode() )
+	{
+		Helpers::RealTimeStats::rtStats()->reset();
+		_updateStatsTimer->stop();
+		enableUIForProcessing(true);
+	}
 	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
-	enableUIForProcessing(true);
 	_bRunning = false;
+
+	if (isBatchMode())
+	{
+		CLIENT_SCOPED_LOG << "--------------------------------------------------";
+		CLIENT_SCOPED_LOG << "Processing statistics :";
+		CLIENT_SCOPED_LOG << Helpers::RealTimeStats::rtStats()->to_string(true).c_str();
+		CLIENT_SCOPED_LOG << "--------------------------------------------------";
+		qApp->quit();
+	}
 }
 
-void JuneUIWnd::onCoreException(const LandaJune::BaseException& ex)
+void JuneUIWnd::onCoreException(const BaseException& ex)
 {
 }
 
 void JuneUIWnd::enumerateFrameProviders() 
 {
+	// UI code
 	CLIENT_SCOPED_LOG << "Enumerating frame providers...";
 	ui.frameSourceCombo->clear();
-	//try
-	//{
+	try
+	{
 		auto listOfProviders = ICore::get()->getFrameProviderList();
 		for (auto& provider : listOfProviders)
 		{
@@ -167,27 +274,26 @@ void JuneUIWnd::enumerateFrameProviders()
 			ui.frameSourceCombo->addItem(provider->getName(), QVariant::fromValue(provider));
 		}
 		listOfProviders.empty() ? ui.frameSourceCombo->setCurrentIndex(-1) : ui.frameSourceCombo->setCurrentIndex(0);
-		QSettings settings("Landa Corp", "June QCS");
-		auto lastFrameProvider = settings.value("UIClient/lastSelectedProvider").toString();
 
-		if ( !lastFrameProvider.isEmpty() )
+		// look for provider in configuration settings 		
+		auto frameProvider = ICore::get()->getProcessParameters()->getParamProperty("FrameProviderName").toString();
+		if ( frameProvider.isEmpty() )
 		{
-			CLIENT_SCOPED_LOG << "Found last selected frame provider ==> " <<  lastFrameProvider;
-			if ( ui.frameSourceCombo->findText(lastFrameProvider) != - 1 )
-				ui.frameSourceCombo->setCurrentText(lastFrameProvider);
+			CLIENT_SCOPED_LOG << "Configuration frame provider has not been found, setting default value...";
 		}
 		else
 		{
-			CLIENT_SCOPED_LOG << "The last selected frame provider has not been found, setting default value...";
+			CLIENT_SCOPED_LOG << "Configuration frame provider ==> " <<  frameProvider;
+			if ( ui.frameSourceCombo->findText(frameProvider) != - 1 )
+				ui.frameSourceCombo->setCurrentText(frameProvider);
 		}
 
-		this->onFrameProviderComboChanged (ui.frameSourceCombo->currentIndex());
-
-	//}
-	//catch ( CoreEngineException& ex)
-	//{
-		
-	//}
+		updateFrameProviderParamsView(ui.frameSourceCombo->currentIndex());
+	}
+	catch ( BaseException& ex)
+	{
+		handleException(ex);
+	}
 
 	CLIENT_SCOPED_LOG << "Finished frame providers enumeration";
 
@@ -195,10 +301,11 @@ void JuneUIWnd::enumerateFrameProviders()
 
 void JuneUIWnd::enumerateAlgoRunners()
 {
+	// UI code
 	CLIENT_SCOPED_LOG << "Enumerating algorithm runners...";
 	ui.algoHandlerCombo->clear();
-	//try
-	//{
+	try
+	{
 		auto listOfAlgo = ICore::get()->getAlgorithmRunnerList();
 		for (auto& algo : listOfAlgo)
 		{
@@ -207,37 +314,33 @@ void JuneUIWnd::enumerateAlgoRunners()
 		}
 		listOfAlgo.empty() ? ui.algoHandlerCombo->setCurrentIndex(-1) : ui.algoHandlerCombo->setCurrentIndex(0);
 
-		QSettings settings("Landa Corp", "June QCS");
-		auto lastAlgoRunner = settings.value("UIClient/lastSelectedAlgorithm").toString();
+		// look for algorithm runner in configuration settings 		
+		auto algoRunner = ICore::get()->getProcessParameters()->getParamProperty("AlgorithmRunner").toString();
 
-		if ( !lastAlgoRunner.isEmpty() )
+		if ( algoRunner.isEmpty() )
 		{
-			CLIENT_SCOPED_LOG << "Found last selected algorithm runner ==> " <<  lastAlgoRunner;
-			if ( ui.algoHandlerCombo->findText(lastAlgoRunner) != - 1 )
-				ui.algoHandlerCombo->setCurrentText(lastAlgoRunner);
+			CLIENT_SCOPED_LOG << "Configuration algorithm runner has not been found, setting default value...";
 		}
-	else
+		else
 		{
-			CLIENT_SCOPED_LOG << "The last selected algorithm runner has not been found, setting default value...";
+			CLIENT_SCOPED_LOG << "Configuration algorithm runner ==> " <<  algoRunner;
+			if ( ui.algoHandlerCombo->findText(algoRunner) != - 1 )
+				ui.algoHandlerCombo->setCurrentText(algoRunner);
 		}
-
-		onAlgoRunnerComboChanged (ui.algoHandlerCombo->currentIndex());
-
-
-	//}
-	//catch (CoreEngineException& ex)
-	//{
-
-	//}
+		updateAlgoRunnerParamsView(ui.algoHandlerCombo->currentIndex());
+	}
+	catch (BaseException & ex)
+	{
+		handleException(ex);
+	}
 	CLIENT_SCOPED_LOG << "Finished algorithm runner enumeration";
 }
 
 
-void JuneUIWnd::initProcessParameters() const
+void JuneUIWnd::initProcessParametersUIMode()
 {
-	CLIENT_SCOPED_LOG << "Setting process parameters...";
-	//try
-	//{
+	try
+	{
 		const auto batchParams = ICore::get()->getProcessParameters();
 
 		connect(batchParams.get(), &BaseParameters::loaded, this, &JuneUIWnd::onUpdateProcessParams);
@@ -253,35 +356,131 @@ void JuneUIWnd::initProcessParameters() const
 		ui.batchParamView->expandToDepth(1);
 		ui.processParamViewCalculated->expandToDepth(1);
 
-		CLIENT_SCOPED_LOG << "Looking for saved process parameters configuration file...";
-		QSettings settings("Landa Corp", "June QCS");
-		auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
-
-		if ( !lastConfigFile.isEmpty())
+		QString sourceConfig;
+		if ( !_strProcessingConfig.isEmpty())
 		{
-			CLIENT_SCOPED_LOG << "Saved process parameters configuration file found : " << lastConfigFile << "; loading...";
+			CLIENT_SCOPED_LOG << "Command line config file is not empty => " << _strProcessingConfig << "; trying to load...";
+			sourceConfig = _strProcessingConfig;
+		}
+		else
+		{
+			CLIENT_SCOPED_LOG << "Command line config file is empty, looking for saved process parameters configuration file...";
+			QSettings settings("Landa Corp", "June QCS");
+			auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+			if ( !lastConfigFile.isEmpty())
+				sourceConfig = lastConfigFile;
+		}
+
+		if ( !sourceConfig.isEmpty())
+		{
+			CLIENT_SCOPED_LOG << "Loading configuration from file : " << sourceConfig;
 			QString strError;
-			auto const bRes = ICore::get()->getProcessParameters()->load(lastConfigFile, strError);
+			auto const bRes = ICore::get()->getProcessParameters()->load(sourceConfig, strError);
 			if ( !bRes)
 			{
-				CLIENT_SCOPED_ERROR << "Cannot load configuration file " << lastConfigFile <<"; error : " << strError;
+				CLIENT_SCOPED_ERROR << "Cannot load configuration file " << sourceConfig <<"; error : " << strError;
 			}
 			else
 			{
-				statusRecipeName->setText(QFileInfo(lastConfigFile).baseName());
-				CLIENT_SCOPED_LOG << "Configuration file " << lastConfigFile << " has been loaded successfully";
+				statusRecipeName->setText(QFileInfo(sourceConfig).baseName());
+				CLIENT_SCOPED_LOG << "Configuration file " << sourceConfig << " has been loaded successfully";
 			}
 		}
 		else
 		{
-			CLIENT_SCOPED_LOG << "Last configuration file path is empty. Setting default values...";
+			CLIENT_SCOPED_LOG << "No configuration file to load from. Setting default values...";
 		}
 
-	//}
-	//catch (CoreEngineException& ex)
-	//{
+	}
+	catch (BaseException& ex)
+	{
+		handleException(ex);
+	}
+}
 
-	//}
+void JuneUIWnd::initProcessParametersBatchMode()
+{
+	if (_strProcessingConfig.isEmpty())
+	{
+		CLIENT_SCOPED_LOG << "Supplied configuration file path is empty. Exiting...";
+		qApp->quit();
+		return;
+	}
+	try
+	{
+		QString strError;
+		auto const bRes = ICore::get()->getProcessParameters()->load(_strProcessingConfig, strError);
+		if ( !bRes)
+		{
+			CLIENT_SCOPED_ERROR << "Cannot load configuration file " << _strProcessingConfig <<"; error : " << strError;
+			qApp->quit();
+		}
+		else
+		{
+			CLIENT_SCOPED_LOG << "Configuration file " << _strProcessingConfig << " has been loaded successfully";
+		}
+
+		const auto reqFrameProviderName = ICore::get()->getProcessParameters()->getParamProperty("FrameProviderName").toString();
+		const auto reqAlgoRunnerName = ICore::get()->getProcessParameters()->getParamProperty("AlgorithmRunner").toString();
+
+		CLIENT_SCOPED_LOG << "Loading requested frame provider ==> " << reqFrameProviderName;
+		auto listOfProviders = ICore::get()->getFrameProviderList(); bool provFound = false;
+		for (auto& provider : listOfProviders)
+		{
+			CLIENT_SCOPED_LOG << "\t\tFound provider : " << provider->getName();
+			if ( provider->getName() == reqFrameProviderName )
+			{
+				CLIENT_SCOPED_LOG << "Requested frame provider found. Selected provider : " << reqFrameProviderName;
+				ICore::get()->selectFrameProvider(provider);
+				provFound = true;
+			}
+		}
+
+		if (!provFound)
+		{
+			CLIENT_SCOPED_ERROR << "Requested frame provider " << reqFrameProviderName << " not found. Exiting...";
+			qApp->quit();
+		}
+
+		CLIENT_SCOPED_LOG << "Loading requested algorithm runner ==> " << reqAlgoRunnerName;
+		auto listOfRunners = ICore::get()->getAlgorithmRunnerList(); bool runnerFound = false;
+		for (auto& runner : listOfRunners)
+		{
+			CLIENT_SCOPED_LOG << "\t\tFound runner : " << runner->getName();
+			if ( runner->getName() == reqAlgoRunnerName )
+			{
+				CLIENT_SCOPED_LOG << "Requested algorithm runner found. Selected runner : " << reqAlgoRunnerName;
+				ICore::get()->selectAlgorithmRunner(runner);
+				runnerFound = true;
+			}
+		}
+
+		if (!runnerFound)
+		{
+			CLIENT_SCOPED_ERROR << "Requested algorithm runner " << reqAlgoRunnerName << " not found. Exiting...";
+			qApp->quit();
+		}
+	}
+	catch (BaseException& ex)
+	{
+		handleException(ex);
+	}
+}
+
+void JuneUIWnd::initProcessParameters()
+{
+	if (isUIMode() )
+	{
+		CLIENT_SCOPED_LOG << "Setting process parameters in UI mode...";
+		initProcessParametersUIMode();
+		return;
+	}
+	
+	if (isBatchMode())
+	{
+		CLIENT_SCOPED_LOG << "Setting process parameters in BATCH mode...";
+		initProcessParametersBatchMode();
+	}
 }
 
 void JuneUIWnd::runAll()
@@ -294,7 +493,8 @@ void JuneUIWnd::runOnce()
 	run (false);
 }
 
-void JuneUIWnd::run( bool bAll )
+
+void JuneUIWnd::runUIMode( bool bAll )
 {
 	if (ui.frameSourceCombo->currentIndex() == -1)
 	{
@@ -308,9 +508,8 @@ void JuneUIWnd::run( bool bAll )
 		return;
 	}
 
-
-	//try
-	//{
+	try
+	{
 		const auto selectedProvider = ui.frameSourceCombo->currentData().value<FrameProviderPtr>();
 		const auto selectedAlgoRunner = ui.algoHandlerCombo->currentData().value<AlgorithmRunnerPtr>();
 		
@@ -329,15 +528,84 @@ void JuneUIWnd::run( bool bAll )
 			else
 				ICore::get()->runOne();
 		}
-	//}
-	//catch (CoreEngineException& ex)
-	//{
-	//	return;
-	//}
+	}
+	catch (BaseException& ex)
+	{
+		handleException(ex);
+		return;
+	}
 
 	enableUIForProcessing(false);
 	_bRunning = true;
 	_updateStatsTimer->start(100);
+}
+
+void JuneUIWnd::runBatchMode( bool bAll )
+{
+	try
+	{
+		PRINT_DEBUG_DBLINE;
+		CLIENT_SCOPED_LOG << "Selected frame provider : " << ICore::get()->getSelectedFrameProvider()->getName();
+		CLIENT_SCOPED_LOG << "Selected algorithm runner : " << ICore::get()->getSelectedAlgorithmRunner()->getName();
+		CLIENT_SCOPED_LOG << "starting processing...";
+		PRINT_DEBUG_DBLINE;
+
+		ICore::get()->runAll();
+	}
+	catch (BaseException& ex)
+	{
+		handleException(ex);
+	}
+}
+
+void JuneUIWnd::run( bool bAll )
+{
+	if (isUIMode())
+	{
+		runUIMode(bAll);
+		return;
+	}
+
+	if ( isBatchMode())
+	{
+		runBatchMode(bAll);
+		return;
+	}
+}
+
+void JuneUIWnd::stop()
+{
+	CLIENT_SCOPED_LOG << "stopping processing...";
+	
+	try
+	{
+		ICore::get()->stop();
+	}
+	catch (BaseException& ex)
+	{
+		handleException(ex);
+	}
+
+
+	Helpers::RealTimeStats::rtStats()->reset();
+	_updateStatsTimer->stop();
+	enableUIForProcessing(true);
+	_bRunning = false;
+
+	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
+}
+
+
+void JuneUIWnd::handleException (BaseException& ex)
+{
+	std::ostringstream ss;
+	print_exception(ex, ss);
+	CLIENT_SCOPED_ERROR << ss.str().c_str();
+
+	if ( isBatchMode() )
+	{
+		qApp->quit();
+	}
 }
 
 void JuneUIWnd::createActions()
@@ -505,7 +773,6 @@ void JuneUIWnd::fitToWindow()
 
 }
 
-
 void JuneUIWnd::adjustScrollBar(QScrollBar* scrollBar, double factor)
 {
 	scrollBar->setValue(int(factor * scrollBar->value()
@@ -526,32 +793,11 @@ void JuneUIWnd::scaleImage(double factor)
 	zoomOutAct->setEnabled(_scaleFactor > 0.333);
 }
 
-
 void JuneUIWnd::updateActions() const
 {
 	zoomInAct->setEnabled(!fitToWindowAct->isChecked());
 	zoomOutAct->setEnabled(!fitToWindowAct->isChecked());
 	normalSizeAct->setEnabled(!fitToWindowAct->isChecked());
-}
-
-void JuneUIWnd::stop()
-{
-	CLIENT_SCOPED_LOG << "stopping processing...";
-	
-	//try
-	//{
-		ICore::get()->stop();
-	//}
-	//catch (CoreEngineException& ex)
-	//{
-	//}
-
-
-	Helpers::RealTimeStats::rtStats()->reset();
-	_updateStatsTimer->stop();
-	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
-	enableUIForProcessing(true);
-	_bRunning = false;
 }
 
 void JuneUIWnd::onAboutToQuit()
@@ -567,7 +813,7 @@ void JuneUIWnd::onAboutToQuit()
 	AppLogger::closeLogger();
 }
 
-void JuneUIWnd::onFrameProviderComboChanged(int index)
+void JuneUIWnd::updateFrameProviderParamsView (int index)
 {
 	const auto selectedProvider = ui.frameSourceCombo->itemData(index).value<FrameProviderPtr>();
 	if (!selectedProvider)
@@ -576,16 +822,13 @@ void JuneUIWnd::onFrameProviderComboChanged(int index)
 		return;
 	}
 
-	QSettings settings("Landa Corp", "June QCS");
-	settings.setValue("UIClient/lastSelectedProvider",selectedProvider->getName() );
-
 	ICore::get()->selectFrameProvider(selectedProvider);
 	ui.providerDescEdit->document()->setPlainText(selectedProvider->getDescription());
 	_providerParamModel->setupModelData(selectedProvider->getProviderProperties(), false);
 	statusFrameProv->setText(selectedProvider->getName());
 }
 
-void JuneUIWnd::onAlgoRunnerComboChanged(int index)
+void JuneUIWnd::updateAlgoRunnerParamsView (int index)
 {
 	const auto selectedAlgo = ui.algoHandlerCombo->itemData(index).value<AlgorithmRunnerPtr>();
 	if (!selectedAlgo)
@@ -593,14 +836,28 @@ void JuneUIWnd::onAlgoRunnerComboChanged(int index)
 		CLIENT_SCOPED_ERROR << "[JuneUIWnd] : selected algorithm runner is invalid. Aborted ";
 		return;
 	}
-
-	QSettings settings("Landa Corp", "June QCS");
-	settings.setValue("UIClient/lastSelectedAlgorithm",selectedAlgo->getName() );
-
 	ui.algoDescEdit->document()->setPlainText(selectedAlgo->getDescription());
 	statusAlgoRunner->setText(selectedAlgo->getName());
 }
 
+void JuneUIWnd::onFrameProviderComboChanged(int index)
+{
+	const auto selectedProvider = ui.frameSourceCombo->itemData(index).value<FrameProviderPtr>();
+	if (selectedProvider)
+		ICore::get()->getProcessParameters()->setParamProperty("FrameProviderName", selectedProvider->getName());
+
+	updateFrameProviderParamsView (index);
+}
+
+void JuneUIWnd::onAlgoRunnerComboChanged(int index)
+{
+	const auto selectedAlgo = ui.algoHandlerCombo->itemData(index).value<AlgorithmRunnerPtr>();
+	if (selectedAlgo)
+	{
+		ICore::get()->getProcessParameters()->setParamProperty("AlgorithmRunner", selectedAlgo->getName());
+	}
+	updateAlgoRunnerParamsView(index);
+}
 
 void JuneUIWnd::updateStats() const
 {
@@ -617,14 +874,15 @@ void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)
 
 void JuneUIWnd::onProcessParameterChanged(QString propName, const QVariant& newVal)
 {
-	//try
-	//{
+	try
+	{
 		const auto processParams = ICore::get()->getProcessParameters();
 		processParams->setParamProperty(propName, newVal);
-	//}
-	//catch (CoreEngineException& ex)
-	//{
-	//}
+	}
+	catch (BaseException& ex)
+	{
+		handleException (ex);
+	}
 
 }
 
@@ -698,15 +956,8 @@ void JuneUIWnd::onUpdateCalculatedParams()
 	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
 
 	restoreExpandedState(nodes, ui.processParamViewCalculated);
-	/*
-	if ( idx.isValid()  && idx.row() < ui.processParamViewCalculated->model()->rowCount() )
-	{
-		ui.processParamViewCalculated->scrollTo(idx);
-		ui.processParamViewCalculated->selectionModel()->setCurrentIndex(idx, QItemSelectionModel::Select);
-	}
-	*/
-
-	onFrameProviderComboChanged(ui.frameSourceCombo->currentIndex());
+	updateFrameProviderParamsView(ui.frameSourceCombo->currentIndex());
+	updateAlgoRunnerParamsView(ui.algoHandlerCombo->currentIndex());
 }
 
 void JuneUIWnd::onSaveConfig()
@@ -726,11 +977,12 @@ void JuneUIWnd::onSaveConfig()
 
 	auto fileName = QFileDialog::getSaveFileName(this,
     tr("Save configuration file as..."), lastConfigFile, tr("QCS Config Files (*.qconfig)"));
-
+						
 	if (fileName.isEmpty())
 		return;
 
 	settings.setValue("UIClient/lastConfigFile", fileName);
+	statusRecipeName->setText(fileName);
 	
 	auto const jObj = ICore::get()->getProcessParameters()->toJson();
 	QFile jsonFile(fileName);
@@ -781,6 +1033,8 @@ void JuneUIWnd::onLoadConfig()
 	{
 		CLIENT_SCOPED_LOG << "Configuration file " << fileName << " has been loaded successfully";
 	}
+
+	statusRecipeName->setText(fileName);
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -789,6 +1043,9 @@ void JuneUIWnd::onLoadConfig()
 
 void JuneUIWnd::enableUIForProcessing(bool bEnable)
 {
+	if (!isUIMode())
+		return;
+
 	startAct->setEnabled(bEnable);
 	startOnceAct->setEnabled(bEnable);
 	stopAct->setEnabled(!bEnable);
@@ -808,7 +1065,6 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 		iconGeneral->setPixmap(_greyLed);
 	}
 }
-
 
 void JuneUIWnd::onAddColor()
 {

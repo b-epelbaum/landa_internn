@@ -33,6 +33,7 @@ APPLOG_EXPORT Q_DECLARE_LOGGING_CATEGORY(logBright4)
 APPLOG_EXPORT Q_DECLARE_LOGGING_CATEGORY(logBright5)
 APPLOG_EXPORT Q_DECLARE_LOGGING_CATEGORY(logWarning)
 APPLOG_EXPORT Q_DECLARE_LOGGING_CATEGORY(logCritical)
+APPLOG_EXPORT Q_DECLARE_LOGGING_CATEGORY(logCriticalDetails)
 
 
 namespace LandaJune
@@ -59,6 +60,7 @@ namespace LandaJune
 #define PRINT_BRIGHT5	qDebug(logBright5())
 #define PRINT_WARNING	qDebug(logWarning()) 
 #define PRINT_ERROR		qDebug(logCritical()) 
+#define PRINT_ERROR_DETAILS		qDebug(logCriticalDetails()) 
 
 #define PRINT_DEBUG_BREAK		PRINT_DEBUG		<< "\r\n";
 #define PRINT_DEBUG_LINE		PRINT_DEBUG		<< " : ---------------------------------------------------------------------";
@@ -76,17 +78,20 @@ namespace LandaJune
 		public:
 			virtual ~AppLogger();
 
-			static QSharedPointer<AppLogger> createLogger();
+			static LOG_LEVEL stringToLevel (const QString& levelStr, bool& bOk);
+			static QSharedPointer<AppLogger> createLogger(LOG_LEVEL logLevel,  bool bLogToFile);
 			static void closeLogger();
 			static QSharedPointer<AppLogger> get();
 			QString getLogFilePath() const { return _logFilePath; }
 
 		private:
-			explicit AppLogger(QObject* parent = Q_NULLPTR);
+			explicit AppLogger(LOG_LEVEL logLevel = LOG_LEVEL_ERRORS_ONLY,  bool bLogToFile = false, QObject* parent = Q_NULLPTR);
 
 			void installMessageHandler();
 			static void appMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
 
+			LOG_LEVEL							_logLevel;
+			bool								_bLogToFile = false;
 			QString								_logFilePath;
 			QScopedPointer<QMutex>				_mutex;
 			static QSharedPointer<AppLogger>	_this;

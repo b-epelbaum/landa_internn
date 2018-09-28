@@ -10,8 +10,13 @@
 #include <utility>
 
 // FLAG USER = true means parameter is editable, USER = false - parameter is readonly
+// FLAG STORED = true means parameter is saveable, STORED = false - parameter is not saveable
+#define DECLARE_INNER_PROP(x,type,initval,editable,saveable)	Q_PROPERTY(type x MEMBER _##x READ x WRITE set##x USER editable STORED saveable) private: type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; }
 
-#define DECLARE_PARAM_PROPERTY(x,type,initval,editable) Q_PROPERTY(type x MEMBER _##x READ x WRITE set##x USER editable) private: type _##x = initval; public: type x() const { return _##x; } void set##x(const type val) { _##x = val; }
+#define DECLARE_NORMAL_PARAM_PROPERTY(x,type,initval)			DECLARE_INNER_PROP(x,type,initval,true,true)
+#define DECLARE_EDITABLE_ONLY_PROPERTY(x,type,initval)			DECLARE_INNER_PROP(x,type,initval,true,false)
+#define DECLARE_SAVEABLE_ONLY_PROPERTY(x,type,initval)			DECLARE_INNER_PROP(x,type,initval,false,true)
+#define DECLARE_CALCULATED_PROPERTY(x,type,initval)				DECLARE_INNER_PROP(x,type,initval,false,false)
 
 namespace LandaJune
 {
@@ -81,7 +86,7 @@ namespace LandaJune
 				return *this;
 			}
 			~PARAM_GROUP_HEADER() = default;
-			DECLARE_PARAM_PROPERTY(GroupName, QString, "Unknown", true)
+			DECLARE_EDITABLE_ONLY_PROPERTY(GroupName, QString, "Unknown")
 		};
 
 		class COLOR_TRIPLET_SINGLE : public BaseParameters
@@ -115,10 +120,10 @@ namespace LandaJune
 					, QString::number(_V));
 			}
 
-			DECLARE_PARAM_PROPERTY(H, qint32, 0, true)
-			DECLARE_PARAM_PROPERTY(S, qint32, 0, true)
-			DECLARE_PARAM_PROPERTY(V, qint32, 0, true)
-			DECLARE_PARAM_PROPERTY(ColorName, QString, "", true)
+			DECLARE_NORMAL_PARAM_PROPERTY(H, qint32, 0)
+			DECLARE_NORMAL_PARAM_PROPERTY(S, qint32, 0)
+			DECLARE_NORMAL_PARAM_PROPERTY(V, qint32, 0)
+			DECLARE_NORMAL_PARAM_PROPERTY(ColorName, QString, "")
 		};
 
 		class COLOR_TRIPLET: public BaseParameters
@@ -154,9 +159,9 @@ namespace LandaJune
 				return "["+_Min.toDisplayString() + " , " + _Max.toDisplayString() + "]";
 			}
 
-			DECLARE_PARAM_PROPERTY(Min, COLOR_TRIPLET_SINGLE, {}, true)
-			DECLARE_PARAM_PROPERTY(Max, COLOR_TRIPLET_SINGLE, {}, true)
-			DECLARE_PARAM_PROPERTY(ColorName, QString, "", true)
+			DECLARE_NORMAL_PARAM_PROPERTY(Min, COLOR_TRIPLET_SINGLE, {})
+			DECLARE_NORMAL_PARAM_PROPERTY(Max, COLOR_TRIPLET_SINGLE, {})
+			DECLARE_NORMAL_PARAM_PROPERTY(ColorName, QString, "")
 		};
 	}
 }

@@ -38,11 +38,11 @@ namespace LandaJune
 			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			CORE_ERROR cleanup() override;
 
-			DECLARE_PARAM_PROPERTY(AppletFilePath, QString, "", true)
-			DECLARE_PARAM_PROPERTY(ConfigurationFilePath, QString, "", true)
-			DECLARE_PARAM_PROPERTY(OutputImageFormat, QString, "", true)
-			DECLARE_PARAM_PROPERTY(BoardList, QStringList, {}, true)
-			DECLARE_PARAM_PROPERTY(BoardIndex, int, 0, true)
+			DECLARE_NORMAL_PARAM_PROPERTY(AppletFilePath, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(ConfigurationFilePath, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(OutputImageFormat, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(BoardList, QStringList, {})
+			DECLARE_NORMAL_PARAM_PROPERTY(BoardIndex, int, 0)
 
 		protected:
 

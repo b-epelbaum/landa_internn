@@ -51,7 +51,7 @@ namespace LandaJune
 				return _busy;
 			}
 
-			DECLARE_PARAM_PROPERTY(DropFrameWaitTimeout, int, 50, true)
+			DECLARE_NORMAL_PARAM_PROPERTY(DropFrameWaitTimeout, int, 50)
 
 		public slots:
 

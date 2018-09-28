@@ -38,7 +38,7 @@ namespace LandaJune
 
 			void reset();
 			void increment(const StatName stat, const double delta, const double v = 1);
-			std::string to_string();
+			std::string to_string(bool bBreakLines = false);
 
 			static RealTimeStats* rtStats();
 			;

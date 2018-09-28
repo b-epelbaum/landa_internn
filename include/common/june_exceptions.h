@@ -3,12 +3,17 @@
 #include <sstream>
 #include "june_errors.h"
 #include "util.h"
+#include <iomanip>
+
+#define _CRT_SECURE_NO_WARNINGS
 
 namespace LandaJune
 {
 	#define THROW_EX_ERR(x) throw BaseException(x, __FILE__, __LINE__);
 	#define THROW_EX_INT(x) throw BaseException(CORE_ERROR{x}, __FILE__, __LINE__);
 	#define THROW_EX_ERR_STR(x,y) throw BaseException(CORE_ERROR{x,y}, __FILE__, __LINE__);
+	
+	#define RETHROW(x,y) std::throw_with_nested(BaseException(CORE_ERROR{x, y }, __FILE__, __LINE__));
 
 	class BaseException;
 
@@ -77,7 +82,7 @@ namespace LandaJune
 	inline void print_base_exception(const std::exception& e, std::ostringstream& ss, int level =  0)
 	{
 		if ( level != 0 )
-			ss << std::string(level, ' ') << "internal exception: " << e.what() << std::endl;
+			ss << std::string(level, ' ') << "\t\tInternal exception: " << e.what() << std::endl;
 		try 
 		{
 			std::rethrow_if_nested(e);
@@ -89,10 +94,24 @@ namespace LandaJune
 		catch(...) {}
 	}
 
-	inline void print_exception(const BaseException& e, std::ostringstream& ss)
+	inline void print_exception(const BaseException& ex, std::ostringstream& ss)
 	{
-		ss << "Base exception caught : \r\n\t" << e.error() << std::endl;
-		print_base_exception(static_cast<const std::exception&>(e), ss, 0 );
+		auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(ex.timeStamp().time_since_epoch()) % 1000;
+		auto in_time_t = std::chrono::system_clock::to_time_t(ex.timeStamp());
+		std::tm bt = *((std::localtime)(&in_time_t));
+		std::ostringstream st;
+		st <<  std::put_time(&bt, "%Y-%m-%d %H:%M:%S");
+		st << '.' << std::setfill('0') << std::setw(3) << ms.count();
+
+		ss << "--------------  Core exception caught -----------------\r\n\t\t\t\tException details : \r\n"
+					<< "\t\t\t\t\tError ID  : \t" << ex.error()			<< "\r\n"
+					<< "\t\t\t\t\tError msg : \t" << ex.what()			<< "\r\n"
+					<< "\t\t\t\t\tThread#   : \t" << ex.thread()		<< "\r\n"
+					<< "\t\t\t\t\tTimestamp : \t" << st.str().c_str()	<< "\r\n"
+					<< "\t\t\t\t\tSource    : \t" << ex.file()			<< "\r\n"
+					<< "\t\t\t\t\tLine      : \t" << ex.line()			<< "\r\n";
+		print_base_exception(static_cast<const std::exception&>(ex), ss, 0 );
+		ss << "------------------------------------------------------------------------------";  
 	}
 
 }

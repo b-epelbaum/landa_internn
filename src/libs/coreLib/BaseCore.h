@@ -27,10 +27,6 @@ namespace LandaJune
 			BaseCore(const BaseCore &) = delete;
 			BaseCore(BaseCore &&) = delete;
 
-			void loadDefaultConfiguration() override;
-			void loadConfiguration(QIODevice& strJSONFile) override;
-			void loadConfiguration(QString strJSON) override;
-
 			void init() override;
 			void cleanup() override;
 
@@ -42,7 +38,7 @@ namespace LandaJune
 			void selectFrameProvider(FrameProviderPtr provider) override;
 			FrameProviderPtr getSelectedFrameProvider() const override;
 
-			void selectAlgorithmRunner(AlgorithmRunnerPtr algoRUnner) override;
+			void selectAlgorithmRunner(AlgorithmRunnerPtr algoRunner) override;
 			AlgorithmRunnerPtr getSelectedAlgorithmRunner() const override;
 
 			QObject * getClassObject () override { return this; }
@@ -50,6 +46,8 @@ namespace LandaJune
 			void runOne() override;
 			void runAll() override;
 			void stop() override;
+
+			std::string getRootFolderForOneRun() const override;
 						
 			bool isBusy() override;
 
@@ -77,6 +75,7 @@ namespace LandaJune
 			virtual void saveConfiguration();
 
 			virtual void run(std::shared_ptr<Parameters::BaseParameters> params);
+
 			
 			void initProcessParameters();
 			void initFramePool() const;
@@ -95,8 +94,8 @@ namespace LandaJune
 			bool _bCanAcceptExceptions = true;
 			std::mutex _mutex;
 
-			static void providerExceptionHandler ( void * pThis, BaseException& ex );
-			static void consumerExceptionHandler ( void * pThis, BaseException& ex );
+			static void providerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
+			static void consumerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
 		};
 	}
 }

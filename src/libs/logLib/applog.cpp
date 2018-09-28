@@ -27,6 +27,7 @@ Q_LOGGING_CATEGORY(logBright4, "Bright4");
 Q_LOGGING_CATEGORY(logBright5, "Bright5");
 Q_LOGGING_CATEGORY(logWarning, "Warning");
 Q_LOGGING_CATEGORY(logCritical, "Critical");
+Q_LOGGING_CATEGORY(logCriticalDetails, "CriticalDetails");
 
 QSharedPointer<AppLogger> AppLogger::_this;
 
@@ -52,14 +53,39 @@ static LOGGER_PARAM_MAP loggerParamMap =
 	,{ "Debug", ConsoleLog::S_LOG_DEBUG }
 	,{ "Warning", ConsoleLog::S_LOG_WARNING }
 	,{ "Critical", ConsoleLog::S_LOG_ERROR }
+	,{ "CriticalDetails", ConsoleLog::S_LOG_ERROR_DETAILS }
 };
 
-QSharedPointer<AppLogger> AppLogger::createLogger()
+LOG_LEVEL AppLogger::stringToLevel (const QString& levelStr, bool& bOk)
+{
+	const auto strLevel = levelStr.toLower();
+
+	bOk = true;
+	if (strLevel == "all")
+	{
+		return LOG_LEVEL_ALL;
+	}
+
+	if (strLevel == "critical")
+	{
+		return LOG_LEVEL_ERRORS_ONLY;
+	}
+
+	if (strLevel == "warnings")
+	{
+		return LOG_LEVEL_ERRORS_AND_WARNINGS;
+	}
+
+	bOk = false;
+	return LOG_LEVEL_ERRORS_AND_WARNINGS;
+}
+
+QSharedPointer<AppLogger> AppLogger::createLogger(LOG_LEVEL logLevel,  bool bLogToFile)
 {
 	if (!_this.isNull())
 		return _this;
 
-	_this = QSharedPointer<AppLogger>::create();
+	_this = QSharedPointer<AppLogger>::create(logLevel, bLogToFile );
 	_this->installMessageHandler();
 
 	return _this;
@@ -73,26 +99,29 @@ void AppLogger::closeLogger()
 
 QSharedPointer<AppLogger> AppLogger::get()
 {
-	return createLogger();
+	return _this;
 }
 
 void AppLogger::installMessageHandler()
 {
 	const auto logFolder = qApp->applicationDirPath() + QDir::separator() + "Logs" + QDir::separator();
-	QDir logPath(logFolder);
-	if (!logPath.exists())
+	if (_bLogToFile)
 	{
-		Q_UNUSED(logPath.mkpath("."));
+		QDir logPath(logFolder);
+		if (!logPath.exists())
+		{
+			Q_UNUSED(logPath.mkpath("."));
+		}
 	}
 
 	_consoleLog.reset(new ConsoleLog());
 	_consoleLog->InitGeneralLog(
 		logFolder
-		, "log_"
+		, "qcs_"
 		, true
-		, true
-		, LOG_LEVEL_ALL
-		, "debug");
+		, _bLogToFile
+		, _logLevel
+		, "qcs");
 
 	qInstallMessageHandler(appMessageHandler);
 }
@@ -102,12 +131,18 @@ void AppLogger::appMessageHandler(const QtMsgType type, const QMessageLogContext
 	if (_this.isNull())
 		return;
 
-	_this->_consoleLog->AddLogEntry(msg, loggerParamMap.value(context.category), context);
+	ConsoleLog::E_LOG_STATUS status = ConsoleLog::S_LOG_ERROR;
+	if ( context.category != nullptr)
+		status = loggerParamMap.value(context.category);
+
+	_this->_consoleLog->AddLogEntry(msg, status, context);
 }
 
-AppLogger::AppLogger(QObject* parent)
+AppLogger::AppLogger(LOG_LEVEL logLevel,  bool bLogToFile, QObject* parent)
 {
 	Q_UNUSED(parent);
+	_bLogToFile = bLogToFile;
+	_logLevel = logLevel;
 	_mutex.reset(new QMutex(QMutex::Recursive));
 }
 

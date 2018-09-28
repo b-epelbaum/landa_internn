@@ -37,7 +37,7 @@ void RealTimeStats::increment(const StatName stat, const double delta, const dou
 	}
 }
 
-std::string RealTimeStats::to_string() 
+std::string RealTimeStats::to_string(bool bBreakLines) 
 {
 	static const char *names[statsNumber] = {
 		"Frames generated",
@@ -59,6 +59,8 @@ std::string RealTimeStats::to_string()
 	};
 	autolock l(_mutex);
 	std::string txt;
+
+	std::string breaker =  bBreakLines ? "\r\n" : "\n";
 	for (auto i = 0; i < statsNumber; ++i) 
 	{
 		if (_values[i] < 0.0001)
@@ -68,7 +70,8 @@ std::string RealTimeStats::to_string()
 
 		txt.append(names[i]).append(":\t").append(std::to_string(_values[i]))
 			.append("\t").append(std::to_string(_values[i] / _times[i]))
-			.append("\t").append(std::to_string(_times[i] / _values[i])).append("\n");
+			.append("\t").append(std::to_string(_times[i] / _values[i])).append(breaker);
+		
 	}
 	return std::move(txt);
 }

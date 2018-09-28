@@ -5,15 +5,17 @@
 #include "interfaces/IFrameProvider.h"
 #include "interfaces/IAlgorithmRunner.h"
 
-
-//#include "algorithm_wrappers.h"
-
 #include "BackgroundThreadPool.h"
 #include "writequeue.h"
 #include "functions.h"
 #include "ProcessParameters.h"
 #include "FrameRefPool.h"
+#include <filesystem>
 #include <iomanip>
+
+#include <QStandardPaths>
+
+namespace fs = std::filesystem;
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -42,18 +44,6 @@ using namespace Functions;
 	THROW_EX_INT(CORE_ERROR::ERR_CORE_NOT_INITIALIZED); \
 }
 
-
-void BaseCore::loadDefaultConfiguration()
-{
-}
-
-void BaseCore::loadConfiguration(QIODevice& strJSONFile)
-{
-}
-
-void BaseCore::loadConfiguration(QString strJSON)
-{
-}
 
 void BaseCore::init()
 {
@@ -150,7 +140,10 @@ void BaseCore::runOne()
 	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
 	std::shared_ptr<ProcessParameters> processParametersOnce;
 	processParametersOnce.reset(new ProcessParameters(*processParams.get()));
+	
 	processParametersOnce->setImageMaxCount(1);
+	processParametersOnce->setRootOutputFolder(QString::fromStdString(getRootFolderForOneRun()));
+
 	run(processParametersOnce);
 }
 
@@ -261,6 +254,32 @@ void BaseCore::stop()
 	emit coreStopped();
 }
 
+std::string BaseCore::getRootFolderForOneRun() const
+{
+	auto tempRoot = QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0];
+
+	tempRoot += "/Landa/OneRun/";
+
+	auto stdPath = tempRoot.toStdString();
+
+	fs::path p{ stdPath };
+	auto const parentPath = p.parent_path();
+	if (!is_directory(parentPath) || !exists(parentPath))
+	{
+		try
+		{
+			create_directories(parentPath); // create src folder
+		}
+		catch (fs::filesystem_error& er)
+		{
+			PRINT_ERROR << "Cannot create folder " << stdPath.c_str() << "; exception caught : " << er.what();
+			RETHROW (CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + stdPath);
+		}
+	}
+
+	return tempRoot.toStdString();
+}
+
 bool BaseCore::isBusy()
 {
 	if (!_bInited)
@@ -328,7 +347,7 @@ void BaseCore::initFileWriter(bool bInit) const
 	}
 }
 
-void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex )
+void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex ) noexcept
 {
 	const auto pCore = static_cast<BaseCore*>(pThis);
 	autolock lock(pCore->_mutex);
@@ -336,18 +355,15 @@ void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex )
 		return;
 
 	pCore->_bCanAcceptExceptions = false;
+
 	std::ostringstream ss;
 	print_exception(ex, ss);
-	auto str = ss.str();
+	CORE_SCOPED_ERROR << ss.str().c_str();
 
-	CORE_SCOPED_ERROR << "-------- CORE EXCEPTION CAUGHT ---------------";
-	CORE_SCOPED_ERROR << str.c_str();
-
-	CORE_SCOPED_ERROR << "----------------------------------------------";
 	auto bRes = QMetaObject::invokeMethod(static_cast<BaseCore*>(pThis), "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
 }
 
-void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex )
+void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex ) noexcept
 {
 	const auto pCore = static_cast<BaseCore*>(pThis);
 	autolock lock(pCore->_mutex);
@@ -355,26 +371,10 @@ void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex )
 		return;
 
 	pCore->_bCanAcceptExceptions = false;
+	
 	std::ostringstream ss;
 	print_exception(ex, ss);
-	auto str = ss.str();
-
-	auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(ex.timeStamp().time_since_epoch()) % 1000;
-	auto in_time_t = std::chrono::system_clock::to_time_t(ex.timeStamp());
-	std::tm bt = *std::localtime(&in_time_t);
-	std::ostringstream st;
-	st <<  std::put_time(&bt, "%Y-%m-%d %H:%M:%S");
-	st << '.' << std::setfill('0') << std::setw(3) << ms.count();
-
-
-	CORE_SCOPED_ERROR << "-------- CORE EXCEPTION CAUGHT ---------------\r\n"
-					<< " Thread#	: \t" << ex.thread() << "\r\n"
-					<< " Timestamp	: \t" << st.str().c_str() << "\r\n"
-					<< " Source	    : \t" << ex.file() << "\r\n"
-					<< " Line		: \t" << ex.line() << "\r\n"
-					<< "--------------------------------------------------\r\n"
-					<< str.c_str()
-					<< "\r\n----------------------------------------------";
+	CORE_SCOPED_ERROR << ss.str().c_str();
 
 	auto bRes = QMetaObject::invokeMethod(pCore, "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
 }

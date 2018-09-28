@@ -36,8 +36,8 @@ namespace LandaJune
 			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
 			CORE_ERROR cleanup() override;
 
-			DECLARE_PARAM_PROPERTY(SourceFolderPath, QString, "", true)
-			DECLARE_PARAM_PROPERTY(ImageMaxCount, int, -1, true)
+			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath, QString, "")
+			DECLARE_NORMAL_PARAM_PROPERTY(ImageMaxCount, int, -1)
 
 		protected:
 

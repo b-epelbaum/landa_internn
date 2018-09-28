@@ -6,17 +6,30 @@
 #include <QProgressBar>
 #include <QTimer>
 #include "common/june_exceptions.h"
+#include "applog.h"
+#include "onerunviewer.h"
+
 
 namespace LandaJune
 {
 	namespace UI
 	{
+		enum RUN_MODE
+		{
+			RUN_UI = 0
+			, RUN_NO_UI = 1
+			, RUN_BATCH = 2
+		};
+
 		class JuneUIWnd : public QMainWindow
 		{
 			Q_OBJECT
 
 		public:
-			JuneUIWnd(QWidget *parent = Q_NULLPTR);
+			JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString strConfig, QWidget *parent = Q_NULLPTR);
+			JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString strConfig, QWidget *parent = Q_NULLPTR);
+
+			static RUN_MODE stringToMode (const QString& mode, bool& bOk);
 
 		private:
 			Ui::JuneUIWndClass ui{};
@@ -77,20 +90,34 @@ namespace LandaJune
 			void enumerateAlgoRunners() ;
 			void enableUIForProcessing(bool bEnable);
 
-			void initProcessParameters() const;
+			void initProcessParameters();
+			void initProcessParametersUIMode();
+			void initProcessParametersBatchMode();
 
 			void saveExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel ) const;
 			void restoreExpandedOnLevel(const QModelIndex& index, QSet<int> & nodes, QTreeView * view, int& iLevel) const;
 			void saveExpandedState(QSet<int>& nodes, QTreeView * view) const;
 			void restoreExpandedState(QSet<int>& nodes, QTreeView * view) const;
 
+			void updateFrameProviderParamsView (int index);
+			void updateAlgoRunnerParamsView ( int index);
+
 			void addNewColor(const QString& colorName );
 
+			bool isUIMode() const { return _runMode == RUN_UI; }
+			bool isBatchMode() const { return _runMode == RUN_BATCH; }
+
+			void handleException (LandaJune::BaseException& ex);
+
 			void run( bool bAll );
+			void runUIMode( bool bAll );
+			void runBatchMode( bool bAll );
 
 			std::unique_ptr<ParamPropModel> _providerParamModel;
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
+
+			oneRunViewer * _onRunViewer;
 
 			QAction *zoomInAct{};
 			QAction *zoomOutAct{};
@@ -122,6 +149,11 @@ namespace LandaJune
 			QTimer _progressBarTimer;
 
 			QPixmap  _greyLed, _greenLed;
+
+			RUN_MODE _runMode;
+			LOG_LEVEL _logLevel;
+			bool _savelogToFile;
+			QString _strProcessingConfig;
 		};
 	}
 }
