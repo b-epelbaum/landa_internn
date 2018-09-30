@@ -1,7 +1,5 @@
 #include "BaseCore.h"
 #include "applog.h"
-
-#include "common/june_exceptions.h"
 #include "interfaces/IFrameProvider.h"
 #include "interfaces/IAlgorithmRunner.h"
 
@@ -216,7 +214,7 @@ void BaseCore::run(std::shared_ptr<BaseParameters> params)
 	// start one and only frame producing/generation/capture thread
 	// the entry point of this thread is the "frameGenerate" static function, which invokes the data generation functions of IAbstractImageProvider object
 	// see "frameGenerate" implementation
-	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider);
+	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider, this, frameViewCallback);
 	frameProducerThread().setErrorHandler(providerExceptionHandler, (void*)this);
 	frameProducerThread().start();
 }
@@ -294,6 +292,11 @@ void BaseCore::onException(BaseException ex)
 {
 	stop();
 	emit coreException(ex);
+}
+
+void BaseCore::onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
+{
+	emit frameData(fData);
 }
 
 QString BaseCore::getDefaultConfigurationFileName() const
@@ -377,4 +380,10 @@ void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex ) noex
 	CORE_SCOPED_ERROR << ss.str().c_str();
 
 	auto bRes = QMetaObject::invokeMethod(pCore, "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
+}
+
+void BaseCore::frameViewCallback ( ICore * coreObject, std::shared_ptr<LandaJune::Core::SharedFrameData> frameData ) noexcept
+{
+	const auto pCore = static_cast<BaseCore*>(coreObject);
+	auto bRes = QMetaObject::invokeMethod(pCore, "onFrameData", Qt::QueuedConnection, Q_ARG(std::shared_ptr<LandaJune::Core::SharedFrameData>, frameData));
 }

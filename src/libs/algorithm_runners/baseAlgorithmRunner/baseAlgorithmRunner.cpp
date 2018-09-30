@@ -25,6 +25,22 @@ using namespace Core;
 #define BASE_RUNNER_SCOPED_ERROR PRINT_ERROR << "[baseAlgorithmRunner] : "
 #define BASE_RUNNER_SCOPED_WARNING PRINT_WARNING << "[baseAlgorithmRunner] : "
 
+
+struct less_than_key
+{
+	bool operator() (std::shared_ptr<PARAMS_WAVE_OUTPUT>& left, std::shared_ptr<PARAMS_WAVE_OUTPUT>& right)
+	{
+		auto lV (left->_input->_circleColor._colorName);
+		auto lR (right->_input->_circleColor._colorName);
+
+		std::transform(lV.begin(), lV.end(), lV.begin(), ::tolower);
+		std::transform(lR.begin(), lR.end(), lR.begin(), ::tolower);
+
+		return true;//colorOrderMap[lV]  < colorOrderMap[lR];
+	}
+};
+
+
 baseAlgorithmRunner::~baseAlgorithmRunner()
 {
 }
@@ -890,9 +906,40 @@ void baseAlgorithmRunner::processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OU
 	}
 }
 
-
-void baseAlgorithmRunner::processWaveOutputs(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
+void baseAlgorithmRunner::sortWaveOutputs( concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
 {
+	static std::map<std::string, int> colorOrderMap =
+	{
+		  {"black", 0}
+		, {"cyan", 1}
+		, {"magenta", 2}
+		, {"yellow", 3}
+	};
+
+	std::sort(waveOutputs.begin(), waveOutputs.end(),   
+			[](const std::shared_ptr<PARAMS_WAVE_OUTPUT>& left, const std::shared_ptr<PARAMS_WAVE_OUTPUT>& right) 
+			{
+				auto lV (left->_input->_circleColor._colorName);
+				auto rV (right->_input->_circleColor._colorName);
+
+				std::transform(lV.begin(), lV.end(), lV.begin(), ::tolower);
+				std::transform(rV.begin(), rV.end(), rV.begin(), ::tolower);
+
+				auto const lIt = colorOrderMap.find(lV);
+				auto const rIt = colorOrderMap.find(rV);
+
+				return lIt != colorOrderMap.end() && rIt != colorOrderMap.end() 
+								? colorOrderMap.find(lV)->second <  colorOrderMap.find(rV)->second 
+								: false;
+			});
+}
+
+void baseAlgorithmRunner::processWaveOutputs( concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
+{
+	// sort wave outputs
+	sortWaveOutputs(waveOutputs);
+
+	// process and save
 	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
 	{
 		const auto csvFolder = _csvFolder;

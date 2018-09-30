@@ -46,7 +46,7 @@ void appRunner::parseArguments(const QApplication& app)
     // Process the actual command line arguments given by the user
     parser.process(app);
 
-    const QStringList args = parser.positionalArguments();
+    //.const QStringList args = parser.positionalArguments();
     // source is args.at(0), destination is args.at(1)
 
     _runMode = parser.value(modeOption);

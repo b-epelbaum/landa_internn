@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 
+
 #define NAMED_PROPERTY_SOURCE_PATH "srcPath"
 #define NAMED_PROPERTY_PROVIDER_NAME "providerName"
 
@@ -17,10 +18,13 @@ namespace LandaJune
 {
 	namespace Core
 	{
+		struct SharedFrameData;
+
 		class FrameRef
 		{
 			friend class FrameRefPool;
-		
+			friend struct SharedFrameData;
+
 		public :
 			FrameRef(const FrameRef &) = delete;
 			FrameRef(FrameRef &&) = delete;
@@ -36,6 +40,8 @@ namespace LandaJune
 			{
 				_postDataFunc = func;
 			}
+
+
 
 			void setSharedData(std::any unknown) { _sharedData = std::move(unknown); }
 			const std::any& getSharedData() const { return _sharedData; }
@@ -84,6 +90,29 @@ namespace LandaJune
 			std::function<void(FrameRef*)> _postDataFunc;
 			std::any _sharedData;
 		};
-	
+
+		struct SharedFrameData
+		{
+			explicit SharedFrameData (const FrameRef * frame, int32_t maxLifeSpan)
+				: _index(frame->_index)
+				, _frameRefIndex(frame->_frameRefIndex)
+				, _frameWidth(frame->_frameWidth)
+				, _frameHeight(frame->_frameHeight)
+				, _sizeInBytes(frame->_sizeInBytes)
+				, _frameTimeStamp(frame->_frameTimeStamp)
+				, _bits(frame->_bits)
+				, _lifeSpanMs(maxLifeSpan)
+			{
+			}
+
+			int32_t		_index = -1;
+			uint64_t	_frameRefIndex = 0;
+			int32_t		_frameWidth = -1;
+			int32_t		_frameHeight = -1;
+			size_t		_sizeInBytes = 0;
+			long long	_frameTimeStamp = -1;
+			uint8_t *	_bits = nullptr;
+			int32_t		_lifeSpanMs = 0;
+		};
 	}
 }

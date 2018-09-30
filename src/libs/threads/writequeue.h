@@ -117,33 +117,51 @@ namespace LandaJune
 			    stop(); 
 				join();
 			    DeleteCriticalSection(&_cs);
-			}			
+			}
+			
 			const NativeThread & operator = (const NativeThread &) = delete;
 			NativeThread & operator = (NativeThread &&) = delete;
 
-			void setErrorHandler(const EXCEPTION_HANDLER ehandler) {
-				NativeThreadAutoLock l(_cs); _ehandler = ehandler;
+			void setErrorHandler(const EXCEPTION_HANDLER ehandler) 
+			{
+				NativeThreadAutoLock l(_cs); 
+				_ehandler = ehandler;
 			}
-			auto getErrorHandler() {
-				NativeThreadAutoLock l(_cs); return std::ref(_ehandler);
+
+			auto getErrorHandler() 
+			{
+				NativeThreadAutoLock l(_cs); 
+				return std::ref(_ehandler);
 			}
-			void setThreadFunction(CALLBACKF_HANDLER cbfhandler) {
+
+			void setThreadFunction(CALLBACKF_HANDLER cbfhandler) 
+			{
 				NativeThreadAutoLock l(_cs); _cbfhandler = cbfhandler;
 			}
-			auto getThreadFunction() {
-				NativeThreadAutoLock l(_cs); return std::ref(_cbfhandler);
+
+			auto getThreadFunction() 
+			{
+				NativeThreadAutoLock l(_cs); 
+				return std::ref(_cbfhandler);
 			}
 
-			void setQueue(NativeThreadQueue<Args...> *queue) {
-				NativeThreadAutoLock l(_cs); _queue = queue;
-			}
-			auto getQueue() {
-				NativeThreadAutoLock l(_cs); return _queue;
+			void setQueue(NativeThreadQueue<Args...> *queue) 
+			{
+				NativeThreadAutoLock l(_cs); 
+				_queue = queue;
 			}
 
-			void setThreadPriority(THREAD_PRIORITY priority) {
+			auto getQueue() 
+			{
+				NativeThreadAutoLock l(_cs); 
+				return _queue;
+			}
+
+			void setThreadPriority(THREAD_PRIORITY priority) 
+			{
     			NativeThreadAutoLock l(_cs); 
-			    if (_handle) {
+			    if (_handle) 
+				{
     			    SetThreadPriority(_handle, _priority);
 			    }
 			    _priority = priority;
@@ -169,37 +187,31 @@ namespace LandaJune
 
 			void stop() 
 			{
-				NativeThreadAutoLock l(_cs);
-				if (_state == THREAD_STATE::BUSY) 
-				{
-					_state = THREAD_STATE::IDLE;
-				}
+				InterlockedCompareExchange(reinterpret_cast<unsigned *>(&_state), static_cast<unsigned>(THREAD_STATE::IDLE), static_cast<unsigned>(THREAD_STATE::BUSY) );
 			}
 
-			void join(void) 
+			void join() 
 			{
-				for (;;) 
+				while ( WaitForSingleObject(_handle, 0) == WAIT_TIMEOUT ) 
 				{
 					Sleep(10);
-					NativeThreadAutoLock l(_cs);
-					if (!_handle) 
-					{
-						break;
-					}
 				}
+
+				CloseHandle(_handle);
+				_handle = nullptr;
 			}
 
 		protected:
-			THREAD_STATE getState() 
+			THREAD_STATE getState() const
 			{
-				NativeThreadAutoLock l(_cs); 
-				return _state;
+				THREAD_STATE retVal;
+				InterlockedExchange (reinterpret_cast<unsigned*>(&retVal), static_cast<unsigned>(_state)); 
+				return retVal;
 			}
 
 			void setState(THREAD_STATE state) 
 			{
-				NativeThreadAutoLock l(_cs); 
-				_state = state;
+				InterlockedExchange(reinterpret_cast<unsigned*>(&_state), static_cast<unsigned>(state));
 			}
 
 			static DWORD WINAPI threadFunction(LPVOID pParam) 
@@ -230,11 +242,6 @@ namespace LandaJune
 						if (ehandler) { ehandler(e); }
 					}
 				}
-
-				{// clear handle
-					NativeThreadAutoLock l(pThis->_cs);
-					pThis->_handle = NULL;
-				}
 				return 0;
 			}
 
@@ -253,9 +260,6 @@ namespace LandaJune
 		//
 
 		using shared_char_vector = std::shared_ptr<std::vector<unsigned char>>;
-
-		inline THREADS_EXPORT NativeThreadQueue<shared_char_vector, std::string> __dumpQueue;
-		inline THREADS_EXPORT NativeThread<shared_char_vector, std::string> __dumpThread;
 
 		THREADS_EXPORT NativeThreadQueue<shared_char_vector, std::string>& fileDumpThreadQueue();
 		THREADS_EXPORT NativeThread<shared_char_vector, std::string>& fileDumpThread();

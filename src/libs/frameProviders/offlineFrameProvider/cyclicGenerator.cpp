@@ -40,14 +40,14 @@ CORE_ERROR cyclicGenerator::init(std::shared_ptr<BaseParameters> parameters)
 	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
 
 	_lastAcquiredImage = -1;
-	_sourceImage.release();
+	_sourceTemplateImage.release();
 
 	const auto t1 = Utility::now_in_millisecond();
 	const auto pathName = _SourceFilePath;
 	CYCLIC_GENERATOR_SCOPED_LOG << "found BMP image : " << pathName << "; loading...";
-	_sourceImage = cv::imread(pathName.toStdString());
+	_sourceTemplateImage = cv::imread(pathName.toStdString());
 
-	if (_sourceImage.empty() )
+	if (_sourceTemplateImage.empty() )
 	{
 		CYCLIC_GENERATOR_SCOPED_ERROR << "cannot load image file from " << pathName;
 		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
@@ -80,7 +80,7 @@ void cyclicGenerator::validateParameters(std::shared_ptr<BaseParameters> paramet
 CORE_ERROR cyclicGenerator::cleanup()
 {
 	disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-	_sourceImage.release();
+	_sourceTemplateImage.release();
 	CYCLIC_GENERATOR_SCOPED_LOG << "cleaned up";
 	return RESULT_OK;
 }
@@ -91,9 +91,15 @@ bool cyclicGenerator::canContinue(CORE_ERROR lastError)
 	return false;
 }
 
+int32_t cyclicGenerator::getFrameLifeSpan() const
+{
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_providerParameters);
+	return processParams->FrameFrequencyInMSec();
+}
+
 CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 {
-	if ( _sourceImage.empty() )
+	if ( _sourceTemplateImage.empty() )
 		return CORE_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
 
 	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
@@ -105,11 +111,23 @@ CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 
 CORE_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 {
-	const auto w = _sourceImage.cols;
-	const auto h = _sourceImage.rows;
-	const auto s = _sourceImage.step[0] * _sourceImage.rows;
+	const auto clonedMat = std::make_shared<cv::Mat>(_sourceTemplateImage.size(), _sourceTemplateImage.type());
+	_sourceTemplateImage.copyTo(*clonedMat);
 
-	frameRef->setBits(++_lastAcquiredImage, w, h, s, _sourceImage.data);
+	if (!clonedMat->data)            // Check for invalid input
+	{
+		CYCLIC_GENERATOR_SCOPED_WARNING << "Cannot clone loaded image ";
+		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+	}
+	const auto w = clonedMat->cols;
+	const auto h = clonedMat->rows;
+	const auto s = clonedMat->step[0] * clonedMat->rows;
+
+	// push bits to frameRef object
+	frameRef->setBits(++_lastAcquiredImage, w, h, s, clonedMat->data);
+
+	// pass shared object to frame to increase reference counter
+	frameRef->setSharedData(clonedMat);
 	CYCLIC_GENERATOR_SCOPED_LOG << "Received frame #" << _lastAcquiredImage;
 	return RESULT_OK;
 }

@@ -455,6 +455,7 @@ namespace LandaJune
 				{
 					return _colorOverlay;
 				}
+
 		};
 
 		//------------------------------------------

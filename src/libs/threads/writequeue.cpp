@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "writequeue.h"
 
+LandaJune::Core::NativeThreadQueue<LandaJune::Core::shared_char_vector, std::string> __dumpQueue;
+LandaJune::Core::NativeThread<LandaJune::Core::shared_char_vector, std::string> __dumpThread;
+
 LandaJune::Core::NativeThreadQueue<std::shared_ptr<std::vector<unsigned char>>, std::basic_string<char>>& LandaJune::
 Core::fileDumpThreadQueue()
 {

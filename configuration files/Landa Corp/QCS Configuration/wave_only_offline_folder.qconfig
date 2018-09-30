@@ -1,4 +1,5 @@
 {
+    "AlgorithmRunner": "Full Image Runner",
     "C2CDistanceBetweenDots_um": 3048,
     "C2CDistanceBetweenSets_um": 159300,
     "C2CDistanceFromTriangle2FirstSet_um": 9600,
@@ -6,23 +7,23 @@
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
-        {
-            "ColorName": "Cyan",
+		{
+            "ColorName": "Black",
             "Max": {
                 "ColorName": "",
-                "H": 30,
-                "S": 255,
-                "V": 255
+                "H": 255,
+                "S": 100,
+                "V": 128
             },
             "Min": {
                 "ColorName": "",
                 "H": 0,
-                "S": 170,
+                "S": 0,
                 "V": 0
             }
         },
         {
-            "ColorName": "Yellow",
+            "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
                 "H": 110,
@@ -40,29 +41,29 @@
             "ColorName": "Magenta",
             "Max": {
                 "ColorName": "",
-                "H": 140,
+                "H": 179,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 110,
-                "S": 170,
-                "V": 0
+                "H": 160,
+                "S": 100,
+                "V": 150
             }
         },
-        {
-            "ColorName": "Black",
+		{
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 255,
-                "S": 100,
-                "V": 128
+                "H": 30,
+                "S": 255,
+                "V": 255
             },
             "Min": {
                 "ColorName": "",
                 "H": 0,
-                "S": 0,
+                "S": 170,
                 "V": 0
             }
         }
@@ -74,6 +75,7 @@
     "EnableImageSaving": true,
     "EnableProcessing": true,
     "FrameFrequencyInMSec": 500,
+    "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,

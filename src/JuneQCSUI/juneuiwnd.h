@@ -9,6 +9,12 @@
 #include "applog.h"
 #include "onerunviewer.h"
 
+namespace LandaJune {
+	namespace Core {
+		struct SharedFrameData;
+	}
+}
+
 
 namespace LandaJune
 {
@@ -73,6 +79,7 @@ namespace LandaJune
 			void onTimerTick();
 
 			void processParamSelectionChanged(const  QModelIndex&, const  QModelIndex&);
+			void onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
 
 		signals :
 

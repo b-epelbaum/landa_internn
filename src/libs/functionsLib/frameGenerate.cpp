@@ -4,6 +4,7 @@
 #include "util.h"
 #include "RealTimeStats.h"
 #include "interfaces/IFrameProvider.h"
+#include "../coreLib/interfaces/ICore.h"
 
 using namespace LandaJune;
 using namespace Helpers;
@@ -30,7 +31,7 @@ using namespace Helpers;
 #define FRAMEGENERATE_SCOPED_ERROR PRINT_ERROR << "[frameGenerate func] : "
 #define FRAMEGENERATE_SCOPED_WARNING PRINT_WARNING << "[frameGenerate func] : "
 
-void Functions::frameGenerate(FrameProviderPtr frameProvider)
+void Functions::frameGenerate(FrameProviderPtr frameProvider, Core::ICore * coreObject, std::function<void( Core::ICore *, std::shared_ptr<Core::SharedFrameData>)> viewFunc)
 {
 	// get a first free 
 	auto framePool = Core::FrameRefPool::frameRefPool();
@@ -71,7 +72,6 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 		THROW_EX_ERR(retVal);
 	}
 
-
 	// perform an actual acquisition
 	retVal = frameProvider->accessData (frameRef.get());
 	if (retVal != RESULT_OK)
@@ -81,10 +81,10 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider)
 		if (frameProvider->canContinue(retVal))
 			return;
 		THROW_EX_ERR(retVal);
-		
-		//THROW_EX_ERR(retVal);
 	}
 
+	// call viewer function to pass image data for viewing
+	viewFunc(coreObject, std::make_shared<Core::SharedFrameData>(frameRef.get(), frameProvider->getFrameLifeSpan()));
 	// push loaded frame reference object to queue
 	framePool->pushNextLoaded(std::move(frameRef));
 	

@@ -129,6 +129,7 @@ QString htmlStatusColorsLight[] = {
 	"#C0C0C0",			// debug
 	"#000000",			// warning
 	"#FFFFFF",			// error
+	"#FFFFFF",			// error with details
 
 };
 

@@ -52,6 +52,7 @@ namespace LandaJune
 			virtual CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
 			virtual CORE_ERROR cleanup() = 0;
 
+			virtual int32_t getFrameLifeSpan() const = 0;
 			virtual int32_t getFrameDropDelayTimeout() const = 0;
 			virtual int64_t getCurrentFrameIndex() const = 0;
 

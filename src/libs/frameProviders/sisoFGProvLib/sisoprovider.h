@@ -28,7 +28,8 @@ namespace LandaJune
 			SiSoProvider & operator = (SiSoProvider &&) = delete;
 
 			bool canContinue(CORE_ERROR lastError) override;
-		
+
+			int32_t getFrameLifeSpan() const override;
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency() / 2 + 1; }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;

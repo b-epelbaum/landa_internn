@@ -100,6 +100,12 @@ bool folderReader::canContinue(CORE_ERROR lastError)
 	return _canContinue;
 }
 
+int32_t folderReader::getFrameLifeSpan() const
+{
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_providerParameters);
+	return processParams->FrameFrequencyInMSec();
+}
+
 CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 {
 	if (_imagePaths.empty())
@@ -112,7 +118,7 @@ CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
 
 
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	return RESULT_OK;
 }
 
@@ -124,6 +130,7 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 	_imagePaths.pop_front();
 
 	const auto& stdPath = srcFullPath.toStdString();
+
 	const auto tempMatObject = std::make_shared<cv::Mat>(cv::imread(stdPath));
 	if (!tempMatObject->data)            // Check for invalid input
 	{
@@ -140,7 +147,6 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 	// push bits to frameRef object
 	frameRef->setBits(++_lastAcquiredImage, w, h, s, tempMatObject->data);
 
-	// attach a created new image to unknown data
 	frameRef->setSharedData(tempMatObject);
 
 	// pass source image path to frame
@@ -150,6 +156,7 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 
 void folderReader::releaseData(FrameRef* frameRef)
 {
+	return;
 	if ( frameRef )
 	{
 		auto& sharedData = frameRef->getSharedData();

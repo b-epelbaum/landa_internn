@@ -441,3 +441,10 @@ void SiSoProvider::dumpTestImageSync(uint8_t * imageBits, int width, int height,
 	cv::Mat temp = { height, width, imageCVFormat, imageBits };
 	cv::imwrite(path.toStdString().c_str(), temp);
 }
+
+
+int32_t SiSoProvider::getFrameLifeSpan() const
+{
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_providerParameters);
+	return processParams->FrameFrequencyInMSec();
+}

@@ -222,6 +222,7 @@ void JuneUIWnd::initCore()
 
 	connect (core.get()->getClassObject(), SIGNAL(coreStopped()), this, SLOT(onCoreStopped()) );
 	connect (core.get()->getClassObject(), SIGNAL(coreException(const LandaJune::BaseException&)), this, SLOT(onCoreException(const LandaJune::BaseException&)) );
+	connect (core.get()->getClassObject(), SIGNAL(frameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)), this, SLOT(onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)) );
 	try
 	{
 		core->init();
@@ -258,6 +259,12 @@ void JuneUIWnd::onCoreStopped()
 
 void JuneUIWnd::onCoreException(const BaseException& ex)
 {
+}
+
+void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
+{
+	
+
 }
 
 void JuneUIWnd::enumerateFrameProviders() 

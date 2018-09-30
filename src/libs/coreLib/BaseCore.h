@@ -1,10 +1,20 @@
 #pragma once
 #include "coreLib_global.h"
 #include "interfaces/ICore.h"
+#include "common/june_exceptions.h"
+
 #include <mutex>
+
 #include <QObject>
 #include <QMetaObject>
-#include "baseProviderLib/BaseFrameProvider.h"
+
+
+namespace LandaJune {
+	namespace Core {
+		class FrameRef;
+		struct SharedFrameData;
+	}
+}
 
 namespace LandaJune
 {
@@ -60,10 +70,12 @@ namespace LandaJune
 
 			void coreStopped();
 			void coreException(const LandaJune::BaseException ec);
+			void frameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData );
 
 		private slots:
 
 			void onException (BaseException ex);
+			void onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData);
 
 		protected :
 			
@@ -94,6 +106,7 @@ namespace LandaJune
 			bool _bCanAcceptExceptions = true;
 			std::mutex _mutex;
 
+			static void frameViewCallback ( ICore * coreObject, std::shared_ptr<LandaJune::Core::SharedFrameData> frameData ) noexcept;
 			static void providerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
 			static void consumerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
 		};
@@ -101,4 +114,5 @@ namespace LandaJune
 }
 
 Q_DECLARE_METATYPE(LandaJune::BaseException)
+Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Core::SharedFrameData>)
 

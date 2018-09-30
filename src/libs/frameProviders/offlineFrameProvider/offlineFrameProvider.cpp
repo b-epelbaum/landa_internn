@@ -110,3 +110,8 @@ CORE_ERROR offlineFrameProvider::cleanup()
 	_currentOfflineProvider.reset();
 	return  retVal;
 }
+
+int32_t offlineFrameProvider::getFrameLifeSpan() const
+{
+	return  _currentOfflineProvider ? _currentOfflineProvider->getFrameLifeSpan() : -1;
+}

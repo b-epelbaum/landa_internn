@@ -27,6 +27,7 @@ namespace LandaJune
 			bool warnAboutDroppedFrames() override { return false; }
 			bool canContinue(CORE_ERROR lastError) override;
 
+			int32_t getFrameLifeSpan() const override;
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency(); }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
