@@ -32,10 +32,10 @@ namespace LandaJune
 			Q_OBJECT
 
 		public:
-			JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString strConfig, QWidget *parent = Q_NULLPTR);
-			JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString strConfig, QWidget *parent = Q_NULLPTR);
+			JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString logRootPath, QString strConfig, QWidget *parent = Q_NULLPTR);
+			JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString logRootPath, QString strConfig, QWidget *parent = Q_NULLPTR);
 
-			static RUN_MODE stringToMode (const QString& mode, bool& bOk);
+			static RUN_MODE stringToMode (const QString& mode, bool* bOk);
 
 		private:
 			Ui::JuneUIWndClass ui{};

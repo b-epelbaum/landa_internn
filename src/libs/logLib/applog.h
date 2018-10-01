@@ -78,14 +78,14 @@ namespace LandaJune
 		public:
 			virtual ~AppLogger();
 
-			static LOG_LEVEL stringToLevel (const QString& levelStr, bool& bOk);
-			static QSharedPointer<AppLogger> createLogger(LOG_LEVEL logLevel,  bool bLogToFile);
+			static LOG_LEVEL stringToLevel (const QString& levelStr, bool* bOk);
+			static QSharedPointer<AppLogger> createLogger(LOG_LEVEL logLevel, QString strRootPath,  bool bLogToFile);
 			static void closeLogger();
 			static QSharedPointer<AppLogger> get();
 			QString getLogFilePath() const { return _logFilePath; }
 
 		private:
-			explicit AppLogger(LOG_LEVEL logLevel = LOG_LEVEL_ERRORS_ONLY,  bool bLogToFile = false, QObject* parent = Q_NULLPTR);
+			explicit AppLogger(LOG_LEVEL logLevel = LOG_LEVEL_ERRORS_ONLY, QString logRootPath = "", bool bLogToFile = false, QObject* parent = Q_NULLPTR);
 
 			void installMessageHandler();
 			static void appMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg);
@@ -93,6 +93,7 @@ namespace LandaJune
 			LOG_LEVEL							_logLevel;
 			bool								_bLogToFile = false;
 			QString								_logFilePath;
+			QString								_logPathRoot;
 			QScopedPointer<QMutex>				_mutex;
 			static QSharedPointer<AppLogger>	_this;
 			QScopedPointer<ConsoleLog>			_consoleLog;

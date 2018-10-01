@@ -79,20 +79,30 @@ namespace LandaJune
 			virtual void generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const;
 
+			// general sheet output processing
+			virtual void processSheetOutput(std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> sheetOutput);
+
+			// general strip output processing
 			virtual void processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput);
+			// saving strip CSV files
+			virtual void processStripOutputCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput);
+
 			virtual void sortWaveOutputs(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs );
 			virtual void processWaveOutputs(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs );
+			virtual void processWaveOutputsCSV(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs );
 
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
+			virtual void logFailedStrip(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput);
+			virtual void logFailedWaves(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs);
 
 			template<typename T>
-			void dumpOverlay(T& out)
+			void dumpOverlay(T& out, bool asyncWrite)
 			{
 				if (_processParameters->EnableAnyDataSaving() && _processParameters->EnableImageSaving() && _processParameters->GenerateOverlays())
 				{
 					const auto targetMat = out->overlay();
 					if ( targetMat != nullptr )
-						dumpMatFile(targetMat, generateFullPathForElement<T>(out, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName()), _bParallelCalc);
+						dumpMatFile(targetMat, generateFullPathForElement<T>(out, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName()), _bParallelCalc, asyncWrite);
 				}
 			}
 
@@ -120,16 +130,17 @@ namespace LandaJune
 			virtual concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> processWaves(const std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs);
 			virtual void shutdownWave();
 			
-			virtual void constructFrameContainer(const Core::FrameRef* frame, int bitsPerPixel);
 
 			const Core::FrameRef* _frame = nullptr;;
-			std::unique_ptr<cv::Mat> _frameContainer;
 			int _frameIndex = 0;
 			int _imageIndex = 0;
 			std::string _csvFolder;
 			std::string _sourceFrameIndexStr;
 			std::shared_ptr<Parameters::ProcessParameters> _processParameters;
 			bool _bParallelCalc = false;
+			bool _bAsyncWrite = true;
+
+			std::string _sourceFramePath;
 		};
 	}
 }

@@ -20,6 +20,7 @@ using namespace Algorithms;
 using namespace Parameters;
 using namespace Helpers;
 using namespace Core;
+using namespace Files;
 
 #define BASE_RUNNER_SCOPED_LOG PRINT_INFO6 << "[baseAlgorithmRunner] : "
 #define BASE_RUNNER_SCOPED_ERROR PRINT_ERROR << "[baseAlgorithmRunner] : "
@@ -53,10 +54,11 @@ void baseAlgorithmRunner::process(const FrameRef* frame)
 {
 	// minimal process implementation
 	_frame = frame;
-	constructFrameContainer(frame, _processParameters->ScanBitDepth());
-
+	
 	_bParallelCalc = _processParameters->ParalellizeCalculations();
 	_frameIndex = frame->getIndex();
+	_bAsyncWrite = frame->getAsyncWrite();
+
 	_imageIndex = _frameIndex % _processParameters->PanelCount();
 	if ( _imageIndex == 0 && _frameIndex != 0 )
 		_imageIndex = _processParameters->PanelCount();
@@ -70,11 +72,13 @@ void baseAlgorithmRunner::validateProcessParameters(std::shared_ptr<BaseParamete
 }
 
 
+/*
 void baseAlgorithmRunner::constructFrameContainer(const FrameRef* frame, int bitsPerPixel)
 {
 	_frameContainer = std::make_unique<cv::Mat>(frame->getHeight(), frame->getWidth(),
 		CV_MAKETYPE(CV_8U, bitsPerPixel / 8), (void*)frame->getBits());
 }
+*/
 
 ////////////////////////////////////////////////////////
 /////////////////  fill data structures functions
@@ -239,7 +243,8 @@ void baseAlgorithmRunner::generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_
 	regionList.push_back(
 		std::move(ImageRegion::createRegion
 		(
-			 _frameContainer.get()
+			 //_frameContainer.get()
+			_frame->image().get()
 			, input->_paperEdgeInput->_stripImageSource
 			, _processParameters
 			, qrect2cvrect(stripRect)
@@ -274,7 +279,7 @@ void baseAlgorithmRunner::generateI2SRegion(std::shared_ptr<PARAMS_I2S_INPUT> in
 		_processParameters->SaveSourceLeftI2S() 
 	  : _processParameters->SaveSourceRightI2S();
 
-	regionList.push_back(std::move(ImageRegion::createRegion(_frameContainer.get()
+	regionList.push_back(std::move(ImageRegion::createRegion(_frame->image().get()
 			, input->_triangleImageSource
 			, _processParameters
 			, roirect2cvrect(input->_approxTriangeROI)
@@ -296,7 +301,7 @@ void baseAlgorithmRunner::generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT
 	regionList.push_back(
 		std::move(ImageRegion::createRegion
 		(
-			_frameContainer.get()
+			_frame->image().get()
 			, ROI->_ROIImageSource
 			, _processParameters
 			, roirect2cvrect(ROI->_ROI)
@@ -315,7 +320,7 @@ void baseAlgorithmRunner::generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> 
 	regionList.push_back(
 		std::move(ImageRegion::createRegion
 		(
-			_frameContainer.get()
+			_frame->image().get()
 			, ROI->_waveImageSource
 			, _processParameters
 			, roirect2cvrect(ROI->_waveROI)
@@ -370,7 +375,6 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 	if ( _processParameters->ProcessWave())
 		processLambdas.emplace_back(waveLambda);
 
-
 	try
 	{
 		if (_bParallelCalc)
@@ -401,8 +405,7 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 		RETHROW(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
 
-	if ( _processParameters->ProcessWave())
-		processWaveOutputs(retVal->_waveOutputs);
+	processSheetOutput(retVal);
 	return retVal;
 }
 
@@ -411,7 +414,7 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 
 std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> stripInput)
 {
-	auto tStart = Utility::now_in_microseconds();
+	const auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(stripInput);
 
 	const auto edgeLambda = [&] { retVal->_paperEdgeOutput = processEdge(stripInput->_paperEdgeInput); };
@@ -456,7 +459,7 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 	{
 		if (_bParallelCalc)
 		{
- 			parallel_for_each(processLambdas.begin(), processLambdas.end(), [&](auto &func) 
+ 			parallel_for_each(begin(processLambdas), end(processLambdas), [&](auto &func) 
 			{
 				func();
 			});
@@ -468,40 +471,6 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 				func();
 			});
 		}
-	
-	
-
-
-		// update C2C centers with I2S coordinates offsets
-		auto const offsetX = retVal->_i2sOutput->_triangeCorner._x;
-		auto const offsetY = retVal->_i2sOutput->_triangeCorner._y;
-		if (_bParallelCalc)
-		{
- 			parallel_for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
-			{
-				std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
-				{
-					colorCenter._x -= offsetX;
-					colorCenter._y -= offsetY;
-				});
-			});
-		}
-		else
-		{
-			std::for_each(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [&](auto &c2cOut) 
-			{
-				std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
-				{
-					colorCenter._x -= offsetX;
-					colorCenter._y -= offsetY;
-				});
-			});
-		}
-
-		retVal->_result = 
-			std::all_of(retVal->_c2cROIOutputs.begin(), retVal->_c2cROIOutputs.end(), [](auto& out) { return out->_result == ALG_STATUS_SUCCESS; } )
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
 
 		processStripOutput(retVal);
 	}
@@ -562,7 +531,7 @@ std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::s
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_edgeHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
-	dumpOverlay<std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>>(retVal);
+	dumpOverlay<std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -618,7 +587,7 @@ std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_p
 		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_I2S_FAILED);
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_I2SHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
-	dumpOverlay<std::shared_ptr<PARAMS_I2S_OUTPUT>>(retVal);
+	dumpOverlay<std::shared_ptr<PARAMS_I2S_OUTPUT>>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -691,7 +660,7 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 	}
 
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_C2CHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
-	dumpOverlay<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>(retVal);
+	dumpOverlay<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -763,7 +732,7 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_WAVE_FAILED);
 	}
 
-	dumpOverlay<std::shared_ptr<PARAMS_WAVE_OUTPUT>>(retVal);
+	dumpOverlay<std::shared_ptr<PARAMS_WAVE_OUTPUT>>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -827,11 +796,12 @@ void baseAlgorithmRunner::getSourceFrameIndexString()
 	_sourceFrameIndexStr.clear();
 	try
 	{
-		const auto framePath = std::any_cast<std::string>(_frame->getNamedParameter(NAMED_PROPERTY_SOURCE_PATH));
-		_sourceFrameIndexStr = parseSourceFrameIndexString(framePath);
+		_sourceFramePath = std::any_cast<std::string>(_frame->getNamedParameter(NAMED_PROPERTY_SOURCE_PATH));
+		_sourceFrameIndexStr = parseSourceFrameIndexString(_sourceFramePath);
 	}
 	catch (const std::bad_any_cast& e)
 	{
+		_sourceFramePath = "unknown ( framegrabber )";
 	}
 
 	if ( _sourceFrameIndexStr.empty())
@@ -840,68 +810,104 @@ void baseAlgorithmRunner::getSourceFrameIndexString()
 		_frameIndex = std::stoi(_sourceFrameIndexStr);
 }
 
+//////////////////////////////////////////////////////////
+////////////// PROCESSING OUTPUTS
+//////////////////////////////////////////////////////////
+
+void baseAlgorithmRunner::processSheetOutput(std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> sheetOutput)
+{
+	if ( _processParameters->ProcessWave())
+		processWaveOutputs(sheetOutput->_waveOutputs);
+
+}
+
 void baseAlgorithmRunner::processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput )
 {
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
+	// update C2C centers with I2S coordinates offsets
+	auto const offsetX = stripOutput->_i2sOutput->_triangeCorner._x;
+	auto const offsetY = stripOutput->_i2sOutput->_triangeCorner._y;
+
+	auto const updateCoordsLambda = [&](auto &c2cOut) 
 	{
-		const auto csvFolder = _csvFolder;
-		const auto imgIndex = _imageIndex;
-		const auto frameIndex = _frameIndex;
-		const auto jobID = _processParameters->JobID();
-
-		if (_bParallelCalc)
+		std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
 		{
-			if (_processParameters->SaveC2CRegistrationCSV())
+			colorCenter._x -= offsetX;
+			colorCenter._y -= offsetY;
+		});
+	};
+
+
+	if (_bParallelCalc)
+	{
+		parallel_for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
+	}
+	else
+	{
+		for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
+	}
+
+	stripOutput->_result = 
+	std::all_of(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), 
+			[](auto& out)
 			{
-				task<void> sLeft([csvFolder, imgIndex, frameIndex, jobID, stripOutput]()
-				{
-					dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder );
-				});
+				return out->_result == ALG_STATUS_SUCCESS;
+			})
+			? ALG_STATUS_SUCCESS
+			: ALG_STATUS_FAILED;
 
-				if (_processParameters->ProcessRightStrip())
-				{
-					task<void> sRight([csvFolder, imgIndex, frameIndex, jobID, stripOutput]()
-					{
-						dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder  );
-					});
-				}
-			}
+	if (stripOutput->_result != ALG_STATUS_SUCCESS )
+	{
+		// if strip handling failed, write to log
+		logFailedStrip(stripOutput);
 
-			if (_processParameters->SaveI2SPlacementCSV())
-			{
-				task<void> iLeft([csvFolder, imgIndex, frameIndex, stripOutput]()
-				{
-					dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder  );
-				});
+		// TODO : dump failed strip to file
+	}
 
-				if (_processParameters->ProcessRightStrip())
-				{
-					task<void> iRight([csvFolder, imgIndex, frameIndex, stripOutput]()
-					{
-						dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder  );
-					});
-				}
-			}
+	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving()  )
+	{
+		processStripOutputCSV (stripOutput);
+	}
+}
+
+void baseAlgorithmRunner::processStripOutputCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput)
+{
+	auto const jobID = _processParameters->JobID();
+	auto const frameIndex = _frameIndex;
+	auto const imgIndex = _imageIndex;
+	auto const csvFolder = _csvFolder;
+	auto const bAsyncWrite = _bAsyncWrite;
+
+	auto const dumpCSVRegLambda = [=]()
+	{
+		dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder, bAsyncWrite );
+	};
+
+	auto const dumpCSVPlacementLambda = [=]()
+	{
+		dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder, bAsyncWrite  );
+	};
+
+	if (_bParallelCalc)
+	{
+		if (_processParameters->SaveC2CRegistrationCSV())
+		{
+			task<void> stripOutTaskReg(dumpCSVRegLambda);
 		}
-		else
+
+		if (_processParameters->SaveI2SPlacementCSV())
 		{
-			if (_processParameters->SaveC2CRegistrationCSV())
-			{
-				dumpRegistrationCSV(stripOutput, _processParameters->JobID(), _frameIndex, _imageIndex, _csvFolder  );
-				if (_processParameters->ProcessRightStrip())
-				{
-					dumpRegistrationCSV(stripOutput, _processParameters->JobID(), _frameIndex, _imageIndex, _csvFolder  );
-				}
-			}
-			
-			if (_processParameters->SaveI2SPlacementCSV())
-			{
-				dumpPlacementCSV(stripOutput, _frameIndex, _imageIndex, _csvFolder  );
-				if (_processParameters->ProcessRightStrip())
-				{
-					dumpPlacementCSV(stripOutput, _frameIndex, _imageIndex, _csvFolder  );
-				}
-			}
+			task<void> stripOutTaskPlacement(dumpCSVPlacementLambda);
+		}
+	}
+	else
+	{
+		if (_processParameters->SaveC2CRegistrationCSV())
+		{
+			dumpCSVRegLambda();
+		}
+		if (_processParameters->SaveI2SPlacementCSV())
+		{
+			dumpCSVPlacementLambda();
 		}
 	}
 }
@@ -939,64 +945,107 @@ void baseAlgorithmRunner::processWaveOutputs( concurrent_vector<std::shared_ptr<
 	// sort wave outputs
 	sortWaveOutputs(waveOutputs);
 
+	const auto sumProcLambda = [&](auto &singleOut) 
+	{
+		auto & resArray = singleOut->_colorDetectionResults;
+		if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
+		{
+			singleOut->_result = ALG_STATUS_FAILED;
+			return;
+		}
+			
+		if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
+		{
+			auto & resPoints = singleOut->_colorCenters;
+			resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
+			resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
+			singleOut->_result = ALG_STATUS_FAILED;
+			return;
+		}
+
+		singleOut->_result = 
+			std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
+			? ALG_STATUS_SUCCESS
+			: ALG_STATUS_FAILED;
+	};
+
+
+	if (_bParallelCalc)
+	{
+		parallel_for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda );
+	}
+	else
+	{
+		for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda ); 
+	}
+
+	const auto allResult = std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& singleWave)
+	{
+		return singleWave->_result == ALG_STATUS_SUCCESS;
+	})
+			? ALG_STATUS_SUCCESS
+			: ALG_STATUS_FAILED;
+
+	if (allResult != ALG_STATUS_SUCCESS )
+	{
+		// if strip handling failed, write to log
+		logFailedWaves(waveOutputs);
+
+		// TODO : dump failed waves to file
+	}
+
 	// process and save
 	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
 	{
-		const auto csvFolder = _csvFolder;
-		const auto imgIndex = _imageIndex;
-		const auto frameIndex = _frameIndex;
-		const auto jobID = _processParameters->JobID();
+		processWaveOutputsCSV (waveOutputs);
+	}
+}
 
-		const auto sumProc = [&](auto &singleOut) 
+void baseAlgorithmRunner::processWaveOutputsCSV(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
+{
+	auto const jobID = _processParameters->JobID();
+	auto const frameIndex = _frameIndex;
+	auto const imgIndex = _imageIndex;
+	auto const csvFolder = _csvFolder;
+	auto const bAsyncWrite = _bAsyncWrite;
+
+	const auto saveWaveCSVLambda = [=]()
+	{
+		dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder, bAsyncWrite );
+	};
+
+	if (_bParallelCalc)
+	{
+		if (_processParameters->SaveWaveCSV())
 		{
-			auto & resArray = singleOut->_colorDetectionResults;
-			if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
-			{
-				singleOut->_result = ALG_STATUS_FAILED;
-				return;
-			}
-			
-			if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
-			{
-				auto & resPoints = singleOut->_colorCenters;
-				resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
-				resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
-				singleOut->_result = ALG_STATUS_FAILED;
-				return;
-			}
-
-			singleOut->_result = 
-				std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
-				? ALG_STATUS_SUCCESS
-				: ALG_STATUS_FAILED;
-		};
-
-		if (_bParallelCalc)
-		{
-			parallel_for_each(waveOutputs.begin(), waveOutputs.end(), sumProc ); 
-			if (_processParameters->SaveWaveCSV())
-			{
-				task<void> tWaveCSV([csvFolder, imgIndex, frameIndex, jobID, waveOutputs]()
-				{
-					dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder );
-				});
-			}
+			task<void> tWaveCSV(saveWaveCSVLambda);
 		}
 		else
 		{
-			for ( auto& singleOut : waveOutputs) 
-			{
-				auto & resArray = singleOut->_colorDetectionResults;
-				singleOut->_result = 
-					std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
-					? ALG_STATUS_SUCCESS
-					: ALG_STATUS_FAILED;
-			}
-
 			if (_processParameters->SaveWaveCSV())
 			{
-				dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder );
+				saveWaveCSVLambda();
 			}
 		}
 	}
+}
+
+void baseAlgorithmRunner::logFailedStrip(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput)
+{
+	std::ostringstream ss;
+	ss << "--------------  Strip analysis failed -----------------\r\n"
+					<< "\t\t\t\t\tFrame Index  : \t" << _frameIndex			<< "\r\n"
+					<< "\t\t\t\t\tSource image : \t" << _sourceFramePath	<< "\r\n";
+
+	BASE_RUNNER_SCOPED_ERROR << ss.str().c_str();
+}
+
+void baseAlgorithmRunner::logFailedWaves(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs)
+{
+	std::ostringstream ss;
+	ss << "--------------  Wave analysis failed -----------------\r\n"
+					<< "\t\t\t\t\tFrame Index  : \t" << _frameIndex			<< "\r\n"
+					<< "\t\t\t\t\tSource image : \t" << _sourceFramePath	<< "\r\n";
+
+	BASE_RUNNER_SCOPED_ERROR << ss.str().c_str();
 }

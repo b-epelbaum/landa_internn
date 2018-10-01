@@ -231,7 +231,7 @@ namespace LandaJune
 			const auto sPath = std::get<1>(args);
 			const auto sData = std::get<0>(args);
 			const auto t0 = Utility::now_in_microseconds();
-
+			
 			writeRawDataSeq(reinterpret_cast<const char*>(sData->data()), sData->size(), sPath );
 
 			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, sData->size());

@@ -77,7 +77,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
       <Optimization>Disabled</Optimization>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -95,7 +95,7 @@
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
@@ -125,7 +125,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
       <DebugInformationFormat />
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -150,7 +150,7 @@
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
@@ -177,7 +177,7 @@
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PreprocessorDefinitions>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
@@ -202,7 +202,7 @@
     <QtMoc>
       <OutputFile>.\GeneratedFiles\$(ConfigurationName)\moc_%(Filename).cpp</OutputFile>
       <ExecutionDescription>Moc'ing %(Identity)...</ExecutionDescription>
-      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
+      <IncludePath>.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(ProjectDir)widgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners</IncludePath>
       <Define>UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;%(PreprocessorDefinitions)</Define>
     </QtMoc>
     <QtUic>
@@ -243,6 +243,8 @@
     <ClCompile Include="paramPropModel.cpp">
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>
+    <ClCompile Include="widgets\qmeter.cpp" />
+    <ClCompile Include="widgets\qmeterdrawfunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h" />
@@ -259,6 +261,14 @@
     <ResourceCompile Include="JuneU.rc" />
   </ItemGroup>
   <ItemGroup>
+    <QtMoc Include="widgets\qmeter.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release_With_DebugInfo|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners;$(NOINHERIT)\.</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release_With_DebugInfo|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners;$(NOINHERIT)\.</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\statLib;$(SolutionDir)src\libs\utilLib;$(SolutionDir)\src\libs\frameProviders;$(SolutionDir)\src\libs\algorithm_runners;$(NOINHERIT)\.</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>
+    </QtMoc>
     <QtMoc Include="paramPropModel.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;$(SISODIR5)\Include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)include;$(SolutionDir)src\libs\logLib;$(SolutionDir)src\libs\paramLib;$(SolutionDir)src\libs\coreLib;$(SolutionDir)src\libs\utilLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;ENABLE_FGRAB;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB</Define>

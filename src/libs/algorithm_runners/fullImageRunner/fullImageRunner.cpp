@@ -7,6 +7,7 @@ using namespace Algorithms;
 using namespace Parameters;
 using namespace Helpers;
 using namespace Core;
+using namespace Files;
 
 static const QString FULL_IMAGE_RUNNER_NAME = "Full Image Runner";
 static const QString FULL_IMAGE_RUNNER_DESC = "Full Scanned Page Algorithm Set";
@@ -67,7 +68,9 @@ std::shared_ptr<BaseParameters> fullImageRunner::getParameters() const
 void fullImageRunner::init(std::shared_ptr<BaseParameters> parameters)
 {
 	validateProcessParameters(parameters);
-	if (_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
+	if (_processParameters->EnableAnyDataSaving() && _processParameters->EnableCSVSaving() &&
+		(_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
+		)
 	{
 		_csvFolder = createCSVFolder(_processParameters);
 	}

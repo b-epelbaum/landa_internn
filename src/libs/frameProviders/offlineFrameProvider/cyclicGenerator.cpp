@@ -119,15 +119,19 @@ CORE_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 		CYCLIC_GENERATOR_SCOPED_WARNING << "Cannot clone loaded image ";
 		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
+
+	/*
 	const auto w = clonedMat->cols;
 	const auto h = clonedMat->rows;
 	const auto s = clonedMat->step[0] * clonedMat->rows;
+	*/
 
 	// push bits to frameRef object
-	frameRef->setBits(++_lastAcquiredImage, w, h, s, clonedMat->data);
+	//frameRef->setBits(++_lastAcquiredImage, w, h, s, clonedMat->data);
+	frameRef->setBits(++_lastAcquiredImage, clonedMat);
 
 	// pass shared object to frame to increase reference counter
-	frameRef->setSharedData(clonedMat);
+	//frameRef->setSharedData(clonedMat);
 	CYCLIC_GENERATOR_SCOPED_LOG << "Received frame #" << _lastAcquiredImage;
 	return RESULT_OK;
 }

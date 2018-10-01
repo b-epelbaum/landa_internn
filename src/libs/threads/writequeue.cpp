@@ -1,17 +1,21 @@
 #include "stdafx.h"
 #include "writequeue.h"
+#include "RealTimeStats.h"
 
-LandaJune::Core::NativeThreadQueue<LandaJune::Core::shared_char_vector, std::string> __dumpQueue;
-LandaJune::Core::NativeThread<LandaJune::Core::shared_char_vector, std::string> __dumpThread;
 
-LandaJune::Core::NativeThreadQueue<std::shared_ptr<std::vector<unsigned char>>, std::basic_string<char>>& LandaJune::
-Core::fileDumpThreadQueue()
+using QueueType = LandaJune::Core::NativeThreadQueue<LandaJune::Core::shared_char_vector, std::string>;
+using ThreadType = LandaJune::Core::NativeThread<LandaJune::Core::shared_char_vector, std::string>;
+
+QueueType	__dumpQueue;
+ThreadType	__dumpThread;
+
+
+QueueType& LandaJune::Core::fileDumpThreadQueue()
 {
 	return __dumpQueue;
 }
 
-LandaJune::Core::NativeThread<std::shared_ptr<std::vector<unsigned char>>, std::basic_string<char>>& LandaJune::Core::
-fileDumpThread()
+ThreadType& LandaJune::Core::fileDumpThread()
 {
 	if (!__dumpThread.getQueue()) 
 	{
@@ -21,7 +25,38 @@ fileDumpThread()
 	return __dumpThread;
 }
 
-void LandaJune::Core::dumpThreadPostJob(shared_char_vector img, std::string path)
+bool LandaJune::Core::dumpThreadPostJob(shared_char_vector img, std::string path, bool postAsync )
 {
-	postJob(fileDumpThreadQueue(), img, path);
+	if ( postAsync )
+	{
+		const auto currentQueueSize = fileDumpThreadQueueSize();
+		if ( img->size() + currentQueueSize > __dumpThread.getMaxQueueSize() )
+			return false;
+
+		
+		Helpers::RealTimeStats::rtStats()->increment(
+			Helpers::RealTimeStats::objects_saveQueueLength, 1, currentQueueSize);
+
+		
+		postJob(fileDumpThreadQueue(), img, path);
+	}
+	else
+	{
+		const auto func = __dumpThread.getThreadFunction();
+		auto paramTuple = std::make_tuple<std::shared_ptr<std::vector<unsigned char>>, std::string>(std::move(img), std::move(path));
+		func(paramTuple);
+	}
+	return true;
+}
+
+uint64_t LandaJune::Core::fileDumpThreadQueueSize() 
+{
+	uint64_t counter = 0;
+	auto f = [&counter](const QueueType::arg & v) 
+	{
+		const auto & ref = std::get<0>(v);
+		counter += ref->size();
+	};
+	__dumpQueue.enumerate(f);
+	return counter;
 }

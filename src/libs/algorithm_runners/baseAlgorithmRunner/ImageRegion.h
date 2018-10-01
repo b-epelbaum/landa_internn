@@ -2,6 +2,7 @@
 #include "ProcessParameters.h"
 #include "saveFunc.h"
 #include <opencv/cv.h> 
+#include <utility>
 #include "common/june_exceptions.h"
 
 namespace LandaJune
@@ -34,16 +35,18 @@ namespace LandaJune
 				, int												frameIndex
 				, const std::string&								saveFilePath				// ROI Name
 				, const bool										needSaving = false			// if should be dumped to disk as well
+				, const bool										asyncWrite = true			// save asynchronously or not
 			)
 				: _srcMatContainer(srcMat)
-				, _targetMatContainer(targetMat)
+				, _targetMatContainer(std::move(targetMat))
 				, _srcRequestedRect(srcRect)
 				, _srcNormalizedRect(srcRect)
 				, _bNeedSaving(needSaving)
-				, _fullSavePath(std::move(saveFilePath))
+				, _fullSavePath(saveFilePath)
 				, _params(params)
+				, _bSaveAsync(asyncWrite)
 			{
-				_bParallelize = params->ParalellizeCalculations();
+				_bParallelizeCopy = params->ParalellizeCalculations();
 				_srcNormalizedRect = normalizeRegionRect();
 				// if ROI image needs to be saved, 
 				if (_bNeedSaving)
@@ -63,7 +66,8 @@ namespace LandaJune
 				bool											_bNeedSaving;
 				std::string										_fullSavePath;
 				std::shared_ptr<Parameters::ProcessParameters>	_params;
-				bool											_bParallelize = false;
+				bool											_bParallelizeCopy = false;
+				bool											_bSaveAsync = true;
 
 			
 
@@ -122,7 +126,7 @@ namespace LandaJune
 				// dump input regions if needed
 				if ( rgn._bNeedSaving && !rgn._fullSavePath.empty())
 				{
-					dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, rgn._bParallelize);
+					Files::dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, rgn._bParallelizeCopy, rgn._bSaveAsync);
 				}
 			}
 		};

@@ -11,7 +11,7 @@ RealTimeStats::RealTimeStats()
 {
 	for (auto i = 0; i < statsNumber; ++i) 
 	{
-		_values[i] = 0; _times[i] = 0;
+		_current[i] = 0; _values[i] = 0; _times[i] = 0;
 	}
 }
 
@@ -23,7 +23,7 @@ void RealTimeStats::reset()
 {
 	for (auto i = 0; i < statsNumber; ++i)
 	{
-		_values[i] = 0; _times[i] = 0;
+		_current[i] = 0; _values[i] = 0; _times[i] = 0;
 	}
 }
 
@@ -32,6 +32,7 @@ void RealTimeStats::increment(const StatName stat, const double delta, const dou
 	autolock l(_mutex);
 	if (stat < statsNumber) 
 	{
+		_current[stat] = v;
 		_values[stat] += v;
 		_times[stat] += delta;
 	}
@@ -55,7 +56,8 @@ std::string RealTimeStats::to_string(bool bBreakLines)
 		"Performed Algo Fail",
 		"Performed Algo Result Fail",
 		"Created Regions Fail",
-		"Saved Bitmaps Fail"
+		"Saved Bitmaps Fail",
+		"Save Queue Length"
 	};
 	autolock l(_mutex);
 	std::string txt;
@@ -69,6 +71,7 @@ std::string RealTimeStats::to_string(bool bBreakLines)
 		}
 
 		txt.append(names[i]).append(":\t").append(std::to_string(_values[i]))
+			.append("\t").append(std::to_string(_current[i] ))
 			.append("\t").append(std::to_string(_values[i] / _times[i]))
 			.append("\t").append(std::to_string(_times[i] / _values[i])).append(breaker);
 		

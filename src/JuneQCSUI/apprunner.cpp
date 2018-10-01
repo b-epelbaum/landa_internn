@@ -38,6 +38,11 @@ void appRunner::parseArguments(const QApplication& app)
             QCoreApplication::translate("main", "file"));
     parser.addOption(configFileOption);
 
+	 QCommandLineOption logRootFolderOption(QStringList() << "logRoot" << "",
+            QCoreApplication::translate("main", "Log files root folder"),
+            QCoreApplication::translate("main", "logroot"));
+    parser.addOption(configFileOption);
+
 	QCommandLineOption logLevelOption(QStringList() << "loglevel",
             QCoreApplication::translate("main", "Set a log level"),
             QCoreApplication::translate("main", "level"));
@@ -52,6 +57,7 @@ void appRunner::parseArguments(const QApplication& app)
     _runMode = parser.value(modeOption);
     _saveToLogFile = parser.isSet(saveLogToFile);
     _processConfig = parser.value(configFileOption);
+	_logRootPath = parser.value(logRootFolderOption);
 	_logLevel = parser.value(logLevelOption);
 }
 
@@ -59,7 +65,7 @@ void appRunner::parseArguments(const QApplication& app)
 int appRunner::runApp()
 {
 	bool bOk = false;
-	const auto mode = LandaJune::UI::JuneUIWnd::stringToMode(_runMode, bOk);
+	const auto mode = LandaJune::UI::JuneUIWnd::stringToMode(_runMode, &bOk);
 
 	if ( mode == LandaJune::UI::RUN_UI)
 	{
@@ -78,11 +84,12 @@ int appRunner::runApp()
 		QSplashScreen splash(pixmap);
 		splash.show();
 		_app.processEvents();
-		LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _processConfig);
+		LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _processConfig);
 		splash.finish(w);
 		w->show();
 		return _app.exec();
 	}
-	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _processConfig);
+
+	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _processConfig);
 	return _app.exec();
 }

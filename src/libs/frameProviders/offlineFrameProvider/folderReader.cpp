@@ -139,38 +139,15 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 	}
 
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
+	frameRef->setBits(++_lastAcquiredImage, tempMatObject);
 
-	const auto w = tempMatObject->cols;
-	const auto h = tempMatObject->rows;
-	const auto s = tempMatObject->step[0] * tempMatObject->rows;
-
-	// push bits to frameRef object
-	frameRef->setBits(++_lastAcquiredImage, w, h, s, tempMatObject->data);
-
-	frameRef->setSharedData(tempMatObject);
+	// this flag tells the algorithm runner to perform
+	// image/CSV saving synchronously 
+	// to avoid save queue growing constantly
+	// for offline analysis it's not critical to perform saving synchronously
+	//frameRef->setAsyncWrite(false);
 
 	// pass source image path to frame
 	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);
 	return RESULT_OK;
-}
-
-void folderReader::releaseData(FrameRef* frameRef)
-{
-	return;
-	if ( frameRef )
-	{
-		auto& sharedData = frameRef->getSharedData();
-		if (sharedData.has_value())
-		{
-			try
-			{
-				auto pImage = std::any_cast<std::shared_ptr<cv::Mat>>(sharedData);
-				pImage->release();
-			}
-			catch (const std::bad_any_cast& e)
-			{
-				FOLDER_READER_PROVIDER_SCOPED_ERROR << "Cannot delete shared MAT object. Exception caught : " << e.what();
-			}
-		}
-	}
 }

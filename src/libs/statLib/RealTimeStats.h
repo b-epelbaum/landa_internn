@@ -31,7 +31,7 @@ namespace LandaJune
 				objectsPerSec_performedAlgoResultFail,
 				objectsPerSec_createdRegionsFail,
 				objectsPerSec_savedBitmapsFail,
-				objects_saveQueleLength,
+				objects_saveQueueLength,
 				statsNumber
 
 			};
@@ -41,10 +41,10 @@ namespace LandaJune
 			std::string to_string(bool bBreakLines = false);
 
 			static RealTimeStats* rtStats();
-			;
 
 		protected:
 			std::mutex _mutex;
+			double _current[statsNumber]{};
 			double _values[statsNumber]{};
 			double _times[statsNumber]{};
 

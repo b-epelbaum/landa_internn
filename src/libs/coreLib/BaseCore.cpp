@@ -339,7 +339,9 @@ void BaseCore::initFileWriter(bool bInit) const
 {
 	if ( bInit )
 	{
+		const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
 		fileDumpThread().setThreadFunction(frameSaveData);
+		fileDumpThread().setMaxQueueSize(processParams->AsyncSaveQueueMaxSizeGB() * 1024 * 1024 * 1024 );
 		fileDumpThread().start();
 		CORE_SCOPED_LOG << "File writer started";
 	}

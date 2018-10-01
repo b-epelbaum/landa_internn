@@ -31,7 +31,7 @@ namespace LandaJune
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency(); }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
-			void releaseData(Core::FrameRef* frameRef) override;
+			void releaseData(Core::FrameRef* frameRef) override {}
 
 
 			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;

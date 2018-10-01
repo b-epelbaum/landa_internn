@@ -60,6 +60,7 @@ namespace LandaJune
 			DECLARE_CALCULATED_PROPERTY(CircleTemplateBufferWave,		QByteArray,			{}	)
 
 			DECLARE_EDITABLE_ONLY_PROPERTY(ImageSaving, PARAM_GROUP_HEADER, { "Image/CSV saving parameters" }	)
+			DECLARE_NORMAL_PARAM_PROPERTY(AsyncSaveQueueMaxSizeGB,		double,				1	)
 			DECLARE_NORMAL_PARAM_PROPERTY(EnableAnyDataSaving,			bool,				true	)
 			DECLARE_NORMAL_PARAM_PROPERTY(EnableImageSaving,			bool,				true	)
 			DECLARE_NORMAL_PARAM_PROPERTY(EnableCSVSaving,				bool,				true	)

@@ -56,11 +56,11 @@ static LOGGER_PARAM_MAP loggerParamMap =
 	,{ "CriticalDetails", ConsoleLog::S_LOG_ERROR_DETAILS }
 };
 
-LOG_LEVEL AppLogger::stringToLevel (const QString& levelStr, bool& bOk)
+LOG_LEVEL AppLogger::stringToLevel (const QString& levelStr, bool* bOk)
 {
 	const auto strLevel = levelStr.toLower();
-
-	bOk = true;
+	if ( bOk )
+		*bOk = true;
 	if (strLevel == "all")
 	{
 		return LOG_LEVEL_ALL;
@@ -76,16 +76,17 @@ LOG_LEVEL AppLogger::stringToLevel (const QString& levelStr, bool& bOk)
 		return LOG_LEVEL_ERRORS_AND_WARNINGS;
 	}
 
-	bOk = false;
+	if ( bOk )
+		*bOk = false;
 	return LOG_LEVEL_ERRORS_AND_WARNINGS;
 }
 
-QSharedPointer<AppLogger> AppLogger::createLogger(LOG_LEVEL logLevel,  bool bLogToFile)
+QSharedPointer<AppLogger> AppLogger::createLogger(LOG_LEVEL logLevel, QString strRootPath, bool bLogToFile)
 {
 	if (!_this.isNull())
 		return _this;
 
-	_this = QSharedPointer<AppLogger>::create(logLevel, bLogToFile );
+	_this = QSharedPointer<AppLogger>::create(logLevel, strRootPath, bLogToFile );
 	_this->installMessageHandler();
 
 	return _this;
@@ -104,7 +105,16 @@ QSharedPointer<AppLogger> AppLogger::get()
 
 void AppLogger::installMessageHandler()
 {
-	const auto logFolder = qApp->applicationDirPath() + QDir::separator() + "Logs" + QDir::separator();
+	auto logFolder = qApp->applicationDirPath() + QDir::separator() + "Logs" + QDir::separator();
+
+	if ( !_logPathRoot.isEmpty())
+	{
+		logFolder = _logPathRoot;
+	}
+
+	if (!logFolder.endsWith(QDir::separator()))
+		logFolder += QDir::separator();
+
 	if (_bLogToFile)
 	{
 		QDir logPath(logFolder);
@@ -138,11 +148,12 @@ void AppLogger::appMessageHandler(const QtMsgType type, const QMessageLogContext
 	_this->_consoleLog->AddLogEntry(msg, status, context);
 }
 
-AppLogger::AppLogger(LOG_LEVEL logLevel,  bool bLogToFile, QObject* parent)
+AppLogger::AppLogger(LOG_LEVEL logLevel, QString logRootPath,  bool bLogToFile, QObject* parent)
 {
 	Q_UNUSED(parent);
 	_bLogToFile = bLogToFile;
 	_logLevel = logLevel;
+	_logPathRoot = (std::move(logRootPath));
 	_mutex.reset(new QMutex(QMutex::Recursive));
 }
 

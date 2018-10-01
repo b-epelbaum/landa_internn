@@ -21,4 +21,5 @@ private:
 	QString _logLevel;
     bool _saveToLogFile = false;
     QString _processConfig;
+	QString _logRootPath;
 };

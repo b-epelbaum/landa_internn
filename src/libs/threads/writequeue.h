@@ -38,6 +38,8 @@ namespace LandaJune
 		class NativeThreadQueue {
 
 		public:
+			using arg = std::tuple<Args...>;
+
 			NativeThreadQueue() {
 				InitializeCriticalSection(&_cs);
 				InitializeConditionVariable(&_cv);
@@ -55,7 +57,7 @@ namespace LandaJune
 			void push(const std::tuple<Args...> & v) {
 				{
 					NativeThreadAutoLock l(_cs);
-					_queue.push(v);
+					_queue.push_back(v);
 				}
 				WakeConditionVariable(&_cv);
 			}
@@ -70,7 +72,8 @@ namespace LandaJune
 					return false;
 				}
 				v = _queue.front();
-				_queue.pop(); return true;
+				_queue.pop_front();
+				return true;
 			}
 
 			bool empty(void) {
@@ -84,10 +87,16 @@ namespace LandaJune
 				return _queue.size();
 			}
 
+			template <typename F>
+			void enumerate(F & f) {
+				NativeThreadAutoLock l(_cs);
+				std::for_each(_queue.begin(), _queue.end(), f);
+			}
+
 		protected:
 			CRITICAL_SECTION _cs;
 			CONDITION_VARIABLE _cv;
-			std::queue<std::tuple<Args...>> _queue;
+			std::list<arg> _queue;
 		};
 
 		template<typename... Args>
@@ -137,6 +146,19 @@ namespace LandaJune
 			void setThreadFunction(CALLBACKF_HANDLER cbfhandler) 
 			{
 				NativeThreadAutoLock l(_cs); _cbfhandler = cbfhandler;
+			}
+
+			void setMaxQueueSize(const uint64_t maxSize) 
+			{
+				NativeThreadAutoLock l(_cs); 
+				_queueMaxSize = maxSize;
+			}
+
+			uint64_t getMaxQueueSize() const
+			{
+				uint64_t retVal;
+				InterlockedExchange64 (reinterpret_cast<LONG64*>(&retVal), static_cast<LONG64>(_queueMaxSize)); 
+				return retVal;
 			}
 
 			auto getThreadFunction() 
@@ -253,6 +275,7 @@ namespace LandaJune
 			NativeThreadQueue<Args...> *_queue;
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;
+			uint64_t _queueMaxSize = 1024 * 1024 * 1024;
 		};
 
 		//
@@ -263,7 +286,8 @@ namespace LandaJune
 
 		THREADS_EXPORT NativeThreadQueue<shared_char_vector, std::string>& fileDumpThreadQueue();
 		THREADS_EXPORT NativeThread<shared_char_vector, std::string>& fileDumpThread();
-		THREADS_EXPORT void dumpThreadPostJob(shared_char_vector img, std::string path);
+		THREADS_EXPORT bool dumpThreadPostJob(shared_char_vector img, std::string path, bool postAsync );
+		THREADS_EXPORT uint64_t fileDumpThreadQueueSize();
 	}
 }
 

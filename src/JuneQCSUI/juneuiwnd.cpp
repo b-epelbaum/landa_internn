@@ -33,49 +33,17 @@ using namespace Parameters;
 #define CLIENT_SCOPED_WARNING PRINT_WARNING << "[JuneUIWnd] : "
 #define CLIENT_SCOPED_ERROR PRINT_ERROR << "[JuneUIWnd] : "
 
-JuneUIWnd::JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString strConfig, QWidget *parent)
-	: QMainWindow(parent)
-	, _savelogToFile(savelogToFile)
-	, _strProcessingConfig(strConfig)
-{
-	bool bLevelOk = false;
-	_logLevel = AppLogger::stringToLevel(logLevel, bLevelOk);
-
-	bool bModeOk = false;
-	_runMode = stringToMode(runMode, bModeOk);
-
-	if ( logLevel != LOG_LEVEL_NONE )
-		Q_UNUSED(AppLogger::createLogger(_logLevel, savelogToFile));
-
-	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
-	CLIENT_SCOPED_LOG << "				Started Landa June QCS Client";
-	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
-
-	PRINT_DEBUG <<		"[Console colors : ]";
-	PRINT_INFO <<		"\t--- INFO sample";
-	PRINT_INFO1 <<		"\t--- INFO 1 sample";
-	PRINT_INFO2 <<		"\t--- INFO 2 sample";
-	PRINT_INFO3 <<		"\t--- INFO 3 sample";
-	PRINT_INFO4 <<		"\t--- INFO 4 sample";
-	PRINT_INFO5 <<		"\t--- INFO 5 sample";
-	PRINT_INFO6 <<		"\t--- INFO 6 sample";
-	PRINT_INFO7 <<		"\t--- INFO 7 sample";
-	PRINT_INFO8 <<		"\t--- INFO 8 sample";
-	PRINT_DEBUG <<		"\t--- DEBUG sample";
-	PRINT_WARNING <<	"\t--- WARNING sample";
-	PRINT_ERROR <<		"\t--- ERROR sample";
-	PRINT_DEBUG_BREAK;
-
-	if ( !bModeOk)
-	{
-		CLIENT_SCOPED_WARNING << "command line parameter \"mode\" has invalid value : " << runMode << "; defaulting to UI mode...";
-	}
-
-	init();
-}
+JuneUIWnd::JuneUIWnd( QString runMode, QString logLevel, bool savelogToFile, QString logRootPath, QString strConfig, QWidget *parent) 
+	: JuneUIWnd ( 
+				stringToMode(runMode, nullptr)
+			  , AppLogger::stringToLevel(logLevel, nullptr)
+			  , savelogToFile
+			  , logRootPath
+			  , strConfig
+			  , parent) {}
 
 
-JuneUIWnd::JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString strConfig, QWidget *parent)
+JuneUIWnd::JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, QString logRootPath, QString strConfig, QWidget *parent)
 	: QMainWindow(parent)
 	, _runMode(runMode)
 	, _logLevel(logLevel)
@@ -83,7 +51,7 @@ JuneUIWnd::JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, 
 	, _strProcessingConfig(strConfig)
 {
 	if ( logLevel != LOG_LEVEL_NONE )
-		Q_UNUSED(AppLogger::createLogger(logLevel, savelogToFile));
+		Q_UNUSED(AppLogger::createLogger(logLevel, logRootPath, savelogToFile));
 
 	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
 	CLIENT_SCOPED_LOG << "				Started Landa June QCS Client";
@@ -107,11 +75,12 @@ JuneUIWnd::JuneUIWnd( RUN_MODE runMode, LOG_LEVEL logLevel, bool savelogToFile, 
 	init();
 }
 
-RUN_MODE JuneUIWnd::stringToMode(const QString& mode, bool& bOk)
+RUN_MODE JuneUIWnd::stringToMode(const QString& mode, bool* bOk)
 {
 	const auto strMode = mode.toLower();
+	if ( bOk )
+		*bOk = true;
 
-	bOk = true;
 	if (strMode == "ui")
 	{
 		return RUN_UI;
@@ -127,7 +96,8 @@ RUN_MODE JuneUIWnd::stringToMode(const QString& mode, bool& bOk)
 		return RUN_BATCH;
 	}
 
-	bOk = false;
+	if (bOk)
+		*bOk = false;
 	return RUN_UI;
 }
 
