@@ -4,7 +4,7 @@
 #include "util.h"
 #include "RealTimeStats.h"
 #include "interfaces/IFrameProvider.h"
-#include "../coreLib/interfaces/ICore.h"
+#include "common/june_enums.h"
 
 using namespace LandaJune;
 using namespace Helpers;
@@ -16,8 +16,8 @@ using namespace Helpers;
 *	- frame consuming thread
 *	
 *	The function rus in thread with a timeout of 1 millisecond sleep ( in case of empty implementation - see thread implementation )
-*	and tries to aqcuire one free frameReference object ( slot ) from the frame reference object list.
-*	Once it suceeds, it fills the frame object with needed metadata and invokes the current image provider for accessing 
+*	and tries to acquire one free frameReference object ( slot ) from the frame reference object list.
+*	Once it succeeds, it fills the frame object with needed metadata and invokes the current image provider for accessing 
 *	bits of a new incoming image.
 *	
 *	After bits acquisition, the function pushes prepared frame reference object back to the queue.
@@ -31,7 +31,8 @@ using namespace Helpers;
 #define FRAMEGENERATE_SCOPED_ERROR PRINT_ERROR << "[frameGenerate func] : "
 #define FRAMEGENERATE_SCOPED_WARNING PRINT_WARNING << "[frameGenerate func] : "
 
-void Functions::frameGenerate(FrameProviderPtr frameProvider, Core::ICore * coreObject, std::function<void( Core::ICore *, std::shared_ptr<Core::SharedFrameData>)> viewFunc)
+//void Functions::frameGenerate(FrameProviderPtr frameProvider, Core::ICore * coreObject, std::function<void( Core::ICore *, std::shared_ptr<Core::SharedFrameData>)> viewFunc)
+void Functions::frameGenerate(FrameProviderPtr frameProvider, Core::ICore * coreObject, FrameProviderCallback dataCallback)
 {
 	// get a first free 
 	auto framePool = Core::FrameRefPool::frameRefPool();
@@ -84,7 +85,16 @@ void Functions::frameGenerate(FrameProviderPtr frameProvider, Core::ICore * core
 	}
 
 	// call viewer function to pass image data for viewing
-	viewFunc(coreObject, std::make_shared<Core::SharedFrameData>(frameRef.get(), frameProvider->getFrameLifeSpan()));
+	dataCallback( coreObject
+				, FrameProviderDataCallbackType::CALLBACK_FRAME_DATA
+				, std::make_any<std::shared_ptr<Core::SharedFrameData>>(
+									std::make_shared<Core::SharedFrameData>(
+												frameRef.get(), frameProvider->getFrameLifeSpan()
+											)
+					)
+	);
+		
+	
 	// push loaded frame reference object to queue
 	framePool->pushNextLoaded(std::move(frameRef));
 	

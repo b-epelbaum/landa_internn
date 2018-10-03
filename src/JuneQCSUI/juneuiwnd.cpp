@@ -193,9 +193,11 @@ void JuneUIWnd::initCore()
 	connect (core.get()->getClassObject(), SIGNAL(coreStopped()), this, SLOT(onCoreStopped()) );
 	connect (core.get()->getClassObject(), SIGNAL(coreException(const LandaJune::BaseException&)), this, SLOT(onCoreException(const LandaJune::BaseException&)) );
 	connect (core.get()->getClassObject(), SIGNAL(frameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)), this, SLOT(onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)) );
+	connect (core.get()->getClassObject(), SIGNAL(offlineFileSourceCount(int)), this, SLOT(onOfflineFileCount(int)) );
+	connect (core.get()->getClassObject(), SIGNAL(frameProcessed(int)), this, SLOT(onFrameProcessed(int)) );
 	try
 	{
-		core->init();
+		core->init(isUIMode());
 	}
 	catch (BaseException& e)
 	{
@@ -231,10 +233,22 @@ void JuneUIWnd::onCoreException(const BaseException& ex)
 {
 }
 
+void JuneUIWnd::onFrameProcessed ( int frameIndex )
+{
+	if ( statusProgressBar->maximum() != 0)
+		statusProgressBar->setValue(statusProgressBar->value() + 1);
+
+	statusFrameCount->setText(QString(" Frames processed : ") + QString::number(statusProgressBar->value()));
+}
+
 void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
 {
-	
+}
 
+void JuneUIWnd::onOfflineFileCount(int fileCount)
+{
+	statusProgressBar->setRange(0, fileCount);
+	statusProgressBar->setValue(0);
 }
 
 void JuneUIWnd::enumerateFrameProviders() 
@@ -665,7 +679,7 @@ void JuneUIWnd::createStatusBar()
 	iconRecipe = new QLabel(this);
 	iconProvider = new QLabel(this);
 	iconAlgoRunner = new QLabel(this);
-	statusFramesHandled = new QLabel(this);
+	iconFrameCount = new QLabel(this);
 
 	iconGeneral->setMinimumSize(QSize(16,16));
 	iconGeneral->setMaximumSize(QSize(16,16));
@@ -686,16 +700,18 @@ void JuneUIWnd::createStatusBar()
 	iconAlgoRunner->setPixmap(QPixmap(":/JuneUIWnd/Resources/algo.png"));
 	iconAlgoRunner->setScaledContents(true);
 
-	statusFramesHandled->setMinimumSize(QSize(16,16));
-	statusFramesHandled->setMaximumSize(QSize(16,16));
+	iconFrameCount->setMinimumSize(QSize(16,16));
+	iconFrameCount->setMaximumSize(QSize(16,16));
+	iconFrameCount->setPixmap(QPixmap(":/JuneUIWnd/Resources/counter.png"));
+	iconFrameCount->setScaledContents(true);
 
 	
 	statusGeneral = new QLabel(this);
 	statusRecipeName = new QLabel(this);
 	statusFrameProv = new QLabel(this);
 	statusAlgoRunner = new QLabel(this);
-	statusFramesHandled = new QLabel(this);
-
+	statusFrameCount = new QLabel(this);
+	
 
 	statusGeneral->setMinimumWidth(200);
 	statusGeneral->setText("Idle");
@@ -705,7 +721,6 @@ void JuneUIWnd::createStatusBar()
 
 	statusProgressBar->setTextVisible(false);
 
-    // add the two controls to the status bar
 	ui.statusBar->addPermanentWidget(iconGeneral,0);
     ui.statusBar->addPermanentWidget(statusGeneral,1);
 
@@ -717,7 +732,11 @@ void JuneUIWnd::createStatusBar()
 
 	ui.statusBar->addPermanentWidget(iconAlgoRunner,6);
 	ui.statusBar->addPermanentWidget(statusAlgoRunner,7);
-	ui.statusBar->addPermanentWidget(statusProgressBar,8);
+
+	ui.statusBar->addPermanentWidget(iconFrameCount,8);
+	ui.statusBar->addPermanentWidget(statusFrameCount,9);
+	
+	ui.statusBar->addPermanentWidget(statusProgressBar,10);
 }
 
 void JuneUIWnd::zoomIn()
@@ -959,7 +978,7 @@ void JuneUIWnd::onSaveConfig()
 		return;
 
 	settings.setValue("UIClient/lastConfigFile", fileName);
-	statusRecipeName->setText(fileName);
+	statusRecipeName->setText(QFileInfo(fileName).baseName());
 	
 	auto const jObj = ICore::get()->getProcessParameters()->toJson();
 	QFile jsonFile(fileName);
@@ -1011,7 +1030,7 @@ void JuneUIWnd::onLoadConfig()
 		CLIENT_SCOPED_LOG << "Configuration file " << fileName << " has been loaded successfully";
 	}
 
-	statusRecipeName->setText(fileName);
+	statusRecipeName->setText(QFileInfo(fileName).baseName());
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -1032,13 +1051,16 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 	{
 		_progressBarTimer.start();
 		statusGeneral->setText("Working...");
+		statusProgressBar->setRange(0, 0);
+		statusProgressBar->setValue(0);
 	}
 	else
 	{
 		_progressBarTimer.stop();
+		statusProgressBar->setRange(0, 100);
 		statusProgressBar->setValue(0);
 		statusGeneral->setText("Idle");
-		statusFramesHandled->setText("");
+		statusFrameCount->setText("");
 		iconGeneral->setPixmap(_greyLed);
 	}
 }
@@ -1119,11 +1141,10 @@ void JuneUIWnd::addNewColor(const QString& colorName )
 
 void JuneUIWnd::onTimerTick()
 {
-	auto const& val = statusProgressBar->value();
-	statusProgressBar->setValue(val == 100 ? 0 : val + 1);
-
-	const auto& ledPx = (statusProgressBar->value() & 1 ) ? _greyLed : _greenLed;
+	const auto val = iconGeneral->property("led").toInt();
+	const auto& ledPx = ( val ) ? _greyLed : _greenLed;
 	iconGeneral->setPixmap(ledPx);
+	iconGeneral->setProperty("led", 1 - val);
 }
 
 void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const  QModelIndex& prev)

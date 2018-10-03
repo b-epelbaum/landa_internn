@@ -46,6 +46,7 @@ namespace LandaJune
 				_postDataFunc = func;
 			}
 
+			bool isOfflineSource() const { return _offlineSource; }
 			void setNamedParameter(const std::string& paramName, std::any paramValue) { _paramsMap[paramName] = std::move(paramValue); }
 
 			std::any getNamedParameter (const std::string& paramName) const
@@ -58,14 +59,20 @@ namespace LandaJune
 					return it->second;
 			}
 
+			bool hasNamedParameter (const std::string& paramName) const
+			{
+				return _paramsMap.find(paramName) != _paramsMap.cend();
+			}
+
 			void setBits(const int32_t imageIdx
 				, const int32_t width
 				, const int32_t height
 				, const int32_t bitsPerPixel
 				, const size_t receivedSize
-				, uint8_t* bits);
+				, uint8_t* bits
+				, bool bOfflineSource = false);
 
-			void setBits(const int32_t imageIdx, std::shared_ptr<cv::Mat> mat);
+			void setBits(const int32_t imageIdx, std::shared_ptr<cv::Mat> mat, bool bOfflineSource = true);
 		
 			uint32_t getIndex() const { return _index; }
 			uint32_t getFrameRefIndex() const { return _frameRefIndex; }
@@ -89,7 +96,8 @@ namespace LandaJune
 			size_t _sizeInBytes = 0;
 			long long _frameTimeStamp = -1;
 			bool _asyncWrite = true;
-		
+			bool _offlineSource = false;
+
 			std::shared_ptr<cv::Mat> _img;
 
 			std::map<std::string, std::any> _paramsMap;

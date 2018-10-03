@@ -63,7 +63,7 @@ void offlineFrameProvider::releaseData(FrameRef* frameRef)
 		_currentOfflineProvider->releaseData(frameRef);
 }
 
-CORE_ERROR offlineFrameProvider::init(std::shared_ptr<BaseParameters> parameters)
+CORE_ERROR offlineFrameProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
 {
 	validateParameters(parameters);
 	if (_CyclicGeneration)
@@ -75,10 +75,10 @@ CORE_ERROR offlineFrameProvider::init(std::shared_ptr<BaseParameters> parameters
 		_currentOfflineProvider.reset(new folderReader);
 	}
 
-	return _currentOfflineProvider->init(parameters);
+	return _currentOfflineProvider->init(parameters, coreObject, callback);
 }
 
-void offlineFrameProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
+void offlineFrameProvider::validateParameters(BaseParametersPtr parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded

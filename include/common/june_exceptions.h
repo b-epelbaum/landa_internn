@@ -5,8 +5,6 @@
 #include "util.h"
 #include <iomanip>
 
-#define _CRT_SECURE_NO_WARNINGS
-
 namespace LandaJune
 {
 	#define THROW_EX_ERR(x) throw BaseException(x, __FILE__, __LINE__);

@@ -84,14 +84,14 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get(); 
-			handler(pThis->_userObject, e);
+			handler(pThis->_coreObject, e);
 		}
 		catch (std::runtime_error& re) 
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get();
 			BaseException ex(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, re.what()}, __FILE__, __LINE__);
-			handler(pThis->_userObject, ex);
+			handler(pThis->_coreObject, ex);
 		}
 		taskbg_ptr.reset();
 	}

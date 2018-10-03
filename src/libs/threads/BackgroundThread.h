@@ -6,6 +6,13 @@
 #include "common/june_exceptions.h"
 #include "global.h"
 
+namespace LandaJune {
+	namespace Core {
+		class ICore;
+	}
+}
+
+
 namespace LandaJune
 {
 	namespace Threading
@@ -13,11 +20,11 @@ namespace LandaJune
 		enum class THREAD_STATE { IDLE = 0, BUSY };
 		enum THREAD_PRIORITY { NORMAL = 0, HIGH };
 
-		class THREADS_EXPORT BackgroundThread
+		class BackgroundThread
 		{
 			friend class ThreadPool;
 			using autolock = std::lock_guard<std::mutex>;
-			static void default_error_handler(void*, BaseException &) {}
+			static void default_error_handler(Core::ICore*, BaseException &) {}
 
 		public:
 			BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP = NORMAL);
@@ -28,14 +35,14 @@ namespace LandaJune
 			const BackgroundThread & operator = (const BackgroundThread &) = delete;
 			BackgroundThread & operator = (BackgroundThread &&) = delete;
 
-			bool start();
-			void stop();
-			bool join();
+			THREADS_EXPORT bool start();
+			THREADS_EXPORT void stop();
+			THREADS_EXPORT bool join();
 
-			void setErrorHandler(const std::function<void(void*, BaseException &)>& handler, void* userObject )
+			void setErrorHandler(const std::function<void(Core::ICore*, BaseException &)>& handler, Core::ICore* coreObject )
 			{
 				autolock l(_mutex);
-				_userObject = userObject;
+				_coreObject = coreObject;
 				_error_handler = handler;
 			}
 
@@ -115,14 +122,14 @@ namespace LandaJune
 		protected:
 			std::mutex _mutex;
 			std::unique_ptr<std::thread> _thread;
-			std::function<void(void*, BaseException &)> _error_handler = default_error_handler;
+			std::function<void(Core::ICore*, BaseException &)> _error_handler = default_error_handler;
 			
 			std::packaged_task<void()> _threafFunc;
 			
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;
 			std::string _name;
-			void* _userObject = nullptr;
+			Core::ICore* _coreObject = nullptr;
 			int _index = 0;
 		};
 	}

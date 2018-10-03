@@ -97,8 +97,10 @@ namespace LandaJune
 		}
 
 		
-		static std::string getBatchRootFolder(std::shared_ptr<Parameters::ProcessParameters> processParameters)
+		static std::string getBatchRootFolder(ProcessParametersPtr processParameters)
 		{
+			if (!processParameters->ConfigFileName().isEmpty())
+				return (processParameters->ConfigFileName() + "\\" + QString::number(processParameters->JobID())).toStdString();
 			return std::to_string(processParameters->JobID());
 		}
 
@@ -110,6 +112,11 @@ namespace LandaJune
 		static std::string generateFullPathForPlacementCSV(const SHEET_SIDE side, const std::string& csvFolder)
 		{
 			return fmt::format("{0}\\ImagePlacement_{1}.csv", csvFolder, SIDE_NAMES[side]);
+		}
+
+		static std::string generateFullPathForFilePairInfoFile(const std::string& csvFolder, const std::string& preffix )
+		{
+			return fmt::format("{0}\\SourceFileMappings_{1}.txt", csvFolder, preffix);
 		}
 
 		static std::string generateFullPathForWaveCSV(const std::string csvFolder, const int frameIndex )
@@ -131,7 +138,7 @@ namespace LandaJune
 
 		static std::string generateFullPathForElement(const std::string& elementName
 											, const std::string& ext
-											, std::shared_ptr<Parameters::ProcessParameters> processParameters
+											, ProcessParametersPtr processParameters
 											, const int frameIndex
 											, const int imageIndex
 											, const std::string frameFolderName  )
@@ -154,7 +161,7 @@ namespace LandaJune
 		template<typename T>
 		static std::string generateFullPathForElement(T& inout
 										, const std::string& ext
-										, std::shared_ptr<Parameters::ProcessParameters> processParameters
+										, ProcessParametersPtr processParameters
 										, const int frameIndex
 										, const int imageIndex
 										, const std::string frameFolderName )
@@ -162,7 +169,7 @@ namespace LandaJune
 			return generateFullPathForElement(inout->getElementName(), ext, processParameters, frameIndex, imageIndex, frameFolderName);
 		}
 
-		static std::string createCSVFolder(std::shared_ptr<Parameters::ProcessParameters> processParameters)
+		static std::string createCSVFolder(ProcessParametersPtr processParameters)
 		{
 			auto rootPath = processParameters->RootOutputFolder().toStdString();
 			if (rootPath.empty())
@@ -227,13 +234,33 @@ namespace LandaJune
 			}
 		}
 
+		static void dumpInputOutputPairInfo(std::string inputPathInfo, std::string outPathInfo, std::string csvFolder, std::string preffix )
+		{
+			try
+			{
+				auto const qFilePath = QString::fromStdString(generateFullPathForFilePairInfoFile(csvFolder, preffix ));
+				const auto fileExists = QFileInfo(qFilePath).exists();
+				const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
+				QFile outFile(qFilePath);
+				outFile.open(flags | QFile::Text);
 
+				std::ostringstream ss;
+				ss << inputPathInfo << " : " << outPathInfo << std::endl;
+				const auto& outString = ss.str();
+				outFile.write(outString.c_str(), outString.size());
+			}
+			catch(...)
+			{
+				PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught";
+			}
+		}
 
 		static void dumpWaveCSV(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs
 					, const int jobID
 					, const int frameIndex
 					, const int imageIndex
 					, const std::string csvFolder
+					, const std::string sourceFilePath
 					, bool asyncWrite)
 		{
 			const auto overallResult = 
@@ -299,6 +326,9 @@ namespace LandaJune
 			{
 				PRINT_WARNING << "[" << __FUNCTION__ << "] : cannot post new save job; Saving queue exceeded maximum size. Saving file dropped [" << fPath.c_str() << "]";
 			}
+
+			if (!sourceFilePath.empty())
+				dumpInputOutputPairInfo (sourceFilePath, fPath, csvFolder, "wave" );
 			
 		}
 
@@ -307,6 +337,7 @@ namespace LandaJune
 					, const int frameIndex
 					, const int imageIndex
 					, const std::string csvFolder
+					, const std::string sourceFilePath
 					, bool asyncWrite)
 		{
 			if ( stripOut->_c2cROIOutputs.empty() )
@@ -355,6 +386,9 @@ namespace LandaJune
 				{
 					PRINT_WARNING << "[" << __FUNCTION__ << "] : cannot post new save job; Saving queue exceeded maximum size. Saving file dropped [" << fPath.c_str() << "]";
 				}
+
+				if (!sourceFilePath.empty())
+					dumpInputOutputPairInfo (sourceFilePath, fPath, csvFolder, "reg" );
 			}
 			catch(...)
 			{

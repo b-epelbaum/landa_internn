@@ -111,10 +111,13 @@ void SiSoProvider::releaseData(FrameRef* frameRef)
 {
 }
 
-CORE_ERROR SiSoProvider::init(std::shared_ptr<Parameters::BaseParameters> parameters)
+CORE_ERROR SiSoProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
 {
 	validateParameters(parameters);
 	connect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+
+	_dataCallback = callback;
+	_coreObject = coreObject;
 
 	_lastAcquiredImage = -1;
 	//300m_1200m_300rgb_Windows_AMD64.hap
@@ -358,7 +361,7 @@ CORE_ERROR SiSoProvider::init(std::shared_ptr<Parameters::BaseParameters> parame
 	return RESULT_OK;
 }
 
-void SiSoProvider::validateParameters(std::shared_ptr<BaseParameters> parameters)
+void SiSoProvider::validateParameters(BaseParametersPtr parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded

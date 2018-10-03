@@ -257,7 +257,9 @@ bool BaseParameters::load(QString fileName, QString& error)
 		return false;
 	}
 
-	_jsonFilePath = fileName;
+	_ConfigFileName = QFileInfo(fileName).baseName();
+	_configFilePath = fileName;
+
 	QJsonParseError pError;
 	auto const doc = QJsonDocument::fromJson(jsonFile.readAll(), &pError);
 	if (pError.error != QJsonParseError::NoError )

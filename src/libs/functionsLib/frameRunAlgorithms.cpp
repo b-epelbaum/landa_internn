@@ -16,7 +16,7 @@ using namespace Core;
 #define FRAMEALGO_SCOPED_ERROR PRINT_ERROR << "[frameRunAlgorithms func] : "
 #define FRAMEALGO_SCOPED_WARNING PRINT_WARNING << "[frameRunAlgorithms func] : "
 
-void Functions::frameRunAlgorithms(FrameRef *frame, const std::unique_ptr<IAlgorithmRunner>& algorithmRunner)
+void Functions::frameRunAlgorithms(FrameRef *frame, const AlgorithmRunnerUniquePtr& algorithmRunner)
 {
 	// call root analysis function, which performed in calling thread
 	const auto& tStart = Utility::now_in_microseconds();

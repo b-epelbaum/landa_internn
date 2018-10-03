@@ -1,5 +1,7 @@
 #include "BaseCore.h"
 #include "applog.h"
+#include "common/june_enums.h"
+
 #include "interfaces/IFrameProvider.h"
 #include "interfaces/IAlgorithmRunner.h"
 
@@ -43,14 +45,18 @@ using namespace Functions;
 }
 
 
-void BaseCore::init()
+void BaseCore::init(bool reportEvents )
 {
+	_reportEvents = reportEvents;
+
 	qRegisterMetaType<BaseException>("BaseException");
 	if (_bInited)
 	{
 		CORE_SCOPED_WARNING << "Core is already initialized";
 		return;
 	}
+
+
 	CORE_SCOPED_LOG << "-------------------------------------------------------------";
 	CORE_SCOPED_LOG << " Core Initialization started...";
 
@@ -81,7 +87,7 @@ const std::list<AlgorithmRunnerPtr>& BaseCore::getAlgorithmRunnerList() const
 	return _algorithmRunnerList;
 }
 
-std::shared_ptr<Parameters::BaseParameters> BaseCore::getProcessParameters()
+BaseParametersPtr BaseCore::getProcessParameters()
 {
 	CHECK_IF_INITED
 	return _processParameters;
@@ -152,13 +158,14 @@ void BaseCore::runAll()
 }
 
 
-void BaseCore::run(std::shared_ptr<BaseParameters> params)
+void BaseCore::run(BaseParametersPtr params)
 {
 	CHECK_IF_INITED
 	if (!_currentFrameProvider)
 	{
 		THROW_EX_INT(CORE_ERROR::ERR_CORE_NO_PROVIDER_SELECTED);
 	}
+
 
 	if (!_currentAlgorithmRunner)
 	{
@@ -170,11 +177,14 @@ void BaseCore::run(std::shared_ptr<BaseParameters> params)
 		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_IS_BUSY);
 	}
 
-	// call algorithms initialization functions
+	
+	_bCanAcceptEvents = true;
+	_bCanAcceptExceptions = true;
 
+	// call algorithms initialization functions
 	try
 	{
-		_currentAlgorithmRunner->init(params);
+		_currentAlgorithmRunner->init(params, this, consumerDataCallback);
 	}
 	catch(...)
 	{
@@ -187,7 +197,7 @@ void BaseCore::run(std::shared_ptr<BaseParameters> params)
 	CORE_ERROR initErr;
 	try
 	{
-		initErr = _currentFrameProvider->init(params);
+		initErr = _currentFrameProvider->init(params, this, providerDataCallback);
 	}
 	catch (...)
 	{
@@ -206,16 +216,16 @@ void BaseCore::run(std::shared_ptr<BaseParameters> params)
 	// start one and only frame consuming thread
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
 	// see "frameConsume" implementation
-	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmRunner );
-	frameConsumerThread().setErrorHandler(consumerExceptionHandler, (void*)this);
+	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmRunner, this, consumerDataCallback );
+	frameConsumerThread().setErrorHandler(coreExceptionHandler, this);
 	frameConsumerThread().start();
 
 	
 	// start one and only frame producing/generation/capture thread
 	// the entry point of this thread is the "frameGenerate" static function, which invokes the data generation functions of IAbstractImageProvider object
 	// see "frameGenerate" implementation
-	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider, this, frameViewCallback);
-	frameProducerThread().setErrorHandler(providerExceptionHandler, (void*)this);
+	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider, this, providerDataCallback);
+	frameProducerThread().setErrorHandler(coreExceptionHandler, this);
 	frameProducerThread().start();
 }
 
@@ -226,6 +236,9 @@ void BaseCore::stop()
 	{
 		return;
 	}
+
+	_bCanAcceptEvents = false;
+	_bCanAcceptExceptions = false;
 
 	CORE_SCOPED_LOG << "Stopping Frame producer thread...";
 	frameProducerThread().stop();
@@ -248,7 +261,6 @@ void BaseCore::stop()
 	if ( _currentAlgorithmRunner)
 		_currentAlgorithmRunner->cleanup();
 
-	_bCanAcceptExceptions = true;
 	emit coreStopped();
 }
 
@@ -288,7 +300,7 @@ bool BaseCore::isBusy()
 	return _currentFrameProvider->isBusy();
 }
 
-void BaseCore::onException(BaseException ex)
+void BaseCore::onCriticalException(BaseException ex)
 {
 	stop();
 	emit coreException(ex);
@@ -297,6 +309,16 @@ void BaseCore::onException(BaseException ex)
 void BaseCore::onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
 {
 	emit frameData(fData);
+}
+
+void BaseCore::onFileCountData ( int sourceFileCount )
+{
+	emit offlineFileSourceCount(sourceFileCount);
+}
+
+void BaseCore::onFrameProcessed ( int frameIndex )
+{
+	emit frameProcessed(frameIndex);
 }
 
 QString BaseCore::getDefaultConfigurationFileName() const
@@ -352,40 +374,112 @@ void BaseCore::initFileWriter(bool bInit) const
 	}
 }
 
-void BaseCore::providerExceptionHandler ( void * pThis, BaseException& ex ) noexcept
+void BaseCore::processExceptionData(BaseException& ex)
 {
-	const auto pCore = static_cast<BaseCore*>(pThis);
-	autolock lock(pCore->_mutex);
-	if ( !pCore->_bCanAcceptExceptions )
-		return;
-
-	pCore->_bCanAcceptExceptions = false;
+	{
+		autolock lock(_mutex);
+		if ( !_bCanAcceptExceptions )
+			return;
+	}
 
 	std::ostringstream ss;
 	print_exception(ex, ss);
 	CORE_SCOPED_ERROR << ss.str().c_str();
 
-	auto bRes = QMetaObject::invokeMethod(static_cast<BaseCore*>(pThis), "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
+	//TODO : we should analyze exception information to decide whether we have to stop
+	// processing or continue 
+
+	bool bShouldStop = true;
+
+	if (bShouldStop)
+	{
+		_bCanAcceptExceptions = false;
+		_bCanAcceptEvents = false;
+		// post message for stopping processing
+		auto bRes = QMetaObject::invokeMethod(this, "onCriticalException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
+	}
 }
 
-void BaseCore::consumerExceptionHandler ( void * pThis, BaseException& ex ) noexcept
+void BaseCore::coreExceptionHandler ( ICore * coreObject, BaseException& ex ) noexcept
 {
-	const auto pCore = static_cast<BaseCore*>(pThis);
-	autolock lock(pCore->_mutex);
-	if ( !pCore->_bCanAcceptExceptions )
+	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
+	if ( pCore == nullptr )
 		return;
 
-	pCore->_bCanAcceptExceptions = false;
-	
-	std::ostringstream ss;
-	print_exception(ex, ss);
-	CORE_SCOPED_ERROR << ss.str().c_str();
-
-	auto bRes = QMetaObject::invokeMethod(pCore, "onException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
+	pCore->processExceptionData(ex);
 }
 
-void BaseCore::frameViewCallback ( ICore * coreObject, std::shared_ptr<LandaJune::Core::SharedFrameData> frameData ) noexcept
+void BaseCore::providerDataCallback ( ICore * coreObject, FrameProviderDataCallbackType callbackType, std::any callbackData  )
 {
-	const auto pCore = static_cast<BaseCore*>(coreObject);
-	auto bRes = QMetaObject::invokeMethod(pCore, "onFrameData", Qt::QueuedConnection, Q_ARG(std::shared_ptr<LandaJune::Core::SharedFrameData>, frameData));
+	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
+	if ( pCore == nullptr )
+		return;
+
+	{
+		autolock lock(pCore->_mutex);
+		if ( !pCore->_bCanAcceptEvents )
+			return;
+	}
+
+	std::string typeName = "unknown";
+	try
+	{
+		switch (callbackType)
+		{
+			case FrameProviderDataCallbackType::CALLBACK_FRAME_DATA :
+			{
+				typeName = "FrameProviderDataCallbackType::CALLBACK_FRAME_DATA";
+				if (pCore->_reportEvents )
+					auto bRes = QMetaObject::invokeMethod(pCore, "onFrameData", Qt::QueuedConnection, Q_ARG(std::shared_ptr<LandaJune::Core::SharedFrameData>, std::any_cast<std::shared_ptr<LandaJune::Core::SharedFrameData>>(callbackData)));
+			}
+			break;
+
+			case FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT :
+			{
+				typeName = "FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT";
+				if (pCore->_reportEvents )
+					auto bRes = QMetaObject::invokeMethod(pCore, "onFileCountData", Qt::QueuedConnection, Q_ARG(qint32, (qint32)std::any_cast<int>(callbackData)));
+			}
+			break;
+			default: ;
+		}
+	}
+	catch (const std::bad_any_cast& e)
+	{
+		CORE_SCOPED_ERROR << "Provider callback type : " << typeName.c_str() << " bad cast exception : " << e.what();
+	}
+}
+
+
+void BaseCore::consumerDataCallback ( ICore * coreObject, FrameConsumerDataCallbackType callbackType, std::any callbackData  )
+{
+	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
+	if ( pCore == nullptr )
+		return;
+
+	{
+		autolock lock(pCore->_mutex);
+		if ( !pCore->_bCanAcceptEvents )
+			return;
+	}
+
+	std::string typeName = "unknown";
+	try
+	{
+		switch (callbackType)
+		{
+			case FrameConsumerDataCallbackType::CALLBACK_FRAME_HANDLED :
+			{
+				typeName = "FrameProviderDataCallbackType::CALLBACK_FRAME_HANDLED";
+				if (pCore->_reportEvents )
+					auto bRes = QMetaObject::invokeMethod(pCore, "onFrameProcessed", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+			}
+			break;
+			default: ;
+		}
+	}
+	catch (const std::bad_any_cast& e)
+	{
+		CORE_SCOPED_ERROR << "Consumer callback type : " << typeName.c_str() << " bad cast exception : " << e.what();
+	}
 }

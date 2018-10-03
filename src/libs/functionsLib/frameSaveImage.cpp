@@ -226,7 +226,7 @@ namespace LandaJune
 			}
 		}
 
-		void frameSaveData(std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string> & args) 
+		void frameSaveData(SaveDataType& args) 
 		{
 			const auto sPath = std::get<1>(args);
 			const auto sData = std::get<0>(args);

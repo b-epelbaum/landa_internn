@@ -33,7 +33,7 @@ namespace LandaJune
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
 			CORE_ERROR cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFilePath, QString, "")
@@ -42,7 +42,7 @@ namespace LandaJune
 
 		protected:
 
-			void validateParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			void validateParameters(BaseParametersPtr parameters) override;
 
 
 		private :

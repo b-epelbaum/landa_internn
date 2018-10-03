@@ -4,6 +4,9 @@
 #include <memory>
 #include <tuple>
 #include <functional>
+#include <any>
+
+#include "common/type_usings.h"
 
 
 namespace LandaJune {
@@ -36,10 +39,11 @@ namespace LandaJune
 {
 	namespace Functions
 	{
-		void frameGenerate(std::shared_ptr<FrameProviders::IFrameProvider> frameProvider, Core::ICore * coreObject, std::function<void( Core::ICore *, std::shared_ptr<Core::SharedFrameData>)> viewFunc);
-		void frameConsume(std::shared_ptr<Algorithms::IAlgorithmRunner> algorithmRunner);
-		void frameRunAlgorithms(Core::FrameRef *frame, const std::unique_ptr<Algorithms::IAlgorithmRunner>& algorithmHandler);
-		void frameSaveData(std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string> & args);
+		void frameGenerate(FrameProviderPtr, Core::ICore * coreObject, FrameProviderCallback );
+		void frameConsume(AlgorithmRunnerPtr, Core::ICore * coreObject, FrameConsumerCallback );
+
+		void frameRunAlgorithms(Core::FrameRef *frame, const AlgorithmRunnerUniquePtr& algorithmHandler);
+		void frameSaveData(SaveDataType& args);
 	}
 }
 

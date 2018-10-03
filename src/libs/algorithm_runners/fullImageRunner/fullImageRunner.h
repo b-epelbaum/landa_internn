@@ -16,7 +16,7 @@ namespace LandaJune
 			fullImageRunner();
 			fullImageRunner(const fullImageRunner &) = default;
 			fullImageRunner(fullImageRunner &&) = delete;
-			virtual ~fullImageRunner();
+			virtual ~fullImageRunner() = default;
 
 			const fullImageRunner & operator = (const fullImageRunner &) = delete;
 			fullImageRunner & operator = (fullImageRunner &&) = delete;
@@ -25,19 +25,34 @@ namespace LandaJune
 			std::unique_ptr<IAlgorithmRunner> clone() override;
 			QString getName() const override;
 			QString getDescription() const override;
-			std::string parseSourceFrameIndexString(const std::string& strPath) override;
 
 			std::string getFrameFolderName() const override;
 
-			void init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			void init(BaseParametersPtr parameters, Core::ICore* coreObject, FrameConsumerCallback callback) override;
 			void cleanup() override;
-			void process(const Core::FrameRef * frame) override;
-
-			std::shared_ptr<Parameters::BaseParameters> getParameters() const override;
+			BaseParametersPtr getParameters() const override;
 
 		protected:
 
-			void validateProcessParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			void processInternal() override;
+			void validateProcessParameters(BaseParametersPtr parameters) override;
+
+			// general sheet output processing
+			void processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput) override;
+
+			// general strip output processing
+			void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput) override;
+			
+			// general wave output processing
+			void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs ) override;
+
+			virtual void sortWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs );
+			virtual void logFailedStrip(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput);
+			virtual void logFailedWaves(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs);
+
+			// saving strip CSV files
+			virtual void processStripOutputCSV(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput);
+			virtual void processWaveOutputsCSV(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs );
 
 		};
 	}

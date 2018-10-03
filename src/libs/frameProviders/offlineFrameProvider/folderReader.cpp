@@ -8,6 +8,8 @@
 
 #include <thread>
 #include <opencv2/imgcodecs.hpp>
+#include <QDateTime>
+#include "common/june_enums.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -26,6 +28,18 @@ using namespace Parameters;
 using namespace FrameProviders;
 using namespace Helpers;
 
+struct ImageFileLessFunctor
+{
+	bool operator() (const QString& left, const QString& right)
+	{
+		auto leftInfo  = QFileInfo(left);
+		auto rightInfo  = QFileInfo(right);
+
+		return leftInfo.birthTime() < rightInfo.birthTime();
+	}
+};
+
+
 folderReader::folderReader()
 {
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "created";
@@ -36,24 +50,51 @@ folderReader::~folderReader()
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
-CORE_ERROR folderReader::init(std::shared_ptr<BaseParameters> parameters)
+void folderReader::sortImageFileList()
+{
+	std::sort(_imagePaths.begin(), _imagePaths.end(), 
+			[](const QString& left, const QString& right) 
+			{
+				auto leftInfo  = QFileInfo(left);
+				auto rightInfo  = QFileInfo(right);
+				return leftInfo.birthTime() < rightInfo.birthTime();
+			});
+}
+
+CORE_ERROR folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
 {
 	validateParameters(parameters);
 	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+	
+	_dataCallback = callback;
+	_coreObject = coreObject;
 		
 	_lastAcquiredImage = -1;
 	_imagePaths.clear();
 
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "Scanning for source files...";
 	const auto imageFolder = _SourceFolderPath; 
 	if ( !QFileInfo(imageFolder).exists())
 	{
+		FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << "cannot be found. Aborting scan...";
 		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
 	}
 
 	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
 
-	while (it.hasNext()) {
+	while (it.hasNext()) 
+	{
 		_imagePaths.push_back(it.next());
+	}
+	
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "found " << _imagePaths.size() << " files. Sorting...";
+	sortImageFileList();
+	FOLDER_READER_PROVIDER_SCOPED_LOG << "sorting complete";
+
+	if (_dataCallback)
+	{
+		int itemsToReport = ( _ImageMaxCount > 0 ) ? qMin(_imagePaths.size(), _ImageMaxCount) : _imagePaths.size();
+		_dataCallback(_coreObject, FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT, std::make_any<int>(itemsToReport));
 	}
 	return RESULT_OK;
 }
@@ -67,7 +108,7 @@ CORE_ERROR folderReader::cleanup()
 }
 
 
-void folderReader::validateParameters(std::shared_ptr<BaseParameters> parameters)
+void folderReader::validateParameters(BaseParametersPtr parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
@@ -145,7 +186,9 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 	// image/CSV saving synchronously 
 	// to avoid save queue growing constantly
 	// for offline analysis it's not critical to perform saving synchronously
-	//frameRef->setAsyncWrite(false);
+
+	// TODO : replace this function/member to derivative of offline/online generated bits ?
+	frameRef->setAsyncWrite(false);
 
 	// pass source image path to frame
 	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);

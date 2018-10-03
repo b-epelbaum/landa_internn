@@ -1,5 +1,6 @@
 {
     "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
     "C2CDistanceBetweenDots_um": 3048,
     "C2CDistanceBetweenSets_um": 159300,
     "C2CDistanceFromTriangle2FirstSet_um": 9600,
@@ -7,7 +8,7 @@
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
-		{
+        {
             "ColorName": "Black",
             "Max": {
                 "ColorName": "",
@@ -52,7 +53,7 @@
                 "V": 150
             }
         },
-		{
+        {
             "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
@@ -135,8 +136,8 @@
     "SaveWaveCSV": true,
     "ScanBitDepth": 24,
     "SheetID": 0,
-    "SourceFilePath": "c:\\Temp\\wave\\Current0001.bmp ",
-    "SourceFolderPath": "c:\\Temp\\wave_reg",
+    "SourceFilePath": "",
+    "SourceFolderPath": "d:\\Temp\\june_offline_input\\wave_4_colors_offline",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
     "SubstrateImageMargin_mm": 2.5,

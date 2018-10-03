@@ -4,10 +4,16 @@
 #include "common/june_exceptions.h"
 
 #include <mutex>
+#include <any>
 
 #include <QObject>
 #include <QMetaObject>
 
+
+namespace LandaJune {
+	enum class FrameProviderDataCallbackType;
+	enum class FrameConsumerDataCallbackType;
+}
 
 namespace LandaJune {
 	namespace Core {
@@ -37,13 +43,13 @@ namespace LandaJune
 			BaseCore(const BaseCore &) = delete;
 			BaseCore(BaseCore &&) = delete;
 
-			void init() override;
+			void init(bool reportEvents ) override;
 			void cleanup() override;
 
 			const std::list<FrameProviderPtr>& getFrameProviderList() const override;
 			const std::list<AlgorithmRunnerPtr>& getAlgorithmRunnerList() const override;
 
-			std::shared_ptr<Parameters::BaseParameters> getProcessParameters() override;
+			BaseParametersPtr getProcessParameters() override;
 
 			void selectFrameProvider(FrameProviderPtr provider) override;
 			FrameProviderPtr getSelectedFrameProvider() const override;
@@ -71,11 +77,15 @@ namespace LandaJune
 			void coreStopped();
 			void coreException(const LandaJune::BaseException ec);
 			void frameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData );
+			void frameProcessed ( int frameIndex );
+			void offlineFileSourceCount( int iCount );
 
 		private slots:
 
-			void onException (BaseException ex);
+			void onCriticalException (BaseException ex);
 			void onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData);
+			void onFrameProcessed ( int frameIndex );
+			void onFileCountData ( int sourceFileCount );
 
 		protected :
 			
@@ -86,7 +96,7 @@ namespace LandaJune
 			virtual QString getDefaultConfigurationFileName() const ;
 			virtual void saveConfiguration();
 
-			virtual void run(std::shared_ptr<Parameters::BaseParameters> params);
+			virtual void run(BaseParametersPtr params);
 
 			
 			void initProcessParameters();
@@ -94,21 +104,26 @@ namespace LandaJune
 			void initProviders();
 			void initAlgorithmRunners();
 			void initFileWriter( bool bInit ) const;
+			void processExceptionData(BaseException& ex);
+			
 			bool _bInited = false;
-
 			std::list<FrameProviderPtr> _providerList;
 			std::list<AlgorithmRunnerPtr> _algorithmRunnerList;
 
 			FrameProviderPtr	_currentFrameProvider;
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
 			
-			std::shared_ptr<Parameters::BaseParameters>	_processParameters;
+			BaseParametersPtr	_processParameters;
 			bool _bCanAcceptExceptions = true;
+			bool _bCanAcceptEvents = true;
+			bool _reportEvents = false;
 			std::mutex _mutex;
 
-			static void frameViewCallback ( ICore * coreObject, std::shared_ptr<LandaJune::Core::SharedFrameData> frameData ) noexcept;
-			static void providerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
-			static void consumerExceptionHandler ( void * pThis, BaseException& ex ) noexcept;
+			static void providerDataCallback ( ICore * coreObject, FrameProviderDataCallbackType callbackType, std::any callbackData );
+			static void consumerDataCallback ( ICore * coreObject, FrameConsumerDataCallbackType callbackType, std::any callbackData );
+
+			static void coreExceptionHandler ( ICore * coreObject, BaseException& ex ) noexcept;
+
 		};
 	}
 }

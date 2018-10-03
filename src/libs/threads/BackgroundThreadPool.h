@@ -7,7 +7,7 @@ namespace LandaJune
 {
 	namespace Threading
 	{
-		class THREADS_EXPORT BackgroundThreadPool 
+		class BackgroundThreadPool 
 		{
 			using autolock = std::lock_guard<std::mutex>;
 

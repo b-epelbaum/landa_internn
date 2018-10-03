@@ -111,6 +111,8 @@ namespace LandaJune
 				const Core::FrameRef * _frame = nullptr;
 		};
 
+		using ABSTRACT_INPUT_PTR = std::shared_ptr<ABSTRACT_INPUT>;
+
 		//------------------------------------------
 		//		Frame I2S detection Input  class
 		//------------------------------------------
@@ -132,13 +134,14 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return fmt::format("I2S_{0}", SIDE_NAMES[_side]);
+					return fmt::format("i2s_{0}", SIDE_NAMES[_side]);
 				}
 
 				SHEET_SIDE					_side = LEFT;
 				ROIRect						_approxTriangeROI {};
 				std::shared_ptr<cv::Mat>	_triangleImageSource;
 		};
+		using PARAMS_I2S_INPUT_PTR = std::shared_ptr<PARAMS_I2S_INPUT>;
 
 		//------------------------------------------
 		//		C2C ROI detection Input parameters
@@ -172,9 +175,11 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return fmt::format("C2C_{0}_{1}_[{2},{3}]", SIDE_NAMES[_side], _roiIndex, _ROI.left(), _ROI.top());
+					return fmt::format("c2c_{0}_{1}_[{2},{3}]", SIDE_NAMES[_side], _roiIndex, _ROI.left(), _ROI.top());
 				}
 		};
+
+		using PARAMS_C2C_ROI_INPUT_PTR = std::shared_ptr<PARAMS_C2C_ROI_INPUT>;
 
 		//------------------------------------------
 		//		Edge detection Input parameters
@@ -198,7 +203,7 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return fmt::format("EDGE_{0}", SIDE_NAMES[_side]);
+					return fmt::format("edge_{0}", SIDE_NAMES[_side]);
 				}
 
 				SHEET_SIDE						_side = LEFT;
@@ -206,6 +211,7 @@ namespace LandaJune
 				uint32_t						_triangeApproximateY = -1;
 				std::shared_ptr<cv::Mat>		_stripImageSource;
 		};
+		using PARAMS_PAPEREDGE_INPUT_PTR = std::shared_ptr<PARAMS_PAPEREDGE_INPUT>;
 
 		//------------------------------------------
 		//		WAVE detection Input parameters
@@ -227,7 +233,7 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return "WAVE";
+					return "wave";
 				}
 
 			std::shared_ptr<cv::Mat>	_waveImageSource;
@@ -236,6 +242,7 @@ namespace LandaJune
 			ROIRect						_waveROI;
 			int32_t						_circlesCount = 0;
 		};
+		using PARAMS_WAVE_INPUT_PTR = std::shared_ptr<PARAMS_WAVE_INPUT>;
 
 		//------------------------------------------
 		//		Frame Strip detection Input parameters
@@ -259,14 +266,15 @@ namespace LandaJune
 
 			std::string getElementName() const  override
 			{
-				return fmt::format("Strip_{0}", SIDE_NAMES[_side]);
+				return fmt::format("strip_{0}", SIDE_NAMES[_side]);
 			}
 
-			SHEET_SIDE											_side = LEFT;
-			std::shared_ptr<PARAMS_PAPEREDGE_INPUT>				_paperEdgeInput;
-			std::shared_ptr<PARAMS_I2S_INPUT>					_i2sInput;
-			std::vector<std::shared_ptr<PARAMS_C2C_ROI_INPUT>>	_c2cROIInputs;
+			SHEET_SIDE								_side = LEFT;
+			PARAMS_PAPEREDGE_INPUT_PTR				_paperEdgeInput;
+			PARAMS_I2S_INPUT_PTR					_i2sInput;
+			std::vector<PARAMS_C2C_ROI_INPUT_PTR>	_c2cROIInputs;
 		};
+		using PARAMS_C2C_STRIP_INPUT_PTR = std::shared_ptr<PARAMS_C2C_STRIP_INPUT>;
 
 		//------------------------------------------
 		//	Sheet detection Input parameters
@@ -289,14 +297,14 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return "Frame";
+					return "frame";
 				}
 
 				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamLeft;
 				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamRight;
 				std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>		_waveInputs;
 		};
-
+		using PARAMS_C2C_SHEET_INPUT_PTR = std::shared_ptr<PARAMS_C2C_SHEET_INPUT>;
 
 
 		//////////////////////////////////////////////////////////////////////////
@@ -322,6 +330,7 @@ namespace LandaJune
 
 				OUT_STATUS	_result = ALG_STATUS_FAILED;
 		};
+		using ABSTRACT_OUTPUT_PTR = std::shared_ptr<ABSTRACT_OUTPUT>;
 
 		//------------------------------------------
 		//		Frame I2S detection Output  class
@@ -348,7 +357,7 @@ namespace LandaJune
 
 				std::string getElementName() override
 				{
-					return fmt::format("I2S_{0}_overlay", SIDE_NAMES[_input->_side]);
+					return fmt::format("i2s_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 			
 				std::shared_ptr<cv::Mat> overlay()  const override
@@ -356,6 +365,7 @@ namespace LandaJune
 					return _triangleOverlay;
 				}
 		};
+		using PARAMS_I2S_OUTPUT_PTR = std::shared_ptr<PARAMS_I2S_OUTPUT>;
 		
 		//------------------------------------------
 		//		Frame EDGE detection Output  class
@@ -380,7 +390,7 @@ namespace LandaJune
 			
 				std::string getElementName() override
 				{
-					return fmt::format("Edge_{0}_overlay", SIDE_NAMES[_input->_side]);
+					return fmt::format("edge_{0}_overlay", SIDE_NAMES[_input->_side]);
 				}
 				
 				std::shared_ptr<cv::Mat> overlay() const override
@@ -388,6 +398,7 @@ namespace LandaJune
 					return _edgeOverlay;
 				}
 		};
+		using PARAMS_PAPEREDGE_OUTPUT_PTR = std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>;
 
 		//------------------------------------------
 		//		C2C detection Output  class
@@ -409,13 +420,13 @@ namespace LandaJune
 				std::vector<OUT_STATUS>		_colorStatuses;
 				std::vector<APOINT>			_colorCenters;
 				std::shared_ptr<cv::Mat>	_colorOverlay;
-				std::shared_ptr<PARAMS_C2C_ROI_INPUT>	_input;
+				PARAMS_C2C_ROI_INPUT_PTR	_input;
 
 			///
 				std::string getElementName() override
 				{
 					const auto castInput = std::static_pointer_cast<PARAMS_C2C_ROI_INPUT>(_input);
-					return fmt::format("C2C_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[castInput->_side], castInput->_roiIndex, castInput->_ROI.left(), castInput->_ROI.top());
+					return fmt::format("c2c_{0}_{1}_[{2},{3}]_overlay", SIDE_NAMES[castInput->_side], castInput->_roiIndex, castInput->_ROI.left(), castInput->_ROI.top());
 				}
 
 				std::shared_ptr<cv::Mat> overlay() const  override
@@ -423,6 +434,7 @@ namespace LandaJune
 					return _colorOverlay;
 				}
 		};
+		using PARAMS_C2C_ROI_OUTPUT_PTR = std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>;
 
 		//------------------------------------------
 		//		WAVE detection Output  class
@@ -430,7 +442,7 @@ namespace LandaJune
 		class PARAMS_WAVE_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				explicit PARAMS_WAVE_OUTPUT(std::shared_ptr<PARAMS_WAVE_INPUT> input) 
+				explicit PARAMS_WAVE_OUTPUT(PARAMS_WAVE_INPUT_PTR input) 
 					: ABSTRACT_OUTPUT(input)
 					, _colorOverlay (std::make_shared<cv::Mat>())
 					, _input(input)
@@ -444,11 +456,11 @@ namespace LandaJune
 				std::vector<OUT_STATUS>					_colorDetectionResults;
 				std::vector<APOINT>						_colorCenters;
 				std::shared_ptr<cv::Mat>				_colorOverlay;
-				std::shared_ptr<PARAMS_WAVE_INPUT>		_input;
+				PARAMS_WAVE_INPUT_PTR					_input;
 				
 				std::string getElementName() override
 				{
-					return fmt::format("Wave_[{0}]", std::static_pointer_cast<PARAMS_WAVE_INPUT>(_input)->_circleColor._colorName);
+					return fmt::format("wave_[{0}]", std::static_pointer_cast<PARAMS_WAVE_INPUT>(_input)->_circleColor._colorName);
 				}
 
 				std::shared_ptr<cv::Mat> overlay()  const override
@@ -457,6 +469,7 @@ namespace LandaJune
 				}
 
 		};
+		using PARAMS_WAVE_OUTPUT_PTR = std::shared_ptr<PARAMS_WAVE_OUTPUT>;
 
 		//------------------------------------------
 		//		Strip detection Output  class
@@ -464,7 +477,7 @@ namespace LandaJune
 		class PARAMS_C2C_STRIP_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-				explicit PARAMS_C2C_STRIP_OUTPUT(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> input) 
+				explicit PARAMS_C2C_STRIP_OUTPUT(PARAMS_C2C_STRIP_INPUT_PTR input) 
 					: ABSTRACT_OUTPUT(input)
 					, _paperEdgeOutput(std::make_shared<PARAMS_PAPEREDGE_OUTPUT>(input->_paperEdgeInput))
 					, _i2sOutput(std::make_shared<PARAMS_I2S_OUTPUT>(input->_i2sInput))
@@ -477,15 +490,15 @@ namespace LandaJune
 				PARAMS_C2C_STRIP_OUTPUT & operator = (PARAMS_C2C_STRIP_OUTPUT &&) = delete;
 				virtual ~PARAMS_C2C_STRIP_OUTPUT() = default;
 
-				std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>								_paperEdgeOutput;
-				std::shared_ptr<PARAMS_I2S_OUTPUT>										_i2sOutput;
-				Concurrency::concurrent_vector<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>	_c2cROIOutputs;
-				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>									_input;
+				PARAMS_PAPEREDGE_OUTPUT_PTR											_paperEdgeOutput;
+				PARAMS_I2S_OUTPUT_PTR												_i2sOutput;
+				Concurrency::concurrent_vector<PARAMS_C2C_ROI_OUTPUT_PTR>			_c2cROIOutputs;
+				PARAMS_C2C_STRIP_INPUT_PTR											_input;
 				
 								
 				std::string getElementName() override
 				{
-					return fmt::format("Strip_{0}_overlay", SIDE_NAMES[std::static_pointer_cast<PARAMS_C2C_STRIP_INPUT>(_input)->_side]);
+					return fmt::format("strip_{0}_overlay", SIDE_NAMES[std::static_pointer_cast<PARAMS_C2C_STRIP_INPUT>(_input)->_side]);
 				}
 				
 				std::shared_ptr<cv::Mat> overlay()  const override
@@ -493,6 +506,7 @@ namespace LandaJune
 					return nullptr;
 				}
 		};
+		using PARAMS_C2C_STRIP_OUTPUT_PTR = std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT>;
 
 
 		//------------------------------------------
@@ -501,7 +515,7 @@ namespace LandaJune
 		class PARAMS_C2C_SHEET_OUTPUT : public ABSTRACT_OUTPUT
 		{
 			public:
-			explicit PARAMS_C2C_SHEET_OUTPUT(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> input) 
+			explicit PARAMS_C2C_SHEET_OUTPUT(PARAMS_C2C_SHEET_INPUT_PTR input) 
 					: ABSTRACT_OUTPUT(input)
 					, _stripOutputParameterLeft(std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(input->_stripInputParamLeft))
 					, _stripOutputParameterRight(std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(input->_stripInputParamRight))
@@ -514,15 +528,15 @@ namespace LandaJune
 				PARAMS_C2C_SHEET_OUTPUT & operator = (PARAMS_C2C_SHEET_OUTPUT &&) = delete;
 				virtual ~PARAMS_C2C_SHEET_OUTPUT() = default;
 
-				std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT>										_stripOutputParameterLeft;
-				std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT>										_stripOutputParameterRight;
-				Concurrency::concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>>				_waveOutputs;
-				std::shared_ptr<PARAMS_C2C_SHEET_INPUT>											_input;
+				PARAMS_C2C_STRIP_OUTPUT_PTR										_stripOutputParameterLeft;
+				PARAMS_C2C_STRIP_OUTPUT_PTR										_stripOutputParameterRight;
+				Concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT_PTR>				_waveOutputs;
+				PARAMS_C2C_SHEET_INPUT_PTR											_input;
 				///
 
 				std::string getElementName() override
 				{
-					return "Frame_overlay";
+					return "frame_overlay";
 				}
 
 				std::shared_ptr<cv::Mat> overlay()  const override
@@ -530,5 +544,6 @@ namespace LandaJune
 					return nullptr;
 				}
 		};
+		using PARAMS_C2C_SHEET_OUTPUT_PTR = std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT>;
 	}
 }

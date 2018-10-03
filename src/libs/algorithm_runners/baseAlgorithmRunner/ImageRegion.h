@@ -17,7 +17,7 @@ namespace LandaJune
 			(
 				  const cv::Mat*								srcMat						// source data
 				, std::shared_ptr<cv::Mat>						targetMat					// target MAT objects
-				, std::shared_ptr<Parameters::ProcessParameters> params
+				, ProcessParametersPtr							params
 				, const cv::Rect&								srcRect						// rectangle of the source data to copy
 				, int											frameIndex
 				, const std::string&							saveFilePath				// ROI Name
@@ -30,7 +30,7 @@ namespace LandaJune
 			ImageRegion(
 				  const cv::Mat*									srcMat						// source data
 				, std::shared_ptr<cv::Mat>							targetMat					// target MAT objects
-				, std::shared_ptr<Parameters::ProcessParameters>	params
+				, ProcessParametersPtr								params
 				, const cv::Rect&									srcRect						// rectangle of the source data to copy
 				, int												frameIndex
 				, const std::string&								saveFilePath				// ROI Name
@@ -65,7 +65,7 @@ namespace LandaJune
 				cv::Rect										_srcNormalizedRect;
 				bool											_bNeedSaving;
 				std::string										_fullSavePath;
-				std::shared_ptr<Parameters::ProcessParameters>	_params;
+				ProcessParametersPtr							_params;
 				bool											_bParallelizeCopy = false;
 				bool											_bSaveAsync = true;
 

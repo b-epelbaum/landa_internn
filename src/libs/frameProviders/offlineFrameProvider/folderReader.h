@@ -34,7 +34,7 @@ namespace LandaJune
 			void releaseData(Core::FrameRef* frameRef) override {}
 
 
-			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
 			CORE_ERROR cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath, QString, "")
@@ -42,7 +42,8 @@ namespace LandaJune
 
 		protected:
 
-			void validateParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			void sortImageFileList();
+			void validateParameters(BaseParametersPtr parameters) override;
 
 		private :
 

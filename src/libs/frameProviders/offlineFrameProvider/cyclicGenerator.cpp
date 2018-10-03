@@ -34,10 +34,13 @@ cyclicGenerator::~cyclicGenerator()
 
 
 
-CORE_ERROR cyclicGenerator::init(std::shared_ptr<BaseParameters> parameters)
+CORE_ERROR cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
 {
 	validateParameters(parameters);
 	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+
+	_dataCallback = callback;
+	_coreObject = coreObject;
 
 	_lastAcquiredImage = -1;
 	_sourceTemplateImage.release();
@@ -58,7 +61,7 @@ CORE_ERROR cyclicGenerator::init(std::shared_ptr<BaseParameters> parameters)
 	return RESULT_OK;
 }
 
-void cyclicGenerator::validateParameters(std::shared_ptr<BaseParameters> parameters)
+void cyclicGenerator::validateParameters(BaseParametersPtr parameters)
 {
 	// TODO : query BaseParameters for named parameters
 	// currently hardcoded
@@ -102,7 +105,7 @@ CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 	if ( _sourceTemplateImage.empty() )
 		return CORE_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
 
-	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
+	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount )
 		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(_FrameFrequencyInMSec));
@@ -120,15 +123,16 @@ CORE_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
 	}
 
-	/*
-	const auto w = clonedMat->cols;
-	const auto h = clonedMat->rows;
-	const auto s = clonedMat->step[0] * clonedMat->rows;
-	*/
-
 	// push bits to frameRef object
-	//frameRef->setBits(++_lastAcquiredImage, w, h, s, clonedMat->data);
-	frameRef->setBits(++_lastAcquiredImage, clonedMat);
+	frameRef->setBits(++_lastAcquiredImage, clonedMat, false);
+
+	// this flag tells the algorithm runner to perform
+	// image/CSV saving synchronously 
+	// to avoid save queue growing constantly
+	// for offline analysis it's not critical to perform saving synchronously
+
+	// TODO : replace this function/member to derivative of offline/online generated bits ?
+	frameRef->setAsyncWrite(true);
 
 	// pass shared object to frame to increase reference counter
 	//frameRef->setSharedData(clonedMat);

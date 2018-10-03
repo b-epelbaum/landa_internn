@@ -34,13 +34,13 @@ namespace LandaJune
 			using CorePtr = std::shared_ptr<ICore>;
 
 		
-			virtual void init() = 0;
+			virtual void init( bool reportEvents ) = 0;
 			virtual void cleanup() = 0;
 
 			virtual const std::list<FrameProviderPtr>& getFrameProviderList() const = 0;
 			virtual const std::list<AlgorithmRunnerPtr>& getAlgorithmRunnerList() const = 0;
 					
-			virtual std::shared_ptr<Parameters::BaseParameters> getProcessParameters() = 0;
+			virtual BaseParametersPtr getProcessParameters() = 0;
 
 			virtual void selectFrameProvider(FrameProviderPtr provider) = 0;
 			virtual FrameProviderPtr getSelectedFrameProvider() const = 0;

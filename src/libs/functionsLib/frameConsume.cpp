@@ -3,6 +3,8 @@
 #include "interfaces/IAlgorithmRunner.h"
 
 #include "functions.h"
+#include "common/type_usings.h"
+#include "common/june_enums.h"
 
 using namespace LandaJune;
 using namespace Helpers;
@@ -12,7 +14,7 @@ using namespace Algorithms;
 #define FRAMECONSUME_SCOPED_ERROR PRINT_ERROR << "[frameConsume func] : "
 #define FRAMECONSUME_SCOPED_WARNING PRINT_WARNING << "[frameConsume func] : "
 
-void Functions::frameConsume(std::shared_ptr<IAlgorithmRunner> algorithmRunner)
+void Functions::frameConsume(AlgorithmRunnerPtr algorithmRunner, Core::ICore * coreObject, FrameConsumerCallback dataCallback )
 {
 	// get frame reference object pool
 	auto framesPool = Core::FrameRefPool::frameRefPool();
@@ -31,9 +33,24 @@ void Functions::frameConsume(std::shared_ptr<IAlgorithmRunner> algorithmRunner)
 	// we can release frame ref object after all calculation
 	// internal analysis functions calls will be parallelized inside the root function recursively
 
-	// we should supply a new Algorithm Runner for every frame !!! ?
+	// we should supply a clone of Algorithm Runner for every frame, because it contains frame-related data !!! ?
 
-	frameRunAlgorithms(frameRefObj.get(), std::move(algorithmRunner->clone()));
+	try
+	{
+		frameRunAlgorithms(frameRefObj.get(), std::move(algorithmRunner->clone()));
+	}
+	catch ( BaseException& bex)
+	{
+		dataCallback( coreObject, FrameConsumerDataCallbackType::CALLBACK_FRAME_HANDLED, std::make_any<int>(frameRefObj->getIndex()) );
+
+		// we should be aware of exceptions to make sure we release the frame back to pool
+		framesPool->release(std::move(frameRefObj));
+
+		// re-throw exception for handling by thread function ( and Core )
+		throw;
+	}
+	dataCallback( coreObject, FrameConsumerDataCallbackType::CALLBACK_FRAME_HANDLED, std::make_any<int>(frameRefObj->getIndex()) );
+
 	framesPool->release(std::move(frameRefObj));
 }
 

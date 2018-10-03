@@ -38,11 +38,12 @@ uint8_t* FrameRef::getBits()
 */
 
 void FrameRef::setBits(const int32_t imageIdx
-				, std::shared_ptr<cv::Mat> mat)
+				, std::shared_ptr<cv::Mat> mat, bool bOfflineSource)
 {
 	const auto& t = std::chrono::system_clock::now().time_since_epoch();
 	_frameTimeStamp = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
 	_index = imageIdx;
+	_offlineSource = bOfflineSource;
 
 	_frameWidth = mat->cols;
 	_frameHeight = mat->rows;
@@ -63,7 +64,8 @@ void FrameRef::setBits(const int32_t imageIdx
 	, const int32_t height
 	, const int32_t bitsPerPixel
 	, const size_t receivedSize
-	, uint8_t* bits)
+	, uint8_t* bits
+	, bool bOfflineSource)
 {
 	const auto& t = std::chrono::system_clock::now().time_since_epoch();
 	_frameTimeStamp = std::chrono::duration_cast<std::chrono::milliseconds>(t).count();
@@ -73,8 +75,8 @@ void FrameRef::setBits(const int32_t imageIdx
 	_frameHeight = height;
 	_bitsPerPixel = bitsPerPixel;
 	_sizeInBytes = receivedSize;
+	_offlineSource = bOfflineSource;
 
 	_img = std::make_shared<cv::Mat>(_frameHeight, _frameWidth,
 		CV_MAKETYPE(CV_8U, _bitsPerPixel / 8), static_cast<void*>(bits));
-	//_bits = bits;
 }

@@ -4,6 +4,7 @@
 #include <QCoreApplication>
 #include "interfaces/IQBAse.h"
 #include "common/june_exceptions.h"
+#include "common/type_usings.h"
 
 
 namespace LandaJune {
@@ -37,7 +38,7 @@ namespace LandaJune
 			virtual QString getName() const = 0;
 			virtual QString getDescription() const = 0;
 			
-			virtual void init(std::shared_ptr<Parameters::BaseParameters> parameters) = 0;
+			virtual void init(BaseParametersPtr parameters, Core::ICore* coreObject, FrameConsumerCallback callback ) = 0;
 			virtual void cleanup() = 0;
 			
 			virtual void process(const Core::FrameRef * frame) = 0;

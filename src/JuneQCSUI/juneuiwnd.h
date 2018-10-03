@@ -77,9 +77,11 @@ namespace LandaJune
 			void onRemoveColor();
 
 			void onTimerTick();
+			void onFrameProcessed ( int frameIndex );
 
 			void processParamSelectionChanged(const  QModelIndex&, const  QModelIndex&);
 			void onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
+			void onOfflineFileCount(int fileCount);
 
 		signals :
 
@@ -150,8 +152,8 @@ namespace LandaJune
 
 			QStringList _processParamsExpandedStatesList;
 
-			QLabel * iconGeneral, * iconRecipe, * iconProvider, *iconAlgoRunner, *iconFramesHandled;
-			QLabel * statusGeneral, *statusRecipeName, *statusFrameProv, *statusAlgoRunner, *statusFramesHandled;
+			QLabel * iconGeneral, * iconRecipe, * iconProvider, *iconAlgoRunner, *iconFrameCount;
+			QLabel * statusGeneral, *statusRecipeName, *statusFrameProv, *statusAlgoRunner, *statusFrameCount;
 			QProgressBar *statusProgressBar;
 			QTimer _progressBarTimer;
 

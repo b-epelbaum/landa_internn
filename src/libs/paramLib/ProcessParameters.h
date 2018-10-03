@@ -134,9 +134,9 @@ namespace LandaJune
 
 			//-------------------------------------------------------
 			// calculated values
-			
+
 			// Substrate values
-			DECLARE_CALCULATED_PROPERTY(GeneralParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
+			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
 			DECLARE_CALCULATED_PROPERTY(SubstrateWidth_px, int, 0)
 			DECLARE_CALCULATED_PROPERTY(SubstrateHeight_px, int, 0)
 			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat, int, 0)

@@ -27,22 +27,19 @@ using namespace Files;
 #define BASE_RUNNER_SCOPED_WARNING PRINT_WARNING << "[baseAlgorithmRunner] : "
 
 
-struct less_than_key
-{
-	bool operator() (std::shared_ptr<PARAMS_WAVE_OUTPUT>& left, std::shared_ptr<PARAMS_WAVE_OUTPUT>& right)
-	{
-		auto lV (left->_input->_circleColor._colorName);
-		auto lR (right->_input->_circleColor._colorName);
-
-		std::transform(lV.begin(), lV.end(), lV.begin(), ::tolower);
-		std::transform(lR.begin(), lR.end(), lR.begin(), ::tolower);
-
-		return true;//colorOrderMap[lV]  < colorOrderMap[lR];
-	}
-};
-
-
-baseAlgorithmRunner::~baseAlgorithmRunner()
+baseAlgorithmRunner::baseAlgorithmRunner(const baseAlgorithmRunner& other)
+	: _frame(other._frame)
+	, _coreObject(other._coreObject)
+	, _callback(other._callback)
+	, _processParameters(other._processParameters)
+	, _frameIndex (other._frameIndex)
+	, _imageIndex (other._imageIndex)
+	, _bParallelCalc (other._bParallelCalc)
+	, _bAsyncWrite (other._bAsyncWrite)
+	, _bOfflineSource (other._bOfflineSource)
+	, _sourceFrameIndexStr (other._sourceFrameIndexStr)
+	, _sourceFramePath (other._sourceFramePath)
+	, _csvOutFolder (other._csvOutFolder)
 {
 }
 
@@ -52,38 +49,37 @@ baseAlgorithmRunner::~baseAlgorithmRunner()
 
 void baseAlgorithmRunner::process(const FrameRef* frame)
 {
-	// minimal process implementation
+	setupFrameData(frame);
+	processInternal();
+}
+
+void baseAlgorithmRunner::setupFrameData(const FrameRef* frame )
+{
 	_frame = frame;
 	
 	_bParallelCalc = _processParameters->ParalellizeCalculations();
-	_frameIndex = frame->getIndex();
-	_bAsyncWrite = frame->getAsyncWrite();
+	_frameIndex =		frame->getIndex();
+	_bAsyncWrite =		frame->getAsyncWrite();
+	_bOfflineSource =	frame->isOfflineSource();
 
 	_imageIndex = _frameIndex % _processParameters->PanelCount();
 	if ( _imageIndex == 0 && _frameIndex != 0 )
 		_imageIndex = _processParameters->PanelCount();
 
-	getSourceFrameIndexString();
+	if (_bOfflineSource)
+		getSourceFrameIndexString();
 }
 
-void baseAlgorithmRunner::validateProcessParameters(std::shared_ptr<BaseParameters> parameters)
+void baseAlgorithmRunner::validateProcessParameters(BaseParametersPtr parameters)
 {
 	_processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
 }
 
 
-/*
-void baseAlgorithmRunner::constructFrameContainer(const FrameRef* frame, int bitsPerPixel)
-{
-	_frameContainer = std::make_unique<cv::Mat>(frame->getHeight(), frame->getWidth(),
-		CV_MAKETYPE(CV_8U, bitsPerPixel / 8), (void*)frame->getBits());
-}
-*/
-
 ////////////////////////////////////////////////////////
-/////////////////  fill data structures functions
+/////////////////  setup data structures functions
 
-void baseAlgorithmRunner::fillCommonProcessParameters(std::shared_ptr<ABSTRACT_INPUT> input)
+void baseAlgorithmRunner::setupCommonProcessParameters(ABSTRACT_INPUT_PTR input)
 {
 	input->setGenerateOverlay(_processParameters->GenerateOverlays());
 	input->setPixel2MM_X(_processParameters->Pixel2MM_X());
@@ -91,38 +87,38 @@ void baseAlgorithmRunner::fillCommonProcessParameters(std::shared_ptr<ABSTRACT_I
 }
 
 
-void baseAlgorithmRunner::fillSheetProcessParameters(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> input)
+void baseAlgorithmRunner::setupSheetProcessParameters(PARAMS_C2C_SHEET_INPUT_PTR input)
 {
 	// sheet
-	fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 	
 	// strips 
 	if (_processParameters->ProcessLeftStrip())
-		fillStripProcessParameters(input->_stripInputParamLeft, LEFT);
+		setupStripProcessParameters(input->_stripInputParamLeft, LEFT);
 	if (_processParameters->ProcessRightStrip())
-		fillStripProcessParameters(input->_stripInputParamRight, RIGHT);
+		setupStripProcessParameters(input->_stripInputParamRight, RIGHT);
 
 	if (_processParameters->ProcessWave())
-		fillWaveProcessParameters(input->_waveInputs);
+		setupWaveProcessParameters(input->_waveInputs);
 }
 
-void baseAlgorithmRunner::fillStripProcessParameters(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> input, SHEET_SIDE side)
+void baseAlgorithmRunner::setupStripProcessParameters(PARAMS_C2C_STRIP_INPUT_PTR input, SHEET_SIDE side)
 {
-	// fill base class parameters
-	fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	// setup base class parameters
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 	input->_side = side;
 
-	// fill edge parameters
+	// setup edge parameters
 	if (    side == LEFT && _processParameters->ProcessLeftEdge() 
 		 || side == RIGHT && _processParameters->ProcessRightEdge() 
 		)
-		fillEdgeProcessParameters(input->_paperEdgeInput, side);
+		setupEdgeProcessParameters(input->_paperEdgeInput, side);
 
-	// fill I2S parameters
+	// setup I2S parameters
 	if (    side == LEFT && _processParameters->ProcessLeftI2S() 
 		 || side == RIGHT && _processParameters->ProcessRightI2S() 
 		)
-	fillI2SProcessParameters( input->_i2sInput, side);
+	setupI2SProcessParameters( input->_i2sInput, side);
 
 	// get rectangles of correspondent C2C ROIs
 	if (    side == LEFT && _processParameters->ProcessLeftC2C() 
@@ -160,38 +156,38 @@ void baseAlgorithmRunner::fillStripProcessParameters(std::shared_ptr<PARAMS_C2C_
 
 			for (auto i = 0; i < _processParameters->C2CROISetsCount(); i++)
 			{
-				fillC2CProcessParameters(input->_c2cROIInputs[i], side );
+				setupC2CProcessParameters(input->_c2cROIInputs[i], side );
 			}
 		}	
 	}
 }
 
-void baseAlgorithmRunner::fillEdgeProcessParameters(std::shared_ptr<PARAMS_PAPEREDGE_INPUT> input, const SHEET_SIDE side)
+void baseAlgorithmRunner::setupEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT_PTR input, const SHEET_SIDE side)
 {
-	fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 	input->_approxDistanceFromEdgeX = _processParameters->EdgeApproximateDistanceX_px();
 	input->_triangeApproximateY = _processParameters->EdgeTriangleApproximateY_px();
 	input->_side = side;
 }
 
-void baseAlgorithmRunner::fillI2SProcessParameters(std::shared_ptr<PARAMS_I2S_INPUT> input, SHEET_SIDE side)
+void baseAlgorithmRunner::setupI2SProcessParameters(PARAMS_I2S_INPUT_PTR input, SHEET_SIDE side)
 {
-	fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 	input->_side = side;
 }
 
-void baseAlgorithmRunner::fillC2CProcessParameters(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, const SHEET_SIDE side)
+void baseAlgorithmRunner::setupC2CProcessParameters(PARAMS_C2C_ROI_INPUT_PTR input, const SHEET_SIDE side)
 {
-	fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 	input->_side = side;
 }
 
-void baseAlgorithmRunner::fillWaveProcessParameters(std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs)
+void baseAlgorithmRunner::setupWaveProcessParameters(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs)
 {
 	for (const auto& color : _processParameters->ColorArray() )
 	{
 		auto input = std::make_shared<PARAMS_WAVE_INPUT>(_frame);
-		fillCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+		setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 		input->_circleColor = color2HSV(color);
 		input->_waveROI = toROIRect(_processParameters->WaveROI());
 		input->_circlesCount = _processParameters->WaveNumberOfColorDotsPerLine();
@@ -203,7 +199,7 @@ void baseAlgorithmRunner::fillWaveProcessParameters(std::vector<std::shared_ptr<
 ////////////////////////////////////////////////////////
 ////////////   Region generation
 
-void baseAlgorithmRunner::generateSheetRegions(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
 {
 	if ( _processParameters->ProcessLeftStrip())
 		generateStripRegions(input->_stripInputParamLeft, regionList);
@@ -222,7 +218,7 @@ void baseAlgorithmRunner::generateSheetRegions(std::shared_ptr<PARAMS_C2C_SHEET_
 	}
 }
 
-void baseAlgorithmRunner::generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
 {
 	const auto saveSourceStrip = (input->_side == LEFT) ? 
 		_processParameters->SaveSourceLeftStrip() 
@@ -249,7 +245,7 @@ void baseAlgorithmRunner::generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_
 			, _processParameters
 			, qrect2cvrect(stripRect)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_STRIP_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
+			, generateFullPathForElement<PARAMS_C2C_STRIP_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceStrip
 		))
 	);
@@ -273,7 +269,7 @@ void baseAlgorithmRunner::generateStripRegions(std::shared_ptr<PARAMS_C2C_STRIP_
 	}
 }
 
-void baseAlgorithmRunner::generateI2SRegion(std::shared_ptr<PARAMS_I2S_INPUT> input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
 {
 	const auto saveSourceI2S = (input->_side == LEFT) ? 
 		_processParameters->SaveSourceLeftI2S() 
@@ -284,12 +280,12 @@ void baseAlgorithmRunner::generateI2SRegion(std::shared_ptr<PARAMS_I2S_INPUT> in
 			, _processParameters
 			, roirect2cvrect(input->_approxTriangeROI)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_I2S_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
+			, generateFullPathForElement<PARAMS_I2S_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceI2S)));
 
 }
 
-void baseAlgorithmRunner::generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
 {
 	const auto saveSourceC2C = (input->_side == LEFT) ? 
 		_processParameters->SaveSourceLeftC2C() 
@@ -306,13 +302,13 @@ void baseAlgorithmRunner::generateC2CRegion(std::shared_ptr<PARAMS_C2C_ROI_INPUT
 			, _processParameters
 			, roirect2cvrect(ROI->_ROI)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_C2C_ROI_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
+			, generateFullPathForElement<PARAMS_C2C_ROI_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, saveSourceC2C
 		))
 	);
 }
 
-void baseAlgorithmRunner::generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const
+void baseAlgorithmRunner::generateWaveRegion(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const
 {
 	auto& ROI = input;
 	ROI->setGenerateOverlay(_processParameters->GenerateOverlays());
@@ -325,7 +321,7 @@ void baseAlgorithmRunner::generateWaveRegion(std::shared_ptr<PARAMS_WAVE_INPUT> 
 			, _processParameters
 			, roirect2cvrect(ROI->_waveROI)
 			, _frameIndex
-			, generateFullPathForElement<std::shared_ptr<PARAMS_WAVE_INPUT>>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
+			, generateFullPathForElement<PARAMS_WAVE_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 			, bDumpWave && _processParameters->SaveSourceWave()
 		))
 	);
@@ -357,11 +353,11 @@ void baseAlgorithmRunner::copyRegions(IMAGE_REGION_LIST& regionList)
 // ------------------------------------------------------
 //				WHOLE SHEET  FUNCTION 
 
-std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::shared_ptr<PARAMS_C2C_SHEET_INPUT> sheetInput)
+PARAMS_C2C_SHEET_OUTPUT_PTR baseAlgorithmRunner::processSheet(PARAMS_C2C_SHEET_INPUT_PTR sheetInput)
 {
 	auto retVal = std::make_shared<PARAMS_C2C_SHEET_OUTPUT>(sheetInput);
 	retVal->_result = ALG_STATUS_SUCCESS;
-
+	   
 	const auto leftStripLambda = [&] { retVal->_stripOutputParameterLeft = processStrip(sheetInput->_stripInputParamLeft); };
 	const auto rightStripLambda = [&] { retVal->_stripOutputParameterRight = processStrip(sheetInput->_stripInputParamRight); };
 	//const auto waveI2SLambda = [&] { retVal->_waveOutputs = processWaves(sheetInput->_waveInputs); };
@@ -404,15 +400,13 @@ std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> baseAlgorithmRunner::processSheet(std::
 	{
 		RETHROW(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "");
 	}
-
-	processSheetOutput(retVal);
 	return retVal;
 }
 
 // ------------------------------------------------------
 //				Strip processing  FUNCTION 
 
-std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::shared_ptr<PARAMS_C2C_STRIP_INPUT> stripInput)
+PARAMS_C2C_STRIP_OUTPUT_PTR baseAlgorithmRunner::processStrip(PARAMS_C2C_STRIP_INPUT_PTR stripInput)
 {
 	const auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_C2C_STRIP_OUTPUT>(stripInput);
@@ -472,6 +466,7 @@ std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> baseAlgorithmRunner::processStrip(std::
 			});
 		}
 
+		// process output from I2S and C2C ROIs
 		processStripOutput(retVal);
 	}
 	catch ( BaseException& bex)
@@ -506,9 +501,9 @@ void baseAlgorithmRunner::initEdge(const INIT_PARAMETER& initParam) const
 // ------------------------------------------------------
 //				Edge processing  FUNCTION 
 
-std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::shared_ptr<PARAMS_PAPEREDGE_INPUT> input)
+PARAMS_PAPEREDGE_OUTPUT_PTR baseAlgorithmRunner::processEdge(PARAMS_PAPEREDGE_INPUT_PTR input)
 {
-	auto tStart = Utility::now_in_microseconds();
+	const auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_PAPEREDGE_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -531,7 +526,7 @@ std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT> baseAlgorithmRunner::processEdge(std::s
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_edgeHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
-	dumpOverlay<std::shared_ptr<PARAMS_PAPEREDGE_OUTPUT>>(retVal, _bAsyncWrite);
+	dumpOverlay<PARAMS_PAPEREDGE_OUTPUT_PTR>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -564,9 +559,9 @@ void baseAlgorithmRunner::initI2S(const INIT_PARAMETER& initParam) const
 	}
 }
 
-std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_ptr<PARAMS_I2S_INPUT> input)
+PARAMS_I2S_OUTPUT_PTR baseAlgorithmRunner::processI2S(PARAMS_I2S_INPUT_PTR input)
 {
-	auto tStart = Utility::now_in_microseconds();
+	const auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_I2S_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -587,7 +582,7 @@ std::shared_ptr<PARAMS_I2S_OUTPUT> baseAlgorithmRunner::processI2S(std::shared_p
 		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_I2S_FAILED);
 	}
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_I2SHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
-	dumpOverlay<std::shared_ptr<PARAMS_I2S_OUTPUT>>(retVal, _bAsyncWrite);
+	dumpOverlay<PARAMS_I2S_OUTPUT_PTR>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -629,9 +624,9 @@ void baseAlgorithmRunner::initC2CRoi(const INIT_PARAMETER& initParam) const
 // ------------------------------------------------------
 //				C2C 1 ROI processing  FUNCTION 
 
-std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input)
+PARAMS_C2C_ROI_OUTPUT_PTR baseAlgorithmRunner::processC2CROI(PARAMS_C2C_ROI_INPUT_PTR input)
 {
-	auto tStart = Utility::now_in_microseconds();
+	const auto tStart = Utility::now_in_microseconds();
 	auto retVal = std::make_shared<PARAMS_C2C_ROI_OUTPUT>(input);
 
 	if ( !_processParameters->EnableAlgorithmProcessing() )
@@ -660,7 +655,7 @@ std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> baseAlgorithmRunner::processC2CROI(std::s
 	}
 
 	RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_C2CHandledOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
-	dumpOverlay<std::shared_ptr<PARAMS_C2C_ROI_OUTPUT>>(retVal, _bAsyncWrite);
+	dumpOverlay<PARAMS_C2C_ROI_OUTPUT_PTR>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
@@ -700,7 +695,7 @@ void baseAlgorithmRunner::initWave(const INIT_PARAMETER& initParam)
 // ------------------------------------------------------
 //				Wave processing  FUNCTION 
 
-std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared_ptr<PARAMS_WAVE_INPUT> input)
+PARAMS_WAVE_OUTPUT_PTR baseAlgorithmRunner::processWave(PARAMS_WAVE_INPUT_PTR input)
 {
 	auto retVal = std::make_shared<PARAMS_WAVE_OUTPUT>(input);
 
@@ -732,13 +727,13 @@ std::shared_ptr<PARAMS_WAVE_OUTPUT> baseAlgorithmRunner::processWave(std::shared
 		THROW_EX_INT(CORE_ERROR::ALGO_PROCESS_WAVE_FAILED);
 	}
 
-	dumpOverlay<std::shared_ptr<PARAMS_WAVE_OUTPUT>>(retVal, _bAsyncWrite);
+	dumpOverlay<PARAMS_WAVE_OUTPUT_PTR>(retVal, _bAsyncWrite);
 	return retVal;
 }
 
-concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> baseAlgorithmRunner::processWaves(const std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>& inputs)
+concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> baseAlgorithmRunner::processWaves(const std::vector<PARAMS_WAVE_INPUT_PTR>& inputs)
 {
-	concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> retVal;
+	concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> retVal;
 	try
 	{
 		if (_bParallelCalc)
@@ -794,258 +789,21 @@ void baseAlgorithmRunner::getSourceFrameIndexString()
 {
 	// get source frame ID from custom parameter passed by provider
 	_sourceFrameIndexStr.clear();
-	try
+	if (_frame->hasNamedParameter(NAMED_PROPERTY_SOURCE_PATH))
 	{
-		_sourceFramePath = std::any_cast<std::string>(_frame->getNamedParameter(NAMED_PROPERTY_SOURCE_PATH));
-		_sourceFrameIndexStr = parseSourceFrameIndexString(_sourceFramePath);
-	}
-	catch (const std::bad_any_cast& e)
-	{
-		_sourceFramePath = "unknown ( framegrabber )";
+		try
+		{
+			_sourceFramePath = std::any_cast<std::string>(_frame->getNamedParameter(NAMED_PROPERTY_SOURCE_PATH));
+			_sourceFrameIndexStr = parseSourcePathForFrameIndex(_sourceFramePath);
+		}
+		catch (const std::bad_any_cast& e)
+		{
+			_sourceFramePath = "";
+		}
 	}
 
 	if ( _sourceFrameIndexStr.empty())
 		_sourceFrameIndexStr = std::to_string(_frameIndex);
 	else
 		_frameIndex = std::stoi(_sourceFrameIndexStr);
-}
-
-//////////////////////////////////////////////////////////
-////////////// PROCESSING OUTPUTS
-//////////////////////////////////////////////////////////
-
-void baseAlgorithmRunner::processSheetOutput(std::shared_ptr<PARAMS_C2C_SHEET_OUTPUT> sheetOutput)
-{
-	if ( _processParameters->ProcessWave())
-		processWaveOutputs(sheetOutput->_waveOutputs);
-
-}
-
-void baseAlgorithmRunner::processStripOutput(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput )
-{
-	// update C2C centers with I2S coordinates offsets
-	auto const offsetX = stripOutput->_i2sOutput->_triangeCorner._x;
-	auto const offsetY = stripOutput->_i2sOutput->_triangeCorner._y;
-
-	auto const updateCoordsLambda = [&](auto &c2cOut) 
-	{
-		std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
-		{
-			colorCenter._x -= offsetX;
-			colorCenter._y -= offsetY;
-		});
-	};
-
-
-	if (_bParallelCalc)
-	{
-		parallel_for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
-	}
-	else
-	{
-		for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
-	}
-
-	stripOutput->_result = 
-	std::all_of(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), 
-			[](auto& out)
-			{
-				return out->_result == ALG_STATUS_SUCCESS;
-			})
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
-
-	if (stripOutput->_result != ALG_STATUS_SUCCESS )
-	{
-		// if strip handling failed, write to log
-		logFailedStrip(stripOutput);
-
-		// TODO : dump failed strip to file
-	}
-
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving()  )
-	{
-		processStripOutputCSV (stripOutput);
-	}
-}
-
-void baseAlgorithmRunner::processStripOutputCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput)
-{
-	auto const jobID = _processParameters->JobID();
-	auto const frameIndex = _frameIndex;
-	auto const imgIndex = _imageIndex;
-	auto const csvFolder = _csvFolder;
-	auto const bAsyncWrite = _bAsyncWrite;
-
-	auto const dumpCSVRegLambda = [=]()
-	{
-		dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder, bAsyncWrite );
-	};
-
-	auto const dumpCSVPlacementLambda = [=]()
-	{
-		dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder, bAsyncWrite  );
-	};
-
-	if (_bParallelCalc)
-	{
-		if (_processParameters->SaveC2CRegistrationCSV())
-		{
-			task<void> stripOutTaskReg(dumpCSVRegLambda);
-		}
-
-		if (_processParameters->SaveI2SPlacementCSV())
-		{
-			task<void> stripOutTaskPlacement(dumpCSVPlacementLambda);
-		}
-	}
-	else
-	{
-		if (_processParameters->SaveC2CRegistrationCSV())
-		{
-			dumpCSVRegLambda();
-		}
-		if (_processParameters->SaveI2SPlacementCSV())
-		{
-			dumpCSVPlacementLambda();
-		}
-	}
-}
-
-void baseAlgorithmRunner::sortWaveOutputs( concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
-{
-	static std::map<std::string, int> colorOrderMap =
-	{
-		  {"black", 0}
-		, {"cyan", 1}
-		, {"magenta", 2}
-		, {"yellow", 3}
-	};
-
-	std::sort(waveOutputs.begin(), waveOutputs.end(),   
-			[](const std::shared_ptr<PARAMS_WAVE_OUTPUT>& left, const std::shared_ptr<PARAMS_WAVE_OUTPUT>& right) 
-			{
-				auto lV (left->_input->_circleColor._colorName);
-				auto rV (right->_input->_circleColor._colorName);
-
-				std::transform(lV.begin(), lV.end(), lV.begin(), ::tolower);
-				std::transform(rV.begin(), rV.end(), rV.begin(), ::tolower);
-
-				auto const lIt = colorOrderMap.find(lV);
-				auto const rIt = colorOrderMap.find(rV);
-
-				return lIt != colorOrderMap.end() && rIt != colorOrderMap.end() 
-								? colorOrderMap.find(lV)->second <  colorOrderMap.find(rV)->second 
-								: false;
-			});
-}
-
-void baseAlgorithmRunner::processWaveOutputs( concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
-{
-	// sort wave outputs
-	sortWaveOutputs(waveOutputs);
-
-	const auto sumProcLambda = [&](auto &singleOut) 
-	{
-		auto & resArray = singleOut->_colorDetectionResults;
-		if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
-		{
-			singleOut->_result = ALG_STATUS_FAILED;
-			return;
-		}
-			
-		if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
-		{
-			auto & resPoints = singleOut->_colorCenters;
-			resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
-			resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
-			singleOut->_result = ALG_STATUS_FAILED;
-			return;
-		}
-
-		singleOut->_result = 
-			std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
-	};
-
-
-	if (_bParallelCalc)
-	{
-		parallel_for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda );
-	}
-	else
-	{
-		for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda ); 
-	}
-
-	const auto allResult = std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& singleWave)
-	{
-		return singleWave->_result == ALG_STATUS_SUCCESS;
-	})
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
-
-	if (allResult != ALG_STATUS_SUCCESS )
-	{
-		// if strip handling failed, write to log
-		logFailedWaves(waveOutputs);
-
-		// TODO : dump failed waves to file
-	}
-
-	// process and save
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
-	{
-		processWaveOutputsCSV (waveOutputs);
-	}
-}
-
-void baseAlgorithmRunner::processWaveOutputsCSV(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs )
-{
-	auto const jobID = _processParameters->JobID();
-	auto const frameIndex = _frameIndex;
-	auto const imgIndex = _imageIndex;
-	auto const csvFolder = _csvFolder;
-	auto const bAsyncWrite = _bAsyncWrite;
-
-	const auto saveWaveCSVLambda = [=]()
-	{
-		dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder, bAsyncWrite );
-	};
-
-	if (_bParallelCalc)
-	{
-		if (_processParameters->SaveWaveCSV())
-		{
-			task<void> tWaveCSV(saveWaveCSVLambda);
-		}
-		else
-		{
-			if (_processParameters->SaveWaveCSV())
-			{
-				saveWaveCSVLambda();
-			}
-		}
-	}
-}
-
-void baseAlgorithmRunner::logFailedStrip(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOutput)
-{
-	std::ostringstream ss;
-	ss << "--------------  Strip analysis failed -----------------\r\n"
-					<< "\t\t\t\t\tFrame Index  : \t" << _frameIndex			<< "\r\n"
-					<< "\t\t\t\t\tSource image : \t" << _sourceFramePath	<< "\r\n";
-
-	BASE_RUNNER_SCOPED_ERROR << ss.str().c_str();
-}
-
-void baseAlgorithmRunner::logFailedWaves(concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs)
-{
-	std::ostringstream ss;
-	ss << "--------------  Wave analysis failed -----------------\r\n"
-					<< "\t\t\t\t\tFrame Index  : \t" << _frameIndex			<< "\r\n"
-					<< "\t\t\t\t\tSource image : \t" << _sourceFramePath	<< "\r\n";
-
-	BASE_RUNNER_SCOPED_ERROR << ss.str().c_str();
 }

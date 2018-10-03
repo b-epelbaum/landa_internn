@@ -24,6 +24,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utilities", "utilities", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "common", "common", "{21C94792-2C86-4071-8048-669CC52A97BC}"
 	ProjectSection(SolutionItems) = preProject
+		include\common\june_enums.h = include\common\june_enums.h
 		include\common\june_errors.h = include\common\june_errors.h
 		include\common\june_exceptions.h = include\common\june_exceptions.h
 		include\common\type_usings.h = include\common\type_usings.h

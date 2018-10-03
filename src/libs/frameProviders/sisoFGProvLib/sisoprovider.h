@@ -10,8 +10,6 @@ namespace LandaJune
 {
 	namespace FrameProviders
 	{
-		static const QString SISO_PROVIDER_CONFIG_FILE = "sisoprovider.json";
-
 		class SISOPROVIDER_EXPORT SiSoProvider : public BaseFrameProvider
 		{
 			Q_OBJECT
@@ -36,7 +34,7 @@ namespace LandaJune
 			void releaseData(Core::FrameRef* frameRef) override;
 
 
-			CORE_ERROR init(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
 			CORE_ERROR cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(AppletFilePath, QString, "")
@@ -47,7 +45,7 @@ namespace LandaJune
 
 		protected:
 
-			void validateParameters(std::shared_ptr<Parameters::BaseParameters> parameters) override;
+			void validateParameters(BaseParametersPtr parameters) override;
 
 		private:
 
