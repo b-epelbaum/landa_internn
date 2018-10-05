@@ -17,6 +17,7 @@ typedef unsigned char byte;
 void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, float fFactor = 1);
 void	Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, Mat& tCorr_Matrix, int iTemplate_X, int iTemplate_Y, int iHalf_iSearch_Size, float& fDx, float& fDy, float& fCorr, int iMode) ;
 Mat		H_Diff(const Mat& imH1, int iH);
+int		Compare_Float(const void* arg1, const void* arg2) ;
 
 
 // global variables
@@ -31,6 +32,8 @@ thread_local	Mat		g_imWave_Color_Circle_Dil;
 
 thread_local	float	g_afX[MAX_CIRCLES_IN_WAVE];		// position of each circle - X
 thread_local	float	g_afY[MAX_CIRCLES_IN_WAVE];		// position of each circle - Y
+thread_local	LandaJune::Algorithms::APOINT	g_atCenters_Micron[MAX_CIRCLES_IN_WAVE];
+
 Mat		g_imWave_Template_Smooth;				// template after smoothing
 
 
@@ -54,10 +57,47 @@ int Compare_Circle_Pos(const void* arg1, const void* arg2)
 
 
 
+// float comparison function for qsort
+int Compare_Circle_Pos_Int(const void* arg1, const void* arg2)
+{
+	if (((Circle_Pos_Int*)arg1)->x < ((Circle_Pos_Int*)arg2)->x)
+		return -1;
+	else if (((Circle_Pos_Int*)arg1)->x > ((Circle_Pos_Int*)arg2)->x)
+		return 1;
+	else
+		return 0;
+}
+
+/*
+// float comparison function for qsort
+int Compare_Point(LandaJune::Algorithms::APOINT arg1, LandaJune::Algorithms::APOINT arg2)
+{
+	if (arg1._x < arg2._x)
+		return -1;
+	else if (arg1._x > arg2._x)
+		return 1;
+	else
+		return 0;
+}
+*/
+
+
+// float comparison function for qsort
+int Compare_Point(const void* arg1, const void* arg2)
+{
+	if (((LandaJune::Algorithms::APOINT*)arg1)->_x < ((LandaJune::Algorithms::APOINT*)arg2)->_x)
+		return -1;
+	else if (((LandaJune::Algorithms::APOINT*)arg1)->_x > ((LandaJune::Algorithms::APOINT*)arg2)->_x)
+		return 1;
+	else
+		return 0;
+}
+
+
+
 void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_OUTPUT> output)
 {
 	int		iLabel;
-	int		iCircle;
 	int		iLabels;
 	float	fX, fY, fCorr;
 
@@ -145,13 +185,15 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 			g_afX[iCircle] = (int)g_imWave_Centroids.at<double>(iLabel * 2) + fX;
 			g_afY[iCircle] = (int)g_imWave_Centroids.at<double>(iLabel * 2 + 1) + fY;
 
-			Point tCircle_Center = cv::Point((int)round(g_afX[iCircle]), round(g_afY[iCircle]));
+			cv::Point tCircle_Center = cv::Point((int)round(g_afX[iCircle]), round(g_afY[iCircle]));
 
-			LandaJune::Algorithms::APOINT tPoint ;
-			tPoint._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
-			tPoint._y = (int)round((g_afY[iCircle] + input->_waveROI.top()) * input->Pixel2MM_Y() * 1000);
-			output->_colorCenters.push_back (tPoint) ;
-			output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
+			g_atCenters_Micron[iCircle]._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000) ;
+			g_atCenters_Micron[iCircle]._y = (int)round((g_afY[iCircle] + input->_waveROI.top()) * input->Pixel2MM_Y() * 1000) ;
+
+//			tPoint._x = (int)round((g_afX[iCircle] + input->_waveROI.left()) * input->Pixel2MM_X() * 1000);
+//			tPoint._y = (int)round((g_afY[iCircle] + input->_waveROI.top()) * input->Pixel2MM_Y() * 1000);
+//			output->_colorCenters.push_back (tPoint) ;
+//			output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
 
 			if (input->_GenerateOverlay) {
 				// draw cross around center
@@ -165,10 +207,18 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 			LandaJune::Algorithms::APOINT tPoint;
 			tPoint._x = 0 ;
 			tPoint._y = 0 ;
-			output->_colorCenters.push_back(tPoint);
-			output->_colorDetectionResults.push_back(ALG_STATUS_FAILED);
+			//output->_colorCenters.push_back(tPoint);
+			//output->_colorDetectionResults.push_back(ALG_STATUS_FAILED);
 		}
 	}
+
+	qsort (g_atCenters_Micron, iLabels - 1, sizeof (g_atCenters_Micron [0]), Compare_Point) ;
+
+	for (iLabel = 0 ; iLabel < iLabels - 1; iLabel++) {
+		output->_colorCenters.push_back(g_atCenters_Micron[iLabel]);
+		output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
+	}
+
 
 	if (input->_GenerateOverlay) {
 		int iX, iY;
@@ -185,21 +235,26 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 			for (iX = iStart_X; iX < iEnd_X; iX++)
 				if (g_imWave_Color_Circle_Dil.at<byte>(iY, iX)) {
 					(*output->_colorOverlay).at<Vec3b>(iY, iX)[0] = tRGB.at<Vec3b>(0)[2] ;
-					(*output->_colorOverlay).at<Vec3b>(iY, iX)[1] = tRGB.at<Vec3b>(0)[1];
-					(*output->_colorOverlay).at<Vec3b>(iY, iX)[2] = tRGB.at<Vec3b>(0)[0];
+					(*output->_colorOverlay).at<Vec3b>(iY, iX)[1] = tRGB.at<Vec3b>(0)[1] ;
+					(*output->_colorOverlay).at<Vec3b>(iY, iX)[2] = tRGB.at<Vec3b>(0)[0] ;
 				}
 	}
 
-//#if 0
-//	char sOvl_Name[256];
-//	sprintf_s(sOvl_Name, "e:\\temp\\wv_%03d.jpg", iSeq);
-//	imwrite(sOvl_Name, *output->_colorOverlay);
-//	iSeq++;
+	//std::sort(output->_colorCenters.begin(), output->_colorCenters.end(), Compare_Point);
+
+#if 0
+	char sOvl_Name[256];
+	sprintf_s(sOvl_Name, "e:\\temp\\wv_%03d.jpg", iSeq);
+	imwrite(sOvl_Name, *output->_colorOverlay);
+	iSeq++;
+#endif
 
 // for checking accuracy
 #if 0
 	int iCnt;
-	Circle_Pos atPos[1000];
+	thread_local	Circle_Pos atPos[1000];
+	thread_local	float	afError_X [1000] ;
+	thread_local	float	afError_Y [1000] ;
 
 	int iAcc_Samples = 0 ;
 	for (iCnt = 0; iCnt < iLabels - 1; iCnt++)
@@ -213,21 +268,45 @@ void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input
 	float fErr_X = 0;
 	float fErr_Y = 0;
 	for (iCnt = 1; iCnt < iAcc_Samples - 1; iCnt++) {
+//		float fCurrent_Err_X = atPos[iCnt].x - (atPos[iCnt - 1].x + atPos[iCnt + 1].x + atPos[iCnt + 2].x + atPos[iCnt - 2].x) / 4 ;
+//		float fCurrent_Err_Y = atPos[iCnt].y - (atPos[iCnt - 1].y + atPos[iCnt + 1].y + atPos[iCnt + 2].y + atPos[iCnt - 2].y) / 4;
 		float fCurrent_Err_X = atPos[iCnt].x - (atPos[iCnt - 1].x + atPos[iCnt + 1].x) / 2;
 		float fCurrent_Err_Y = atPos[iCnt].y - (atPos[iCnt - 1].y + atPos[iCnt + 1].y) / 2;
 		fErr_X += fabsf(fCurrent_Err_X);
 		fErr_Y += fabsf(fCurrent_Err_Y);
 
-		if (fabsf(fCurrent_Err_X) > 1 || fabsf(fCurrent_Err_Y) > 1)
-			fCurrent_Err_X = fCurrent_Err_X ;
+		afError_X [iCnt - 1] = fCurrent_Err_X ;
+		afError_Y [iCnt - 1] = fCurrent_Err_Y ;
 
+//		if (fabsf(fCurrent_Err_X) > 1 || fabsf(fCurrent_Err_Y) > 1)
+//			fCurrent_Err_X = fCurrent_Err_X ;
 	}
 
-	std::fstream tRes ("e:\\temp\\Wave.txt", std::ios::app) ;
-	tRes << "Number, Error X, Y: " << iLabels  << '\t' << iAcc_Samples << '\t' << fErr_X / (iAcc_Samples - 2) << '\t' << fErr_Y / (iAcc_Samples - 1 - 2) << std::endl;
+	std::fstream tRes("e:\\temp\\Wave.txt", std::ios::app);
+
+
+	if (iAcc_Samples > 30) {
+		for (iCnt = 0 ; iCnt < iAcc_Samples ; iCnt++) {
+			// tRes << atPos[iCnt].x - atPos[iCnt - 1].x << '\t' << atPos[iCnt].y - atPos[iCnt - 1].y << '\t';
+			tRes.precision(8);
+			tRes << atPos[iCnt].x << '\t' << atPos[iCnt].y << '\t';
+		}
+		tRes << std::endl ;
+/*
+		qsort(afError_X, iAcc_Samples - 2, sizeof(afError_X[0]), Compare_Float);
+		qsort(afError_Y, iAcc_Samples - 2, sizeof(afError_Y[0]), Compare_Float);
+
+	//	tRes << "Number, Error X, Y: " << iLabels  << '\t' << iAcc_Samples << '\t' << fErr_X / (iAcc_Samples - 2) << '\t' << fErr_Y / (iAcc_Samples - 1 - 2) << std::endl;
+		int i95 = floor ((iAcc_Samples - 2) * 0.975f + 0.5f) ;
+		int i05 = floor ((iAcc_Samples - 2) * 0.025f + 0.5f) ;
+		tRes << "Number, Error X, Y: " << iLabels << '\t' << iAcc_Samples << '\t' << afError_X [i95] - afError_X[i05] << '\t' << afError_Y[i95] - afError_Y[i05] << std::endl;
+*/
+	}
+
+//	else
+//		tRes << "Number, Error X, Y: " << iLabels << '\t' << iAcc_Samples << '\t' << -1 << '\t' << -1 << std::endl;
 	tRes.close () ;
 #endif
-//#endif
 }
 
 

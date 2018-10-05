@@ -15,3 +15,10 @@ struct Circle_Pos
 	float x, y;
 };
 
+
+
+struct Circle_Pos_Int
+{
+	int x, y;
+};
+
