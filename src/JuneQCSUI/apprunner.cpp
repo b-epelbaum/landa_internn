@@ -33,15 +33,15 @@ void appRunner::parseArguments(const QApplication& app)
             QCoreApplication::translate("main", "mode"), "ui");
     parser.addOption(modeOption);
 
-    QCommandLineOption configFileOption(QStringList() << "config" << "",
+    QCommandLineOption configFileOption(QStringList() << "config",
             QCoreApplication::translate("main", "Load processing configuration file"),
             QCoreApplication::translate("main", "file"));
     parser.addOption(configFileOption);
 
-	 QCommandLineOption logRootFolderOption(QStringList() << "logRoot" << "",
+	 QCommandLineOption logRootFolderOption(QStringList() << "logRoot",
             QCoreApplication::translate("main", "Log files root folder"),
             QCoreApplication::translate("main", "logroot"));
-    parser.addOption(configFileOption);
+    parser.addOption(logRootFolderOption);
 
 	QCommandLineOption logLevelOption(QStringList() << "loglevel",
             QCoreApplication::translate("main", "Set a log level"),

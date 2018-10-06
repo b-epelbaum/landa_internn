@@ -35,7 +35,7 @@ struct ImageFileLessFunctor
 		auto leftInfo  = QFileInfo(left);
 		auto rightInfo  = QFileInfo(right);
 
-		return leftInfo.birthTime() < rightInfo.birthTime();
+		return leftInfo.lastModified() < rightInfo.lastModified();
 	}
 };
 
@@ -57,7 +57,7 @@ void folderReader::sortImageFileList()
 			{
 				auto leftInfo  = QFileInfo(left);
 				auto rightInfo  = QFileInfo(right);
-				return leftInfo.birthTime() < rightInfo.birthTime();
+				return leftInfo.lastModified() < rightInfo.lastModified();
 			});
 }
 

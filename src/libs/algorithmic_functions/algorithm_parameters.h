@@ -134,7 +134,7 @@ namespace LandaJune
 
 				std::string getElementName() const  override
 				{
-					return fmt::format("i2s_{0}", SIDE_NAMES[_side]);
+					return fmt::format("i2s_{0}_[{1},{2}]", SIDE_NAMES[_side], _approxTriangeROI.left(), _approxTriangeROI.top());
 				}
 
 				SHEET_SIDE					_side = LEFT;
@@ -357,7 +357,7 @@ namespace LandaJune
 
 				std::string getElementName() override
 				{
-					return fmt::format("i2s_{0}_overlay", SIDE_NAMES[_input->_side]);
+					return fmt::format("i2s_{0}_[{1},{2}_overlay]", SIDE_NAMES[_input->_side], _input->_approxTriangeROI.left(), _input->_approxTriangeROI.top());
 				}
 			
 				std::shared_ptr<cv::Mat> overlay()  const override
