@@ -44,7 +44,7 @@ namespace LandaJune
 			void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput) override;
 			
 			// general wave output processing
-			void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs ) override;
+			void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  ) override;
 
 			virtual void sortWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs );
 			virtual void logFailedStrip(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput);

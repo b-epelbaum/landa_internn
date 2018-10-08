@@ -31,7 +31,7 @@ void detect_edge_init(const INIT_PARAMETER& initParam)
 
 
 
-void detect_edge(std::shared_ptr<LandaJune::Algorithms::PARAMS_PAPEREDGE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_PAPEREDGE_OUTPUT> output)
+void detect_edge(PARAMS_PAPEREDGE_INPUT_PTR input, PARAMS_PAPEREDGE_OUTPUT_PTR output)
 {
 	int		iY;				// counter
 	float	fAx, fBx;		// Line equation (y=Ax+b) for paper edge

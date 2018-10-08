@@ -13,14 +13,26 @@
 #include "interfaces/IFrameProvider.h"
 #include "interfaces/IAlgorithmRunner.h"
 #include "ProcessParameters.h"
+
+#include "frameRef.h"
+
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
+
 #include <QJsonDocument>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QMessageBox>
 
+#include <opencv2/imgproc.hpp>
+#ifdef _DEBUG
+#pragma comment(lib, "opencv_world342d.lib")
+#else
+#pragma comment(lib, "opencv_world342.lib")
+#endif
+
+#include <chrono>
 
 using namespace LandaJune;
 using namespace UI;
@@ -243,6 +255,7 @@ void JuneUIWnd::onFrameProcessed ( int frameIndex )
 
 void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
 {
+	updateFrameImage(fData);
 }
 
 void JuneUIWnd::onOfflineFileCount(int fileCount)
@@ -1047,6 +1060,8 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 	stopAct->setEnabled(!bEnable);
 	ui.dockWidgetContents->setEnabled(bEnable);
 
+	ui.tabWidget->setEnabled(true);
+
 	if (!bEnable)
 	{
 		_progressBarTimer.start();
@@ -1062,6 +1077,10 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 		statusGeneral->setText("Idle");
 		statusFrameCount->setText("");
 		iconGeneral->setPixmap(_greyLed);
+
+		_lastFrameImageRatio = 0.0;
+		_frameDisplayImageSize = {0,0};
+		_frameBoxRect = {0,0,0,0};
 	}
 }
 
@@ -1157,4 +1176,42 @@ void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const 
 
 	const auto typeName = _processParamModelEditable->itemType(current);
 	removeColor->setEnabled( typeName == "LandaJune::Parameters::COLOR_TRIPLET" );
+}
+
+void JuneUIWnd::updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
+{
+	const auto& sourceWidth = fData->_img->cols;
+	const auto& sourceHeight = fData->_img->rows;
+		
+	auto const imgRatio = static_cast<double>(sourceWidth) / static_cast<double>(sourceHeight);
+	if ( _lastFrameImageRatio != imgRatio )
+	{
+		_frameDisplayImageSize = ( _frameBoxRatio <  imgRatio ) 
+					? QSize(_frameBoxWidth, _frameBoxWidth / imgRatio) 
+					: QSize(_frameBoxHeight * imgRatio, _frameBoxHeight);
+		
+		const auto& frameBoxRect = ( _frameBoxRatio <  imgRatio) 
+				? QRect(0, + (_frameBoxHeight - _frameDisplayImageSize.height()) / 2 ,_frameDisplayImageSize.width(), _frameDisplayImageSize.height()) 
+				: QRect((_frameBoxWidth -_frameDisplayImageSize.width()) / 2, 0 ,_frameDisplayImageSize.width(), _frameDisplayImageSize.height());
+		
+		if (frameBoxRect != _frameBoxRect )
+		{
+			ui.frameBox->setGeometry(frameBoxRect);
+			_frameBoxRect = frameBoxRect;
+		}
+	}
+	
+	cv::Mat previewImg;
+	cv::resize(*(fData->_img), previewImg, { _frameDisplayImageSize.width(), _frameDisplayImageSize.height() });
+	cv::cvtColor(previewImg, previewImg, CV_BGR2RGB);
+	ui.frameBox->setPixmap(QPixmap::fromImage(QImage(static_cast<unsigned char*>(previewImg.data), previewImg.cols, previewImg.rows, previewImg.step, QImage::Format_RGB888)));
+}
+
+void JuneUIWnd::resizeEvent(QResizeEvent* event)
+{
+	_frameBoxWidth = ui.frameBox->parentWidget()->geometry().width();
+	_frameBoxHeight = ui.frameBox->parentWidget()->geometry().height();
+
+	_frameBoxRatio = static_cast<double>(_frameBoxWidth) / static_cast<double>(_frameBoxHeight);
+
 }

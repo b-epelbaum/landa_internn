@@ -95,13 +95,21 @@ int Compare_Point(const void* arg1, const void* arg2)
 
 
 
-void detect_wave(std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_WAVE_OUTPUT> output)
+void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangleOut, PARAMS_WAVE_OUTPUT_PTR output)
 {
 	int		iLabel;
 	int		iLabels;
 	float	fX, fY, fCorr;
 
-	static int iSeq = 0;
+	/////////////////////////////////////////////////////
+	///////  TRIANGLE X, Y
+	//if (waveTriangleOut->_result == ALG_STATUS_SUCCESS)
+	//{
+	//	auto X = waveTriangleOut->_triangeCorner._x;
+	//	auto Y = waveTriangleOut->_triangeCorner._y;
+	//}
+
+	static int iSeq = 0; 
 
 	// define and clear overlay image
 	if (input->_GenerateOverlay) {

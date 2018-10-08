@@ -68,12 +68,13 @@ namespace LandaJune
 			virtual void setupEdgeProcessParameters		(PARAMS_PAPEREDGE_INPUT_PTR input, SHEET_SIDE side);
 			virtual void setupI2SProcessParameters		(PARAMS_I2S_INPUT_PTR input, SHEET_SIDE side);
 			virtual void setupC2CProcessParameters		(PARAMS_C2C_ROI_INPUT_PTR input, SHEET_SIDE side);
-			virtual void setupWaveProcessParameters		(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs);
+			virtual void setupWaveProcessParameters		(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs, PARAMS_I2S_INPUT_PTR waveTriangleInput );
 
 			virtual void generateSheetRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateStripRegions			(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateI2SRegion				(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
 			virtual void generateC2CRegion				(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
+			virtual void generateWavesRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList)  const;
 			virtual void generateWaveRegion				(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const;
 						
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
@@ -97,8 +98,8 @@ namespace LandaJune
 			virtual void shutdownC2CRoi() const;
 			
 			virtual void initWave(const INIT_PARAMETER& initParam);
-			virtual PARAMS_WAVE_OUTPUT_PTR processWave(PARAMS_WAVE_INPUT_PTR input);
-			virtual concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> processWaves(const std::vector<PARAMS_WAVE_INPUT_PTR>& inputs);
+			virtual PARAMS_WAVE_OUTPUT_PTR processWave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangleOut);
+			virtual concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> processWaves(const std::vector<PARAMS_WAVE_INPUT_PTR>& inputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOut );
 			virtual void shutdownWave();
 
 			/////////////////////////////////////////////////////////
@@ -111,7 +112,7 @@ namespace LandaJune
 			virtual void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput)						= 0;
 			
 			// general wave output processing
-			virtual void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs )		= 0;
+			virtual void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  )		= 0;
 			
 
 			//////////////////////////////////////////////////////

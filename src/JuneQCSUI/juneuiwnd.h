@@ -126,6 +126,8 @@ namespace LandaJune
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
 
+			void updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
+
 			oneRunViewer * _onRunViewer;
 
 			QAction *zoomInAct{};
@@ -163,6 +165,18 @@ namespace LandaJune
 			LOG_LEVEL _logLevel;
 			bool _savelogToFile;
 			QString _strProcessingConfig;
+
+			// frame preview caching
+			int _frameBoxWidth = 0;
+			int _frameBoxHeight = 0;
+			int _frameBoxRatio = 0;
+			double _lastFrameImageRatio = 0.0;
+			QSize _frameDisplayImageSize = {0,0};
+			QRect _frameBoxRect = {0,0,0,0};
+
+		protected:
+
+			void resizeEvent(QResizeEvent* event) override;
 		};
 	}
 }

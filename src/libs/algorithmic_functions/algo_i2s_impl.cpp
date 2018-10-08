@@ -11,7 +11,7 @@ typedef unsigned char byte;
 #endif
 
 // global variables
-float	*g_afTriangle_Edges[NUM_SIDES] = {NULL, NULL};	// array for positions of paper edge
+float	*g_afTriangle_Edges[NUM_SIDES] = {NULL, NULL, NULL};	// array for positions of paper edge
 thread_local Mat	g_imTriangle_Input_GL;
 thread_local Mat	g_imTriangle_T;
 
@@ -30,11 +30,12 @@ void detect_i2s_init(const INIT_PARAMETER& initParam)
 
 	g_afTriangle_Edges[LEFT] = new float[1000];
 	g_afTriangle_Edges[RIGHT] = new float[1000];
+	g_afTriangle_Edges[WAVE] = new float[1000];
 }
 
 
 
-void detect_i2s(std::shared_ptr<LandaJune::Algorithms::PARAMS_I2S_INPUT> input, std::shared_ptr<LandaJune::Algorithms::PARAMS_I2S_OUTPUT> output)
+void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 {
 	int		iX, iY;							// counters
 	float	fCntX, fCntY;					// counters

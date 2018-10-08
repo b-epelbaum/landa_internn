@@ -286,6 +286,7 @@ namespace LandaJune
 					: ABSTRACT_INPUT(frame)
 					, _stripInputParamLeft(std::make_shared<PARAMS_C2C_STRIP_INPUT>(frame, LEFT))
 					, _stripInputParamRight(std::make_shared<PARAMS_C2C_STRIP_INPUT>(frame, RIGHT))
+					, _waveTriangleInput(std::make_shared<PARAMS_I2S_INPUT>(frame, WAVE))
 					, _waveInputs(0, std::make_shared<PARAMS_WAVE_INPUT>(frame))
 					{}
 
@@ -300,8 +301,9 @@ namespace LandaJune
 					return "frame";
 				}
 
-				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamLeft;
-				std::shared_ptr<PARAMS_C2C_STRIP_INPUT>				_stripInputParamRight;
+				PARAMS_C2C_STRIP_INPUT_PTR							_stripInputParamLeft;
+				PARAMS_C2C_STRIP_INPUT_PTR							_stripInputParamRight;
+				PARAMS_I2S_INPUT_PTR								_waveTriangleInput;
 				std::vector<std::shared_ptr<PARAMS_WAVE_INPUT>>		_waveInputs;
 		};
 		using PARAMS_C2C_SHEET_INPUT_PTR = std::shared_ptr<PARAMS_C2C_SHEET_INPUT>;
@@ -530,8 +532,9 @@ namespace LandaJune
 
 				PARAMS_C2C_STRIP_OUTPUT_PTR										_stripOutputParameterLeft;
 				PARAMS_C2C_STRIP_OUTPUT_PTR										_stripOutputParameterRight;
-				Concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT_PTR>				_waveOutputs;
-				PARAMS_C2C_SHEET_INPUT_PTR											_input;
+				PARAMS_I2S_OUTPUT_PTR											_waveTriangleOutput;
+				Concurrency::concurrent_vector<PARAMS_WAVE_OUTPUT_PTR>			_waveOutputs;
+				PARAMS_C2C_SHEET_INPUT_PTR										_input;
 				///
 
 				std::string getElementName() override

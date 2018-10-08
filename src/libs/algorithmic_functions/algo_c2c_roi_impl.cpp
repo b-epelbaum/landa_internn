@@ -47,7 +47,7 @@ void detect_c2c_roi_init(const C2C_ROI_INIT_PARAMETER& initParam)
 
 
 
-void detect_c2c_roi(std::shared_ptr<PARAMS_C2C_ROI_INPUT> input, std::shared_ptr<PARAMS_C2C_ROI_OUTPUT> output)
+void detect_c2c_roi(PARAMS_C2C_ROI_INPUT_PTR input, PARAMS_C2C_ROI_OUTPUT_PTR output)
 {
 	int		iCircle;
 	int		iLabels;

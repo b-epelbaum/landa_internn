@@ -6,12 +6,13 @@ namespace LandaJune
 {
 	namespace Algorithms
 	{
-		enum SHEET_SIDE { LEFT = 0, RIGHT, NUM_SIDES};
+		enum SHEET_SIDE { LEFT = 0, RIGHT, WAVE, NUM_SIDES};
 		
 		static std::string SIDE_NAMES[] =
 		{
 			  "Left"
 			, "Right"
+			, "Wave"
 		};
 
 		enum GRABBER_SIDE { FRONT = 0, BACK };

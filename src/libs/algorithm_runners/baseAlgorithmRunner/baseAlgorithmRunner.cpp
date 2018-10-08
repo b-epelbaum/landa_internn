@@ -99,7 +99,7 @@ void baseAlgorithmRunner::setupSheetProcessParameters(PARAMS_C2C_SHEET_INPUT_PTR
 		setupStripProcessParameters(input->_stripInputParamRight, RIGHT);
 
 	if (_processParameters->ProcessWave())
-		setupWaveProcessParameters(input->_waveInputs);
+		setupWaveProcessParameters(input->_waveInputs, input->_waveTriangleInput);
 }
 
 void baseAlgorithmRunner::setupStripProcessParameters(PARAMS_C2C_STRIP_INPUT_PTR input, SHEET_SIDE side)
@@ -182,8 +182,11 @@ void baseAlgorithmRunner::setupC2CProcessParameters(PARAMS_C2C_ROI_INPUT_PTR inp
 	input->_side = side;
 }
 
-void baseAlgorithmRunner::setupWaveProcessParameters(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs)
+void baseAlgorithmRunner::setupWaveProcessParameters(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs, PARAMS_I2S_INPUT_PTR waveTriangleInput )
 {
+	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(waveTriangleInput));
+	setupI2SProcessParameters( waveTriangleInput, WAVE);
+
 	for (const auto& color : _processParameters->ColorArray() )
 	{
 		auto input = std::make_shared<PARAMS_WAVE_INPUT>(_frame);
@@ -208,14 +211,7 @@ void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input,
 
 	// Wave regions
 	if (  _processParameters->ProcessWave() )
-	{
-		auto waveCount = 0;
-		for (auto& waveInput : input->_waveInputs)
-		{
-			generateWaveRegion(waveInput, regionList, waveCount == 0);
-			++waveCount;
-		}
-	}
+		generateWavesRegions(input, regionList);
 }
 
 void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
@@ -232,14 +228,11 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 		? toROIRect(_processParameters->I2SApproximateTriangleRectLeft())
 		: toROIRect(_processParameters->I2SApproximateTriangleRectRight());
 
-	input->_i2sInput->_approxTriangeROI = approxRect;
-	auto& inputI2S = input->_i2sInput;
 
 	// add strip region
 	regionList.push_back(
 		std::move(ImageRegion::createRegion
 		(
-			 //_frameContainer.get()
 			_frame->image().get()
 			, input->_paperEdgeInput->_stripImageSource
 			, _processParameters
@@ -254,7 +247,7 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 	if ( input->_side == LEFT && _processParameters->ProcessLeftI2S() 
 		 || input->_side == RIGHT && _processParameters->ProcessRightI2S() 
 		)
-	generateI2SRegion(inputI2S, regionList);
+	generateI2SRegion(input->_i2sInput, regionList);
 
 	///////////////////////
 	////////// C2C ROIs
@@ -271,10 +264,19 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 
 void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
 {
-	const auto saveSourceI2S = (input->_side == LEFT) ? 
-		_processParameters->SaveSourceLeftI2S() 
-	  : _processParameters->SaveSourceRightI2S();
+	const auto saveSourceI2S = (input->_side == WAVE) 
+						? true 
+						: ((input->_side == LEFT) 
+								?	_processParameters->SaveSourceLeftI2S() 
+								: _processParameters->SaveSourceRightI2S() );
 
+	const auto& approxRect = (input->_side == WAVE) 
+						? toROIRect(_processParameters->WaveTriangleROIRect())
+						: ((input->_side == LEFT) 
+								? toROIRect(_processParameters->I2SApproximateTriangleRectLeft())
+								: toROIRect(_processParameters->I2SApproximateTriangleRectRight()));
+
+	input->_approxTriangeROI = approxRect;
 	regionList.push_back(std::move(ImageRegion::createRegion(_frame->image().get()
 			, input->_triangleImageSource
 			, _processParameters
@@ -306,6 +308,18 @@ void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAG
 			, saveSourceC2C
 		))
 	);
+}
+
+void baseAlgorithmRunner::generateWavesRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+{
+	input->_waveTriangleInput->_approxTriangeROI = toROIRect(_processParameters->WaveTriangleROIRect());
+	generateI2SRegion(input->_waveTriangleInput, regionList);
+	auto waveCount = 0;
+	for (auto& waveInput : input->_waveInputs)
+	{
+		generateWaveRegion(waveInput, regionList, waveCount == 0);
+		++waveCount;
+	}
 }
 
 void baseAlgorithmRunner::generateWaveRegion(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const
@@ -357,11 +371,16 @@ PARAMS_C2C_SHEET_OUTPUT_PTR baseAlgorithmRunner::processSheet(PARAMS_C2C_SHEET_I
 {
 	auto retVal = std::make_shared<PARAMS_C2C_SHEET_OUTPUT>(sheetInput);
 	retVal->_result = ALG_STATUS_SUCCESS;
+
+
 	   
 	const auto leftStripLambda = [&] { retVal->_stripOutputParameterLeft = processStrip(sheetInput->_stripInputParamLeft); };
 	const auto rightStripLambda = [&] { retVal->_stripOutputParameterRight = processStrip(sheetInput->_stripInputParamRight); };
-	//const auto waveI2SLambda = [&] { retVal->_waveOutputs = processWaves(sheetInput->_waveInputs); };
-	const auto waveLambda = [&] { retVal->_waveOutputs = processWaves(sheetInput->_waveInputs); };
+	const auto wavesLambda = [&]
+	{
+		retVal->_waveTriangleOutput = processI2S(sheetInput->_waveTriangleInput);
+		retVal->_waveOutputs = processWaves(sheetInput->_waveInputs, retVal->_waveTriangleOutput);
+	};
 	
 	std::vector<std::function<void()>> processLambdas;
 	if ( _processParameters->ProcessLeftStrip())
@@ -369,7 +388,7 @@ PARAMS_C2C_SHEET_OUTPUT_PTR baseAlgorithmRunner::processSheet(PARAMS_C2C_SHEET_I
 	if ( _processParameters->ProcessRightStrip())
 		processLambdas.emplace_back(rightStripLambda);
 	if ( _processParameters->ProcessWave())
-		processLambdas.emplace_back(waveLambda);
+		processLambdas.emplace_back(wavesLambda);
 
 	try
 	{
@@ -679,7 +698,7 @@ void baseAlgorithmRunner::initWave(const INIT_PARAMETER& initParam)
 
 	const auto& buf = _processParameters->CircleTemplateBufferWave().constData();
 	const std::vector<char> data(buf, buf + _processParameters->CircleTemplateBufferWave().size());
-	waveInitParam._templateImage = std::move(cv::imdecode(cv::Mat(data), CV_LOAD_IMAGE_GRAYSCALE));
+	waveInitParam._templateImage = std::move(imdecode(cv::Mat(data), CV_LOAD_IMAGE_GRAYSCALE));
 
 	try
 	{
@@ -695,7 +714,7 @@ void baseAlgorithmRunner::initWave(const INIT_PARAMETER& initParam)
 // ------------------------------------------------------
 //				Wave processing  FUNCTION 
 
-PARAMS_WAVE_OUTPUT_PTR baseAlgorithmRunner::processWave(PARAMS_WAVE_INPUT_PTR input)
+PARAMS_WAVE_OUTPUT_PTR baseAlgorithmRunner::processWave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangleOut)
 {
 	auto retVal = std::make_shared<PARAMS_WAVE_OUTPUT>(input);
 
@@ -709,16 +728,16 @@ PARAMS_WAVE_OUTPUT_PTR baseAlgorithmRunner::processWave(PARAMS_WAVE_INPUT_PTR in
 	const auto& circleCount = input->_circlesCount;
 
 	retVal->_result = ALG_STATUS_FAILED;
-	//retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
-	//retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
+	retVal->_colorDetectionResults = { static_cast<const uint64_t>(circleCount), ALG_STATUS_FAILED };
+	retVal->_colorCenters = { static_cast<const uint64_t>(circleCount), {0,0} };
 
-	retVal->_colorDetectionResults.reserve(static_cast<const uint64_t>(circleCount));
-	retVal->_colorCenters.reserve(static_cast<const uint64_t>(circleCount));
+	//retVal->_colorDetectionResults.reserve(static_cast<const uint64_t>(circleCount));
+	//retVal->_colorCenters.reserve(static_cast<const uint64_t>(circleCount));
 	
 	BASE_RUNNER_SCOPED_LOG << "WAVE Detection [color : " << input->_circleColor._colorName.c_str() << "] runs in thread #" << GetCurrentThreadId();
 	try
 	{
-		detect_wave(input, retVal);
+		detect_wave(input, waveTriangleOut, retVal);
 	}
 	catch (...)
 	{
@@ -731,7 +750,7 @@ PARAMS_WAVE_OUTPUT_PTR baseAlgorithmRunner::processWave(PARAMS_WAVE_INPUT_PTR in
 	return retVal;
 }
 
-concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> baseAlgorithmRunner::processWaves(const std::vector<PARAMS_WAVE_INPUT_PTR>& inputs)
+concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> baseAlgorithmRunner::processWaves(const std::vector<PARAMS_WAVE_INPUT_PTR>& inputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOut)
 {
 	concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> retVal;
 	try
@@ -740,16 +759,17 @@ concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> baseAlgorithmRunner::processWaves(cons
 		{
 			parallel_for_each (inputs.begin(), inputs.end(), [&](auto &in) 
 			{
-				retVal.push_back(processWave(in));
+				retVal.push_back(processWave(in, waveTriangleOut));
 			});
 		}
 		else
 		{
 			std::for_each (inputs.begin(), inputs.end(), [&](auto &in) 
 			{
-				retVal.push_back(processWave(in));
+				retVal.push_back(processWave(in, waveTriangleOut));
 			});
 		}
+		dumpOverlay<PARAMS_I2S_OUTPUT_PTR>(waveTriangleOut, _bAsyncWrite);
 	}
 	catch ( BaseException& bex)
 	{

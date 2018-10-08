@@ -147,6 +147,6 @@
     "WaveDistanceBetweenDotsY_um": 3283,
     "WaveDistanceBetweenTriangleAndFirstRow_um": 9589,
     "WaveImageMarginX_um": 10,
-    "WaveTriangleApproximateX_um": 495500,
-    "WaveTriangleApproximateY_um": 1165
+    "WaveTriangleApproximateX_um": 498000,
+    "WaveTriangleApproximateY_um": 2480
 }

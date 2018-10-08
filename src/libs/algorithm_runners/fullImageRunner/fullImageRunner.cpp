@@ -157,11 +157,8 @@ void fullImageRunner::processInternal()
 		if ( !_processParameters->EnableAlgorithmProcessing() )
 			return;
 
-		// process whole sheet
-		auto output = processSheet(input);
-
-		// process output data
-		processSheetOutput(output);
+		// process whoe sheet and output data
+		processSheetOutput(processSheet(input));
 	}
 	catch ( BaseException& bex)
 	{
@@ -177,7 +174,7 @@ void fullImageRunner::processInternal()
 void fullImageRunner::processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)
 {
 	if ( _processParameters->ProcessWave())
-		processWaveOutputs(sheetOutput->_waveOutputs);
+		processWaveOutputs(sheetOutput->_waveOutputs, sheetOutput->_waveTriangleOutput);
 
 }
 
@@ -301,7 +298,7 @@ void fullImageRunner::sortWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR>
 			});
 }
 
-void fullImageRunner::processWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs )
+void fullImageRunner::processWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  )
 {
 	// sort wave outputs
 	sortWaveOutputs(waveOutputs);
