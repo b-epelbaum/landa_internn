@@ -25,14 +25,14 @@ QMeter::QMeter(QWidget *parent)
    m_thresholdEnabled=true;
    m_numericIndicatorEnabled=true;
    setMinValue(0);
-   setMaxValue(1000);
+   setMaxValue(400);
    setValue(0);
    setStartAngle(225);
    setEndAngle(-45);
    setMinimumSize(QSize(80,80));
    setLabel("Queue");
    setUnits("MB");
-   setThreshold(800);
+   setThreshold(320);
    setEnableValidWindow(false);
    setBeginValidValue(40.0);
    setEndValidValue(50.0);

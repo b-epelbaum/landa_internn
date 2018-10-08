@@ -248,9 +248,14 @@ void JuneUIWnd::onCoreException(const BaseException& ex)
 void JuneUIWnd::onFrameProcessed ( int frameIndex )
 {
 	if ( statusProgressBar->maximum() != 0)
+	{
 		statusProgressBar->setValue(statusProgressBar->value() + 1);
-
-	statusFrameCount->setText(QString(" Frames processed : ") + QString::number(statusProgressBar->value()));
+		statusFrameCount->setText(QString(" Frames processed : ") + QString::number(statusProgressBar->value()));
+	}
+	else
+	{
+		statusFrameCount->setText(QString(" Frames processed : ") + QString::number(frameIndex+1));
+	}
 }
 
 void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
@@ -872,6 +877,10 @@ void JuneUIWnd::updateStats() const
 {
 	ui.statView->clear(); // unless you know the editor is empty
 	ui.statView->appendPlainText(QString::fromStdString(Helpers::RealTimeStats::rtStats()->to_string()));
+
+	auto rtStats = Helpers::RealTimeStats::rtStats();
+	auto val = Helpers::RealTimeStats::rtStats()->info(Helpers::RealTimeStats::objects_saveQueueLength)._current / 1024 / 1024;
+	ui.writeQueueMeter->setValueWithSpringEffect(Helpers::RealTimeStats::rtStats()->info(Helpers::RealTimeStats::objects_saveQueueLength)._current / 1024 / 1024);
 }
 
 void JuneUIWnd::onProviderPropChanged(QString propName, const QVariant& newVal)

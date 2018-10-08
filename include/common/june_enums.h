@@ -11,6 +11,7 @@ namespace LandaJune
 	enum class FrameConsumerDataCallbackType
 	{
 		CALLBACK_FRAME_HANDLED
+		,CALLBACK_FRAME_FAILED
 	};
 }
 

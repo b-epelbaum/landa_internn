@@ -64,6 +64,10 @@ if exist "%InstallDir%\MSBuild\15.0\Bin\MSBuild.exe" (
   "%InstallDir%\MSBuild\15.0\Bin\MSBuild.exe" %SLNDIR%\JuneQCS.sln /p:Configuration=Release /t:Clean,Build 
 )
 
+echo "--------------------------------------------"
+echo "*****   		Building finiished     *******"
+echo "--------------------------------------------"
+
 echo/
 
 del %BUILDDIR%\*.lib
@@ -78,7 +82,7 @@ echo/
 set modules=coreLib.dll fp_offlineFrameProvider.dll fp_sisoFGProvLib.dll juneQCSUI.exe statLib.dll logLib.dll algo_fullImageRunner.dll
 if exist "%QT_ROOT%\bin\windeployqt.exe" ( 
 for %%a in (%modules%) do (
-echo " --- deploying %%a"
+echo "     --- deploying %%a"
 "%QT_ROOT%\bin\windeployqt.exe" "%BUILDDIR%\%%a"
 ))
 

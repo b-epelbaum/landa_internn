@@ -41,7 +41,7 @@ void Functions::frameConsume(AlgorithmRunnerPtr algorithmRunner, Core::ICore * c
 	}
 	catch ( BaseException& bex)
 	{
-		dataCallback( coreObject, FrameConsumerDataCallbackType::CALLBACK_FRAME_HANDLED, std::make_any<int>(frameRefObj->getIndex()) );
+		dataCallback( coreObject, FrameConsumerDataCallbackType::CALLBACK_FRAME_FAILED, std::make_any<int>(frameRefObj->getIndex()) );
 
 		// we should be aware of exceptions to make sure we release the frame back to pool
 		framesPool->release(std::move(frameRefObj));

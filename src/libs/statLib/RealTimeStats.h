@@ -36,9 +36,20 @@ namespace LandaJune
 
 			};
 
+			struct StatInfo {
+				double _total;
+				double _current;
+				double _average;
+				double _raverage;
+			};
+
 			void reset();
 			void increment(const StatName stat, const double delta, const double v = 1);
 			std::string to_string(bool bBreakLines = false);
+
+			int count(void) const { return statsNumber; }
+			std::string name(StatName id) const;
+			StatInfo info(StatName id) const;
 
 			static RealTimeStats* rtStats();
 

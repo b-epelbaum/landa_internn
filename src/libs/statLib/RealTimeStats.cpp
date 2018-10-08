@@ -38,27 +38,43 @@ void RealTimeStats::increment(const StatName stat, const double delta, const dou
 	}
 }
 
+static const char *__names[RealTimeStats::statsNumber] = {
+	"Frames generated",
+	"Frames handled",
+	"Regions generated",
+	"Regions copied",
+	"Handled strips",
+	"Handled edges",
+	"Handled I2S",
+	"Handled C2C",
+	"Handled Waves",
+	"Saved Bitmaps Ok",
+	"Generated Images Drop",
+	"Generated Images Fail",
+	"Performed Algo Fail",
+	"Performed Algo Result Fail",
+	"Created Regions Fail",
+	"Saved Bitmaps Fail",
+	"Save Queue Length"
+};
+
+std::string RealTimeStats::name(StatName id) const {
+	return std::move(std::string(id < statsNumber ? __names[id] : ""));
+}
+
+RealTimeStats::StatInfo RealTimeStats::info(StatName id) const {
+	StatInfo si{};
+	if (id < statsNumber) {
+		si._total = _values[id];
+		si._current = _current[id];
+		if (_times[id]) si._average = _values[id] / _times[id];
+		if (_values[id]) si._raverage = _times[id] /  _values[id];
+	}
+	return si;
+}
+
 std::string RealTimeStats::to_string(bool bBreakLines) 
 {
-	static const char *names[statsNumber] = {
-		"Frames generated",
-		"Frames handled",
-		"Regions generated",
-		"Regions copied",
-		"Handled strips",
-		"Handled edges",
-		"Handled I2S",
-		"Handled C2C",
-		"Handled Waves",
-		"Saved Bitmaps Ok",
-		"Generated Images Drop",
-		"Generated Images Fail",
-		"Performed Algo Fail",
-		"Performed Algo Result Fail",
-		"Created Regions Fail",
-		"Saved Bitmaps Fail",
-		"Save Queue Length"
-	};
 	autolock l(_mutex);
 	std::string txt;
 
@@ -70,8 +86,8 @@ std::string RealTimeStats::to_string(bool bBreakLines)
 			continue;
 		}
 
-		txt.append(names[i]).append(":\t").append(std::to_string(_values[i]))
-			.append("\t").append(std::to_string(_current[i] ))
+		txt.append(__names[i]).append(":\t").append(std::to_string(_values[i]))
+			.append("\t").append(std::to_string(_current[i]))
 			.append("\t").append(std::to_string(_values[i] / _times[i]))
 			.append("\t").append(std::to_string(_times[i] / _values[i])).append(breaker);
 		
