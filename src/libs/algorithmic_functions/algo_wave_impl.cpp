@@ -97,7 +97,7 @@ int Compare_Point(const void* arg1, const void* arg2)
 
 void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangleOut, PARAMS_WAVE_OUTPUT_PTR output)
 {
-	int		iLabel;
+	int		iCnt, iLabel;
 	int		iLabels;
 	float	fX, fY, fCorr;
 
@@ -222,9 +222,35 @@ void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangle
 
 	qsort (g_atCenters_Micron, iLabels - 1, sizeof (g_atCenters_Micron [0]), Compare_Point) ;
 
-	for (iLabel = 0 ; iLabel < iLabels - 1; iLabel++) {
-		output->_colorCenters.push_back(g_atCenters_Micron[iLabel]);
-		output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
+//	for (iLabel = 0 ; iLabel < iLabels - 1; iLabel++) {
+//		output->_colorCenters.push_back(g_atCenters_Micron[iLabel]);
+//		output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
+//	}
+
+	int iIndex_Center = (output->_colorCenters.size() - 1) / 2;
+	for (iCnt = 0 ; iCnt < output->_colorCenters.size () ; iCnt ++) {
+		int iEstimated_X = waveTriangleOut->_triangeCorner._x + (iCnt - iIndex_Center) * 2716.7 ;
+
+		int iMin_Dist = 400 ;
+		int iMin_Dist_Index = -1 ;
+		for (iLabel = 0; iLabel < iLabels - 1; iLabel++) {
+			int iDist = abs (g_atCenters_Micron[iLabel]._x - iEstimated_X) ;
+			if (iDist < iMin_Dist) {
+				iMin_Dist = iDist ;
+				iMin_Dist_Index = iLabel ;
+			}
+		}
+
+		if (iMin_Dist_Index < 0) {
+			output->_colorCenters [iCnt]._x = 0 ;
+			output->_colorCenters[iCnt]._y = 0;
+			output->_colorDetectionResults [iCnt] = ALG_STATUS_FAILED ;
+		}
+		else
+		{
+			output->_colorCenters[iCnt] = g_atCenters_Micron[iMin_Dist_Index] ;
+			output->_colorDetectionResults[iCnt] = ALG_STATUS_SUCCESS;
+		}
 	}
 
 
