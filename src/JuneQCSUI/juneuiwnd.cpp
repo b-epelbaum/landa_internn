@@ -19,6 +19,7 @@
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
+#include "roitools.h"
 
 #include <QJsonDocument>
 #include <QSettings>
@@ -605,6 +606,12 @@ void JuneUIWnd::stop()
 }
 
 
+void JuneUIWnd::showROITools()
+{
+	roitools _roiTools;
+	_roiTools.showROITools(this);
+}
+
 void JuneUIWnd::handleException (BaseException& ex)
 {
 	std::ostringstream ss;
@@ -652,6 +659,7 @@ void JuneUIWnd::createActions()
 	startAct = new QAction(QIcon(":/JuneUIWnd/Resources/start.png"), tr("&Start processing"), this);
 	startOnceAct = new QAction(QIcon(":/JuneUIWnd/Resources/start_once.png"), tr("&Start Single processing"), this);
 	stopAct = new QAction(QIcon(":/JuneUIWnd/Resources/stop.png"), tr("&Stop processing"), this);
+	roiToolsAct = new QAction(QIcon(":/JuneUIWnd/Resources/roi_cut.png"), tr("&Edit ROI Tools"), this);
 
 	loadConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_open.png"), tr("&Load"), this);
 	saveConfig = new QAction(QIcon(":/JuneUIWnd/Resources/file_save.png"), tr("&Save"), this);
@@ -667,6 +675,7 @@ void JuneUIWnd::createActions()
 	connect(startAct, &QAction::triggered, this, &JuneUIWnd::runAll);
 	connect(startOnceAct, &QAction::triggered, this, &JuneUIWnd::runOnce);
 	connect(stopAct, &QAction::triggered, this, &JuneUIWnd::stop);
+	connect(roiToolsAct, &QAction::triggered, this, &JuneUIWnd::showROITools);
 
 
 	addColor = new QAction(QIcon(":/JuneUIWnd/Resources/color_add.png"), tr("&Add Color"), this);
@@ -690,6 +699,7 @@ void JuneUIWnd::createStatusBar()
 	ui.mainToolBar->addSeparator();
 	ui.mainToolBar->addAction(startAct);
 	ui.mainToolBar->addAction(stopAct);
+	ui.mainToolBar->addAction(roiToolsAct);
 	ui.mainToolBar->setIconSize(QSize(48, 48));
 
 

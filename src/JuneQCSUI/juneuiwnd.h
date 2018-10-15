@@ -58,6 +58,7 @@ namespace LandaJune
 			void runOnce();
 
 			void stop();
+			void showROITools();
 			void onAboutToQuit();
 
 			void onFrameProviderComboChanged(int index);
@@ -138,6 +139,8 @@ namespace LandaJune
 			QAction * startAct = nullptr;
 			QAction * startOnceAct = nullptr;
 			QAction * stopAct = nullptr;
+
+			QAction * roiToolsAct = nullptr;
 
 			QAction * addColor = nullptr;
 			QAction * removeColor = nullptr;

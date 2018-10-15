@@ -6,7 +6,7 @@ namespace LandaJune
 {
 	namespace Helpers
 	{
-		class STATLIB_EXPORT RealTimeStats
+		class RealTimeStats
 		{
 		public:
 			
@@ -43,15 +43,15 @@ namespace LandaJune
 				double _raverage;
 			};
 
-			void reset();
-			void increment(const StatName stat, const double delta, const double v = 1);
-			std::string to_string(bool bBreakLines = false);
+			STATLIB_EXPORT void reset();
+			STATLIB_EXPORT void increment(const StatName stat, const double delta, const double v = 1);
+			STATLIB_EXPORT std::string to_string(bool bBreakLines = false);
 
-			int count(void) const { return statsNumber; }
-			std::string name(StatName id) const;
-			StatInfo info(StatName id) const;
+			STATLIB_EXPORT int count(void) const { return statsNumber; }
+			STATLIB_EXPORT std::string name(StatName id) const;
+			STATLIB_EXPORT StatInfo info(StatName id) const;
 
-			static RealTimeStats* rtStats();
+			STATLIB_EXPORT static RealTimeStats* rtStats();
 
 		protected:
 			std::mutex _mutex;

@@ -5,7 +5,7 @@
 using namespace LandaJune::Helpers;
 using autolock = std::lock_guard<std::mutex>;
 
-STATLIB_EXPORT RealTimeStats * RealTimeStats::_this = nullptr;
+RealTimeStats * RealTimeStats::_this = nullptr;
 
 RealTimeStats::RealTimeStats()
 {
@@ -27,7 +27,7 @@ void RealTimeStats::reset()
 	}
 }
 
-void RealTimeStats::increment(const StatName stat, const double delta, const double v) 
+STATLIB_EXPORT void RealTimeStats::increment(const StatName stat, const double delta, const double v) 
 {
 	autolock l(_mutex);
 	if (stat < statsNumber) 
@@ -62,7 +62,7 @@ std::string RealTimeStats::name(StatName id) const {
 	return std::move(std::string(id < statsNumber ? __names[id] : ""));
 }
 
-RealTimeStats::StatInfo RealTimeStats::info(StatName id) const {
+STATLIB_EXPORT RealTimeStats::StatInfo RealTimeStats::info(StatName id) const {
 	StatInfo si{};
 	if (id < statsNumber) {
 		si._total = _values[id];
@@ -73,7 +73,7 @@ RealTimeStats::StatInfo RealTimeStats::info(StatName id) const {
 	return si;
 }
 
-std::string RealTimeStats::to_string(bool bBreakLines) 
+STATLIB_EXPORT std::string RealTimeStats::to_string(bool bBreakLines) 
 {
 	autolock l(_mutex);
 	std::string txt;
@@ -95,7 +95,7 @@ std::string RealTimeStats::to_string(bool bBreakLines)
 	return std::move(txt);
 }
 
-RealTimeStats* RealTimeStats::rtStats()
+STATLIB_EXPORT RealTimeStats* RealTimeStats::rtStats()
 {
 	return _this ? _this : _this = new RealTimeStats();
 }
