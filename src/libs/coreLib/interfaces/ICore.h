@@ -4,7 +4,7 @@
 #include <QCoreApplication>
 
 #include "common/type_usings.h"
-#include "interfaces/IQBase.h"
+#include "interfaces/IQBAse.h"
 
 #define DLL_NAME "corelib.dll"
 
@@ -33,6 +33,10 @@ namespace LandaJune
 		public:
 			using CorePtr = std::shared_ptr<ICore>;
 
+			ICore(const ICore &) = delete;
+			ICore(ICore &&) = delete;
+			const ICore & operator = (const ICore &) = delete;
+			ICore & operator = (ICore &&) = delete;
 		
 			virtual void init( bool reportEvents ) = 0;
 			virtual void cleanup() = 0;
@@ -62,13 +66,9 @@ namespace LandaJune
 		protected:
 
 			ICore() = default;
-			ICore(const ICore &) = delete;
-			ICore(ICore &&) = delete;
 			virtual ~ICore() = default;
-			const ICore & operator = (const ICore &) = delete;
-			ICore & operator = (ICore &&) = delete;
 
-			inline static CorePtr _pThis;
+			inline static CorePtr _pThis = nullptr;
 		};
 	}
 }

@@ -202,25 +202,19 @@ color : white;
             </property>
             <item>
              <widget class="imageScrollArea" name="leftImageArea">
-              <property name="styleSheet">
-               <string notr="true">QFrame
-{
-	background-color : black;
-}</string>
-              </property>
               <property name="widgetResizable">
                <bool>true</bool>
               </property>
               <property name="alignment">
-               <set>Qt::AlignCenter</set>
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
               </property>
               <widget class="RenderWidget" name="leftImageBox">
                <property name="geometry">
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>286</width>
-                 <height>522</height>
+                 <width>287</width>
+                 <height>528</height>
                 </rect>
                </property>
                <property name="minimumSize">
@@ -228,6 +222,9 @@ color : white;
                  <width>0</width>
                  <height>0</height>
                 </size>
+               </property>
+               <property name="autoFillBackground">
+                <bool>false</bool>
                </property>
               </widget>
              </widget>
@@ -251,8 +248,8 @@ color : white;
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>286</width>
-                 <height>522</height>
+                 <width>287</width>
+                 <height>528</height>
                 </rect>
                </property>
                <property name="minimumSize">

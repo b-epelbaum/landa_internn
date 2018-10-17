@@ -20,14 +20,14 @@ RenderWidget::RenderWidget(QWidget *parent)
 	setMouseTracking(true);
 	setCursor(Qt::CrossCursor);
 
-	QWidget * frame = new QWidget(this);
-	frame->setMaximumSize(200,200);
-	frame->setMinimumSize(200,200);
+	//QWidget * frame = new QWidget(this);
+	//frame->setMaximumSize(200,200);
+	//frame->setMinimumSize(200,200);
 
-	frame->setStyleSheet("QWidget { background-color : red; }");
-	frame->setGeometry(20,20, 200, 200);
-	frame->raise();
-	frame->show();
+	//frame->setStyleSheet("QWidget { background-color : red; }");
+	//frame->setGeometry(20,20, 200, 200);
+	//frame->raise();
+	//frame->show();
 }
 
 RenderWidget::~RenderWidget()
@@ -68,17 +68,15 @@ void RenderWidget::SetImage(const QString& file)
 	QImage img;
 	if (img.load(file)) 
 	{
-		_imageSize = img.size();
-		setMaximumSize(_imageSize);
-		setMinimumSize(_imageSize);
-		_zoomFactor = 1;
-
 		if (_texture)
 		{
 			delete _texture;
 		}
 		_texture = new QOpenGLTexture(img);
-		qDebug() << "done";
+		_imageSize = img.size();
+		setMaximumSize(_imageSize);
+		setMinimumSize(_imageSize);
+		_zoomFactor = 1;
 	}
 	doneCurrent();
 	repaint();
@@ -108,8 +106,8 @@ void RenderWidget::initializeGL()
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 #define PROGRAM_TEXCOORD_ATTRIBUTE 1
 
-	QOpenGLShader *vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
-	const char *vsrc =
+	auto vshader = new QOpenGLShader(QOpenGLShader::Vertex, this);
+	const auto vsrc =
 		"uniform mediump mat4 matrix;\n"
 		"attribute highp vec3 vertex;\n"
 		"attribute mediump vec2 texCoord;\n"
@@ -124,8 +122,8 @@ void RenderWidget::initializeGL()
 		throw (vshader->log());
 	}
 
-	QOpenGLShader *fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
-	const char *fsrc =
+	auto* fshader = new QOpenGLShader(QOpenGLShader::Fragment, this);
+	const auto fsrc =
 		"uniform sampler2D texture;\n"
 		"varying mediump vec2 texc;\n"
 		"void main(void)\n"
@@ -153,7 +151,7 @@ void RenderWidget::initializeGL()
 
 void RenderWidget::paintGL()
 {
-	glClearColor(0, 0, 0, 1);
+	glClearColor(0, 0.7, 0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	QMatrix4x4 m;

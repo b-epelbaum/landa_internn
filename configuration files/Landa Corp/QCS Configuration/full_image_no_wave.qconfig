@@ -1,4 +1,6 @@
 {
+	"name" : "JUNE Process Recipe",
+	"version" : "1.0",
     "AlgorithmRunner": "Full Image Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
     "C2CDistanceBetweenDots_um": 3048,
@@ -136,7 +138,7 @@
     "SaveWaveCSV": true,
     "ScanBitDepth": 24,
     "SheetID": 0,
-    "SourceFilePath": "d:\\Temp\\june_offline_input\\full_image_4_colors_cycle\\Image_300dpi.bmp",
+    "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\full_image_4_colors_cycle\\Image_300dpi.bmp",
     "SourceFolderPath": "",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
