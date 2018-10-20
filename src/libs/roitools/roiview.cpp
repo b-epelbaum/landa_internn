@@ -17,11 +17,9 @@ roiview::roiview(QWidget *parent)
 {
 	ui.setupUi(this);
 
-	_leftImageBox = ui.leftImageBox;
-	_rightImageBox = ui.rightImageBox;
+	_leftImageBox = ui.leftROIWidget;
+	_rightImageBox = ui.rightROIWidget;
 
-	_leftImageCoordsLabel = ui.leftImageCoordsLabel;
-	_rightImageCoordsLabel = ui.rightImageCoordsLabel;
 
 	connect(ui.loadLeftButt, &QPushButton::clicked, this, &roiview::onLeftImageLoad);
 	connect(ui.loadRightButt, &QPushButton::clicked, this, &roiview::onRightImageLoad);
@@ -33,9 +31,6 @@ roiview::roiview(QWidget *parent)
 	connect(ui.spinTriangleOffsetY, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiview::onSpinTriangleOffsetYChanged);
 	connect(ui.spinA1X, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiview::onSpinA1Changed);
 	connect(ui.spinA2Y, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiview::onSpinA2Changed);
-
-	connect(ui.leftImageBox, &RenderWidget::cursorPos, this, &roiview::onLeftImageCursorPos);
-	connect(ui.rightImageBox, &RenderWidget::cursorPos, this, &roiview::onRightImageCursorPos);
 }
 
 roiview::~roiview()
@@ -48,7 +43,7 @@ void roiview::onLeftImageLoad()
 	if (filePath.isEmpty() )
 		return;
 
-	_leftImageBox->SetImage(filePath);
+	_leftImageBox->setImage(filePath);
 }
 
 void roiview::onRightImageLoad()
@@ -102,14 +97,4 @@ QString roiview::selectBitmapFile()
 	settings.setValue("ROITools/lastRegFilesFolder", QFileInfo(fileName).absoluteDir().absolutePath());
 
 	return fileName;
-}
-
-void roiview::onLeftImageCursorPos(QPoint pt)
-{
-	_leftImageCoordsLabel->setText(QString("X = %1, Y = %2").arg(pt.x()).arg(pt.y()));
-}
-	
-void roiview::onRightImageCursorPos(QPoint pt)
-{
-	_rightImageCoordsLabel->setText(QString("X = %1, Y = %2").arg(pt.x()).arg(pt.y()));
 }

@@ -15,9 +15,7 @@ public:
  protected:
 
     void wheelEvent(QWheelEvent* event) override;
-	void zoomOut();
-	void zoomIn();
-
+	
 	RenderWidget * _widget = nullptr;
 
 };

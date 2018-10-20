@@ -30,15 +30,10 @@ private slots:
 	void onSpinA1Changed(double dVal );
 	void onSpinA2Changed(double dVal );
 
-	void onLeftImageCursorPos(QPoint pt);
-	void onRightImageCursorPos(QPoint pt);
-
 private:
 
 	QString selectBitmapFile();
 
-	RenderWidget * _leftImageBox;
-	RenderWidget * _rightImageBox;
-
-	QLabel * _leftImageCoordsLabel, *_rightImageCoordsLabel;
+	roiWidget * _leftImageBox;
+	roiWidget * _rightImageBox;
 };

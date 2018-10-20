@@ -43,6 +43,9 @@
     <ClCompile Include="imagescrollarea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="roiWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="roitools.h">
@@ -64,9 +67,15 @@
     <QtMoc Include="imagescrollarea.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="roiWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="roiview.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="roiWidget.ui">
       <Filter>Form Files</Filter>
     </QtUic>
   </ItemGroup>
