@@ -1,4 +1,4 @@
-#include "algo_wave_impl.h"
+﻿#include "algo_wave_impl.h"
 
 #include <fstream>
 #include <opencv2/imgproc/imgproc.hpp> 
@@ -226,12 +226,13 @@ void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangle
 //		output->_colorCenters.push_back(g_atCenters_Micron[iLabel]);
 //		output->_colorDetectionResults.push_back(ALG_STATUS_SUCCESS);
 //	}
+//	std::fstream tRes("e:\\temp\\Wave.txt", std::ios::app);
 
 	int iIndex_Center = (output->_colorCenters.size() - 1) / 2;
 	for (iCnt = 0 ; iCnt < output->_colorCenters.size () ; iCnt ++) {
-		int iEstimated_X = waveTriangleOut->_triangeCorner._x + (iCnt - iIndex_Center) * 2716.7 ;
+		int iEstimated_X = waveTriangleOut->_triangeCorner._x + (iCnt - iIndex_Center) * 2713.6 ;
 
-		int iMin_Dist = 400 ;
+		int iMin_Dist = 500 ;
 		int iMin_Dist_Index = -1 ;
 		for (iLabel = 0; iLabel < iLabels - 1; iLabel++) {
 			int iDist = abs (g_atCenters_Micron[iLabel]._x - iEstimated_X) ;
@@ -251,7 +252,9 @@ void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangle
 			output->_colorCenters[iCnt] = g_atCenters_Micron[iMin_Dist_Index] ;
 			output->_colorDetectionResults[iCnt] = ALG_STATUS_SUCCESS;
 		}
+		//tRes << iCnt << '\t' << iMin_Dist << std::endl ;
 	}
+	//tRes.close () ;
 
 
 	if (input->_GenerateOverlay) {
