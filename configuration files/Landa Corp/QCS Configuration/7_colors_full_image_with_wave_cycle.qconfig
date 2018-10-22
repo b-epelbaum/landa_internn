@@ -1,38 +1,40 @@
 {
+    "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
     "C2CDistanceBetweenDots_um": 3048,
-    "C2CDistanceBetweenSets_um": 158940,
-    "C2CDistanceFromTriangle2FirstSet_um": 9000,
+    "C2CDistanceBetweenSets_um": 160300,
+    "C2CDistanceFromTriangle2FirstSet_um": 9300,
     "C2CROISetsCount": 5,
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
-            "ColorName": "Cyan",
+            "ColorName": "Black",
             "Max": {
                 "ColorName": "",
-                "H": 30,
-                "S": 255,
-                "V": 255
+                "H": 255,
+                "S": 50,
+                "V": 60
             },
             "Min": {
                 "ColorName": "",
-                "H": 80,
-                "S": 90,
-                "V": 170
+                "H": 0,
+                "S": 0,
+                "V": 0
             }
         },
         {
-            "ColorName": "Yellow",
+            "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
-                "H": 40,
+                "H": 110,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 10,
-                "S": 90,
+                "H": 90,
+                "S": 100,
                 "V": 170
             }
         },
@@ -46,24 +48,69 @@
             },
             "Min": {
                 "ColorName": "",
-                "H": 135,
-                "S": 90,
+                "H": 160,
+                "S": 100,
                 "V": 170
             }
         },
         {
-            "ColorName": "Black",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 255,
-                "S": 90,
-                "V": 140
+                "H": 35,
+                "S": 255,
+                "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 0,
-                "S": 0,
-                "V": 0
+                "H": 15,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Orange",
+            "Max": {
+                "ColorName": "",
+                "H": 14,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 5,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Green",
+            "Max": {
+                "ColorName": "",
+                "H": 70,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 40,
+                "S": 100,
+                "V": 100
+            }
+        },
+        {
+            "ColorName": "Blue",
+            "Max": {
+                "ColorName": "",
+                "H": 130,
+                "S": 150,
+                "V": 100
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 110,
+                "S": 70,
+                "V": 51
             }
         }
     ],
@@ -73,18 +120,19 @@
     "EnableCSVSaving": true,
     "EnableImageSaving": true,
     "EnableProcessing": true,
-    "FrameFrequencyInMSec": 250,
+    "FrameFrequencyInMSec": 500,
+    "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,
-    "I2SOffsetFromPaperEdgeX_mm": 5.3,
-    "I2SOffsetFromPaperEdgeY_mm": 5.6,
+    "I2SOffsetFromPaperEdgeX_mm": 3.2,
+    "I2SOffsetFromPaperEdgeY_mm": 9.3,
     "I2SROIHeight_mm": 8.5,
     "I2SROIWidth_mm": 8.5,
-    "ImageMaxCount": 20,
+    "ImageMaxCount": 10,
     "JobID": 0,
     "OffsetBetweenTriangles_mm": 990,
-    "OffsetFromLeftEdge_mm": 10.2,
+    "OffsetFromLeftEdge_mm": 9.5,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -94,10 +142,10 @@
     "ProcessLeftI2S": true,
     "ProcessLeftStrip": true,
     "ProcessRightC2C": true,
-    "ProcessRightEdge": false,
+    "ProcessRightEdge": true,
     "ProcessRightI2S": true,
     "ProcessRightStrip": true,
-    "ProcessWave": false,
+    "ProcessWave": true,
     "ProcessWaveI2S": false,
     "ReferenceColorTriplet": {
         "ColorName": "",
@@ -123,27 +171,27 @@
     "SaveOverlayRightI2S": true,
     "SaveOverlayWave": true,
     "SaveSourceImages": true,
-    "SaveSourceLeftC2C": false,
-    "SaveSourceLeftI2S": false,
+    "SaveSourceLeftC2C": true,
+    "SaveSourceLeftI2S": true,
     "SaveSourceLeftStrip": true,
-    "SaveSourceRightC2C": false,
-    "SaveSourceRightI2S": false,
-    "SaveSourceRightStrip": false,
-    "SaveSourceWave": false,
-    "SaveWaveCSV": false,
+    "SaveSourceRightC2C": true,
+    "SaveSourceRightI2S": true,
+    "SaveSourceRightStrip": true,
+    "SaveSourceWave": true,
+    "SaveWaveCSV": true,
     "ScanBitDepth": 24,
     "SheetID": 0,
-    "SourceFilePath": "c:\\Temp\\full_image\\Image_300dpi.bmp",
-    "SourceFolderPath": "c:\\temp\\registration",
+    "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\7_colors_full_image_with_wave_cycle\\Image_7_colors.bmp",
+    "SourceFolderPath": "",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
-    "SubstrateImageMargin_mm": 2,
+    "SubstrateImageMargin_mm": 2.5,
     "SubstrateWidth_mm": 1000,
     "WaveCircleDiameter_um": 1016,
     "WaveDistanceBetweenDotsX_um": 2709.3,
-    "WaveDistanceBetweenDotsY_um": 3048,
-    "WaveDistanceBetweenTriangleAndFirstRow_um": 9687,
-    "WaveImageMarginX_um": 2000,
-    "WaveTriangleApproximateX_um": 510230,
-    "WaveTriangleApproximateY_um": 4223
+    "WaveDistanceBetweenDotsY_um": 3283,
+    "WaveDistanceBetweenTriangleAndFirstRow_um": 9589,
+    "WaveImageMarginX_um": 2700,
+    "WaveTriangleApproximateX_um": 495500,
+    "WaveTriangleApproximateY_um": 63400
 }
