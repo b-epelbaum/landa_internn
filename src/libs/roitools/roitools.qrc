@@ -1,0 +1,6 @@
+<RCC>
+  <qresource prefix="roiTools">
+    <file>Resources/zoom.png</file>
+    <file>Resources/file_open.png</file>
+  </qresource>
+</RCC>

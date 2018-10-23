@@ -46,9 +46,30 @@
     <ClCompile Include="roiWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="roiRectWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moveableLayerWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="offlineRegTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="commonTabs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="waveTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fullImageTab.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="roitools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="commonTabs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -70,6 +91,21 @@
     <QtMoc Include="roiWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
+    <QtMoc Include="roiRectWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="moveableLayerWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="offlineRegTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="waveTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="fullImageTab.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
   </ItemGroup>
   <ItemGroup>
     <QtUic Include="roiview.ui">
@@ -78,5 +114,24 @@
     <QtUic Include="roiWidget.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="offlineRegTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="waveTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="fullImageTab.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\file_open.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="roitools.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
   </ItemGroup>
 </Project>

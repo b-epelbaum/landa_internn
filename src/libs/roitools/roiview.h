@@ -16,24 +16,4 @@ public:
 private:
 	Ui::roiview ui;
 
-private slots:
-
-	void onLeftImageLoad();
-	void onRightImageLoad();
-
-	void onEditNumOfColorsEdited(const QString &text);
-	void onEditSpinnerStepEdited(const QString &text);
-
-	void onSpinTriangleOffsetXChanged(double dVal );
-	void onSpinTriangleOffsetYChanged(double dVal );
-
-	void onSpinA1Changed(double dVal );
-	void onSpinA2Changed(double dVal );
-
-private:
-
-	QString selectBitmapFile();
-
-	roiWidget * _leftImageBox;
-	roiWidget * _rightImageBox;
 };

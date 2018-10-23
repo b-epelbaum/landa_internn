@@ -5,6 +5,13 @@
 
 #include <QMouseEvent>
 #include <QScrollBar>
+#include <QPainter>
+
+#include "roiRectWidget.h"
+
+#include <opencv2/imgproc.hpp>
+#include <opencv2/imgcodecs.hpp>
+
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -12,15 +19,38 @@
 #pragma comment(lib, "opencv_world342.lib")
 #endif
 
+#define MAX_SCALE 5.0
+#define MIN_SCALE 0.20
+
+#define ZOOM_STEP 1.2
+
+bool double_equals(double a, double b, double epsilon = 0.001)
+{
+    return std::abs(a - b) < epsilon;
+}
+
 RenderWidget::RenderWidget(QWidget *parent)
 	: QOpenGLWidget(parent)
-	, _scale(1.0f)
+	, _glScale(1.0f)
 	, _texture(nullptr)
 	, _program(nullptr)
 	, _imageSize(1, 1)
 {
 	setMouseTracking(true);
-	setCursor(Qt::CrossCursor);
+	parentWidget()->installEventFilter(this);
+
+	auto roiRect = new roiRectWidget(this);
+	roiRect->setGeometry(0, 0, 100, 100);
+	roiRect->raise();
+	roiRect->show();
+	_roiRectArray.push_back(roiRect);
+
+
+	_triangleCross = new moveableLayerWidget(this);
+	_triangleCross->setGeometry(0, 110, 100, 100);
+	_triangleCross->raise();
+	_triangleCross->show();
+
 }
 
 RenderWidget::~RenderWidget()
@@ -44,55 +74,127 @@ RenderWidget::~RenderWidget()
 	doneCurrent();
 }
 
+void RenderWidget::assignScrollBars(QScrollBar* horz, QScrollBar* vert)
+{
+	_horz = horz; _vert = vert;
+
+	auto hMin = _horz->minimum();
+	auto hMax = _horz->maximum();
+}
+
+void RenderWidget::setScales(float glScale, float imageScale)
+{
+	if (_hasImage)
+	{
+		_imageScale = imageScale;
+		_glScale = glScale;
+		updateScroll();
+	}
+}
+
+void RenderWidget::setScrolls(int hScrollVal, int vScrollVal)
+{
+	if (_hasImage)
+	{
+		if ( hScrollVal != _horz->value() )
+			_horz->setValue(hScrollVal);
+		if ( vScrollVal != _vert->value() )
+			_vert->setValue(vScrollVal);
+		update();
+	}
+}
+
+void RenderWidget::showActualPixels ()
+{
+	
+}
+	
+void RenderWidget::showFitOnScreen ()
+{
+	
+}
+	
+void RenderWidget::setZoom ( int zoom  )
+{
+	
+}
+
 void RenderWidget::zoomIn()
 {
-	QRect curRect = geometry();
-	auto w = curRect.width() * 1.25;
-	auto h = curRect.height() * 1.25;
+	if (double_equals(_imageScale, MAX_SCALE ) )
+		return;
 
-	setMinimumSize(w, h);
-	setMaximumSize(w, h);
+	const auto newScale = _imageScale * ZOOM_STEP;
+	if (newScale >= MAX_SCALE )
+	{
+		_imageScale = MAX_SCALE;
+		return;
+	}
 	
-	//_scale = std::min(20.0, _scale + 0.5); 
-	//update(); 
+	_imageScale = newScale;
+	qDebug() << " **** SCALE : " << _imageScale;
+	_glScale =  _glScale * ZOOM_STEP;
+	
+	emit scaleChanged(_glScale, _imageScale);
+	updateScroll();
 }
 	
 void RenderWidget::zoomOut()
 {
-	_scale = std::max(0.5, _scale - 0.5); 
-	update();
+	if (double_equals(_imageScale, MIN_SCALE ) )
+		return;
+
+	const auto newScale = _imageScale / ZOOM_STEP;
+	if (newScale <= MIN_SCALE )
+	{
+		_imageScale = MIN_SCALE;
+		return;
+	}
+	
+	_imageScale = newScale;
+	qDebug() << " **** SCALE : " << _imageScale;
+	_glScale =  _glScale / ZOOM_STEP;
+	emit scaleChanged(_glScale, _imageScale);
+	updateScroll();
 }
 
 
-void RenderWidget::setImage(const QString& file)
+bool RenderWidget::setImage(const QString& file)
 {
 	makeCurrent();
-	QImage img;
-	if (img.load(file)) 
+
+	cv::Mat cvImage = cv::imread(file.toStdString());
+	cv::cvtColor(cvImage, cvImage, CV_BGR2RGB);
+
+	QImage img(static_cast<unsigned char*>(cvImage.data), cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
+	if (_texture)
 	{
-		if (_texture)
-		{
-			delete _texture;
-		}
-		_texture = new QOpenGLTexture(img);
-		_imageSize = img.size();
+		delete _texture;
+	}
+	_texture = new QOpenGLTexture(img);
+	_imageSize = img.size();
+	
+
+	_imageScale = 1.0;
+	_imageRatio = (double)_imageSize.width() / (double)_imageSize.height();
+
+	if ( _imageRatio < 1 ) // vertical image
+	{
+		_glScale = (double)_imageSize.height() /  (double)height();
+	}
+	else
+	{
+		_glScale =  (double)_imageSize.width() /  (double)width();
 	}
 
-	auto imgRatio = (double)_imageSize.width() / (double)_imageSize.height();
-	QRect parentRect = parentWidget()->geometry();
-	QRect thisRect { 0,0,0,0};
-
-	if ( imgRatio < 1 ) // vertical image
-	{
-		thisRect.setWidth(parentRect.height() *imgRatio );
-		thisRect.setHeight(parentRect.height());
-	}
-
-	setMinimumSize(thisRect.width(), thisRect.height());
-	setMaximumSize(thisRect.width(), thisRect.height());
-
+	_hasImage = true;
+	_startWidgetSize = size();
+	setCursor(Qt::CrossCursor);
 	doneCurrent();
 	repaint();
+
+	emit scaleChanged(_glScale, _imageScale);
+	return true;
 }
 
 void RenderWidget::initializeGL()
@@ -167,6 +269,11 @@ void RenderWidget::initializeGL()
 
 void RenderWidget::paintGL()
 {
+	if(!_hasImage )
+		return;
+
+	QPainter painter (this);
+	painter.beginNativePainting();
 	glClearColor(0, 0, 0.0, 1);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -185,24 +292,27 @@ void RenderWidget::paintGL()
 		ratioY /= ratioX; ratioX = 1;
 	}
 
-	ratioX *= _scale; 
-	ratioY *= _scale;
+	ratioX *= _glScale; 
+	ratioY *= _glScale;
 
-	GLfloat offsetY = 0;
+	_offsetY = 0;
 	if (_horz && ratioY > 1.0f) 
 	{
-		offsetY = (2 * _horz->value() / GLfloat(_horz->maximum()) - 1) * (ratioY - 1.0f);
+		_offsetY = (2 * _horz->value() / GLfloat(_horz->maximum()) - 1) * (ratioY - 1.0f);
 	}
-	GLfloat offsetX = 0;
+	_offsetX = 0;
 	if (_vert && ratioX > 1.0f) 
 	{
-		offsetX = (2 * _vert->value() / GLfloat(_vert->maximum()) - 1) * (ratioX - 1.0f);
+		_offsetX = (2 * _vert->value() / GLfloat(_vert->maximum()) - 1) * (ratioX - 1.0f);
 	}
+	
+	
 
 	QMatrix4x4 m;
 	m.ortho(-1, 1, -1, 1, -1, 1);
-	m.translate(-offsetX, offsetY, 0.0f);
+	m.translate(-_offsetX, _offsetY, 0.0f);
 	m.scale(ratioX, ratioY, 1.0f);
+
 
 	_vbo.bind();
 	_program->bind();
@@ -221,6 +331,26 @@ void RenderWidget::paintGL()
 
 	_program->release();
 	_vbo.release();
+	glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+	painter.endNativePainting();
+
+	painter.fillRect(10,10, 100, 100, QColor(Qt::darkBlue));
+
+	_drawnImageLeft = _vert->value() * _imageSize.width() / (_vert->maximum() + _vert->pageStep());
+	_drawnImageWidth = _vert->pageStep() * _imageSize.width() / (_vert->maximum() + _vert->pageStep());
+
+	qDebug() << " --- PIC LEFT : " << _drawnImageLeft;
+	qDebug() << " --- PIC WIDTH : " << _drawnImageWidth;
+}
+
+void RenderWidget::updateLayers()
+{
+	auto geom = _triangleCross->geometry();
+	auto rc = _triangleCross->rect();
+
+	_triangleCross->move(_triangleCross->geometry().topLeft() * _imageScale);
 }
 
 void RenderWidget::resizeGL(int w, int h)
@@ -228,8 +358,35 @@ void RenderWidget::resizeGL(int w, int h)
 	glViewport(0, 0, w, h);
 }
 
-void RenderWidget::update() 
+void RenderWidget::updateHScroll( int hVal)
 {
+	for ( const auto  rcWidget : _roiRectArray )
+	{
+		rcWidget->move(-hVal, 0);
+	}
+	update();
+	//updateScroll();
+}
+
+void RenderWidget::updateVScroll( int vVal)
+{
+	for ( const auto  rcWidget : _roiRectArray )
+	{
+		rcWidget->move(0, -vVal * _horz->pageStep());
+	}
+	update();
+	//updateScroll();
+}
+
+void RenderWidget::updateScroll() 
+{
+	if(!_hasImage )
+	{
+		_horz->setEnabled(false);
+		_vert->setEnabled(false);
+		return;
+	}
+
 	QRect qs = geometry();
 
 	QSize vp = size();
@@ -244,14 +401,14 @@ void RenderWidget::update()
 		ratioY /= ratioX; ratioX = 1;
 	}
 
-	ratioX *= _scale; ratioY *= _scale;
+	ratioX *= _glScale; ratioY *= _glScale;
 
 	if (_horz) 
 	{
 		int total = _imageSize.width();
 		if (ratioY > 1.0f) 
 		{
-			int page = int(total / _scale);
+			int page = int(total / _glScale);
 			_horz->setMinimum(0);
 			_horz->setMaximum(total - page);
 			_horz->setPageStep(page);
@@ -285,20 +442,33 @@ void RenderWidget::update()
 			_vert->setEnabled(false);
 		}
 	}
-
-	repaint();
+	update();
+	updateLayers();
 }
 
 void RenderWidget::mouseMoveEvent(QMouseEvent* event)
 {
-	emit cursorPos(event->pos());
+	if(!_hasImage )
+		return;
+
+	QSize sentSize;
+	
 	if (_rubberBand && _rubberBand->isVisible())
+	{
 		_rubberBand->setGeometry(QRect(_origin, event->pos()).normalized());
+		sentSize = _rubberBand->geometry().size();
+	}
+
+	emit cursorPos(event->pos() / _imageScale, sentSize / _imageScale);
 }
 
 void RenderWidget::mousePressEvent(QMouseEvent *event)
 {
-    _origin = event->pos();
+	if(!_hasImage )
+		return;
+	
+	_origin = event->pos();
+
     if (!_rubberBand)
         _rubberBand = new QRubberBand(QRubberBand::Rectangle, this);
     _rubberBand->setGeometry(QRect(_origin, QSize()));
@@ -307,12 +477,39 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
 
 void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+	if(!_hasImage )
+		return;
+
     _rubberBand->hide();
     // determine selection, for example using QRect::intersects()
     // and QRect::contains().
 }
 
+
+bool RenderWidget::eventFilter(QObject* obj, QEvent* event)
+{
+	if(!_hasImage )
+		return QObject::eventFilter(obj, event);
+
+	if (event->type() == QEvent::Resize) 
+	{
+		auto newSize = size();
+		qDebug() << " **** SIZE : " << newSize;
+		if (_imageRatio < 1 ) // vertical
+		{
+			auto heightRatio = (float)newSize.height() / (float)_startWidgetSize.height();
+			_imageScale = _imageScale * heightRatio;
+			_startWidgetSize = newSize;
+		}
+	}
+	return QObject::eventFilter(obj, event);
+}
+
+
 void RenderWidget::wheelEvent(QWheelEvent* event)
 {
+	if(!_hasImage )
+		return;
+
 	event->angleDelta().y() < 0 ? zoomOut() : zoomIn();
 }

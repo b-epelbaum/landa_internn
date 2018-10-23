@@ -16,6 +16,7 @@
 
 #include "frameRef.h"
 
+#include "common/june_defs.h"
 #include "common/june_exceptions.h"
 #include "RealTimeStats.h"
 #include "applog.h"
@@ -154,13 +155,9 @@ void JuneUIWnd::initUI()
 
 	_onRunViewer = ui.oneRunPlaceholder;
 
-	_scrollArea = ui.scrollArea;
 	_imageBox->setBackgroundRole(QPalette::Base);
 	_imageBox->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	_imageBox->setScaledContents(true);
-
-	_scrollArea->setBackgroundRole(QPalette::Dark);
-	_scrollArea->setWidget(_imageBox);
 	
 	createActions();
 	createStatusBar();
@@ -196,154 +193,22 @@ void JuneUIWnd::initUI()
 	_progressBarTimer.setInterval(150);
 
 	connect(&_progressBarTimer, &QTimer::timeout, this, &JuneUIWnd::onTimerTick);
-}
 
-void JuneUIWnd::initCore()
-{
-	CLIENT_SCOPED_LOG << "Initializing core engine...";
-	auto core = ICore::get();
+	connect(ui.verticalScrollBar, &QScrollBar::valueChanged, this, &JuneUIWnd::onVerticalScrollBarValueChanged);
+	connect(ui.horizontalScrollBar, &QScrollBar::valueChanged, this, &JuneUIWnd::onHorizontalScrollBarValueChanged);
 
-	connect (core.get()->getClassObject(), SIGNAL(coreStopped()), this, SLOT(onCoreStopped()) );
-	connect (core.get()->getClassObject(), SIGNAL(coreException(const LandaJune::BaseException&)), this, SLOT(onCoreException(const LandaJune::BaseException&)) );
-	connect (core.get()->getClassObject(), SIGNAL(frameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)), this, SLOT(onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)) );
-	connect (core.get()->getClassObject(), SIGNAL(offlineFileSourceCount(int)), this, SLOT(onOfflineFileCount(int)) );
-	connect (core.get()->getClassObject(), SIGNAL(frameProcessed(int)), this, SLOT(onFrameProcessed(int)) );
-	try
-	{
-		core->init(isUIMode());
-	}
-	catch (BaseException& e)
-	{
-		handleException(e);
-	}
-
-	_onRunViewer->setTargetFolder(QString::fromStdString(core->getRootFolderForOneRun()));
-	CLIENT_SCOPED_LOG << "Core engine initialized";
-}
-
-void JuneUIWnd::onCoreStopped()
-{
-	if (isUIMode() )
-	{
-		Helpers::RealTimeStats::rtStats()->reset();
-		_updateStatsTimer->stop();
-		enableUIForProcessing(true);
-	}
-	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
-	_bRunning = false;
-
-	if (isBatchMode())
-	{
-		CLIENT_SCOPED_LOG << "--------------------------------------------------";
-		CLIENT_SCOPED_LOG << "Processing statistics :";
-		CLIENT_SCOPED_LOG << Helpers::RealTimeStats::rtStats()->to_string(true).c_str();
-		CLIENT_SCOPED_LOG << "--------------------------------------------------";
-		qApp->quit();
-	}
-}
-
-void JuneUIWnd::onCoreException(const BaseException& ex)
-{
-}
-
-void JuneUIWnd::onFrameProcessed ( int frameIndex )
-{
-	if ( statusProgressBar->maximum() != 0)
-	{
-		statusProgressBar->setValue(statusProgressBar->value() + 1);
-		statusFrameCount->setText(QString(" Frames processed : ") + QString::number(statusProgressBar->value()));
-	}
-	else
-	{
-		statusFrameCount->setText(QString(" Frames processed : ") + QString::number(frameIndex+1));
-	}
 }
 
 void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
 {
 	updateFrameImage(fData);
+	updateFrameZone();
 }
 
 void JuneUIWnd::onOfflineFileCount(int fileCount)
 {
 	statusProgressBar->setRange(0, fileCount);
 	statusProgressBar->setValue(0);
-}
-
-void JuneUIWnd::enumerateFrameProviders() 
-{
-	// UI code
-	CLIENT_SCOPED_LOG << "Enumerating frame providers...";
-	ui.frameSourceCombo->clear();
-	try
-	{
-		auto listOfProviders = ICore::get()->getFrameProviderList();
-		for (auto& provider : listOfProviders)
-		{
-			CLIENT_SCOPED_LOG << "\tadding provider ==> " << provider->getName();
-			ui.frameSourceCombo->addItem(provider->getName(), QVariant::fromValue(provider));
-		}
-		listOfProviders.empty() ? ui.frameSourceCombo->setCurrentIndex(-1) : ui.frameSourceCombo->setCurrentIndex(0);
-
-		// look for provider in configuration settings 		
-		auto frameProvider = ICore::get()->getProcessParameters()->getParamProperty("FrameProviderName").toString();
-		if ( frameProvider.isEmpty() )
-		{
-			CLIENT_SCOPED_LOG << "Configuration frame provider has not been found, setting default value...";
-		}
-		else
-		{
-			CLIENT_SCOPED_LOG << "Configuration frame provider ==> " <<  frameProvider;
-			if ( ui.frameSourceCombo->findText(frameProvider) != - 1 )
-				ui.frameSourceCombo->setCurrentText(frameProvider);
-		}
-
-		updateFrameProviderParamsView(ui.frameSourceCombo->currentIndex());
-	}
-	catch ( BaseException& ex)
-	{
-		handleException(ex);
-	}
-
-	CLIENT_SCOPED_LOG << "Finished frame providers enumeration";
-
-}
-
-void JuneUIWnd::enumerateAlgoRunners()
-{
-	// UI code
-	CLIENT_SCOPED_LOG << "Enumerating algorithm runners...";
-	ui.algoHandlerCombo->clear();
-	try
-	{
-		auto listOfAlgo = ICore::get()->getAlgorithmRunnerList();
-		for (auto& algo : listOfAlgo)
-		{
-			CLIENT_SCOPED_LOG << "\tadding algorith runner ==> " << algo->getName();
-			ui.algoHandlerCombo->addItem(algo->getName(), QVariant::fromValue(algo));
-		}
-		listOfAlgo.empty() ? ui.algoHandlerCombo->setCurrentIndex(-1) : ui.algoHandlerCombo->setCurrentIndex(0);
-
-		// look for algorithm runner in configuration settings 		
-		auto algoRunner = ICore::get()->getProcessParameters()->getParamProperty("AlgorithmRunner").toString();
-
-		if ( algoRunner.isEmpty() )
-		{
-			CLIENT_SCOPED_LOG << "Configuration algorithm runner has not been found, setting default value...";
-		}
-		else
-		{
-			CLIENT_SCOPED_LOG << "Configuration algorithm runner ==> " <<  algoRunner;
-			if ( ui.algoHandlerCombo->findText(algoRunner) != - 1 )
-				ui.algoHandlerCombo->setCurrentText(algoRunner);
-		}
-		updateAlgoRunnerParamsView(ui.algoHandlerCombo->currentIndex());
-	}
-	catch (BaseException & ex)
-	{
-		handleException(ex);
-	}
-	CLIENT_SCOPED_LOG << "Finished algorithm runner enumeration";
 }
 
 
@@ -375,7 +240,7 @@ void JuneUIWnd::initProcessParametersUIMode()
 		else
 		{
 			CLIENT_SCOPED_LOG << "Command line config file is empty, looking for saved process parameters configuration file...";
-			QSettings settings("Landa Corp", "June QCS");
+			QSettings settings(REG_COMPANY_NAME, REG_ROOT_KEY);
 			auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
 			if ( !lastConfigFile.isEmpty())
 				sourceConfig = lastConfigFile;
@@ -568,60 +433,12 @@ void JuneUIWnd::runBatchMode( bool bAll )
 	}
 }
 
-void JuneUIWnd::run( bool bAll )
-{
-	if (isUIMode())
-	{
-		runUIMode(bAll);
-		return;
-	}
-
-	if ( isBatchMode())
-	{
-		runBatchMode(bAll);
-		return;
-	}
-}
-
-void JuneUIWnd::stop()
-{
-	CLIENT_SCOPED_LOG << "stopping processing...";
-	
-	try
-	{
-		ICore::get()->stop();
-	}
-	catch (BaseException& ex)
-	{
-		handleException(ex);
-	}
-
-
-	Helpers::RealTimeStats::rtStats()->reset();
-	_updateStatsTimer->stop();
-	enableUIForProcessing(true);
-	_bRunning = false;
-
-	CLIENT_SCOPED_LOG << " ----------- processing stopped --------------";
-}
 
 
 void JuneUIWnd::showROITools()
 {
 	roitools _roiTools;
 	_roiTools.showROITools(this);
-}
-
-void JuneUIWnd::handleException (BaseException& ex)
-{
-	std::ostringstream ss;
-	print_exception(ex, ss);
-	CLIENT_SCOPED_ERROR << ss.str().c_str();
-
-	if ( isBatchMode() )
-	{
-		qApp->quit();
-	}
 }
 
 void JuneUIWnd::createActions()
@@ -790,7 +607,6 @@ void JuneUIWnd::normalSize()
 void JuneUIWnd::fitToWindow()
 {
 	const auto fitToWindow = fitToWindowAct->isChecked();
-	_scrollArea->setWidgetResizable(fitToWindow);
 	if (!fitToWindow)
 		normalSize();
 	updateActions();
@@ -809,9 +625,6 @@ void JuneUIWnd::scaleImage(double factor)
 	Q_ASSERT(_imageBox->pixmap());
 	_scaleFactor *= factor;
 	_imageBox->resize(_scaleFactor * _imageBox->pixmap()->size());
-
-	adjustScrollBar(_scrollArea->horizontalScrollBar(), factor);
-	adjustScrollBar(_scrollArea->verticalScrollBar(), factor);
 
 	zoomInAct->setEnabled(_scaleFactor < 3.0);
 	zoomOutAct->setEnabled(_scaleFactor > 0.333);
@@ -990,13 +803,13 @@ void JuneUIWnd::onUpdateCalculatedParams()
 
 void JuneUIWnd::onSaveConfig()
 {
-	QSettings settings("Landa Corp", "June QCS");
-	auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+	QSettings settings(REG_COMPANY_NAME, REG_ROOT_KEY);
+	auto lastConfigFile = settings.value(CLIENT_KEY_LAST_RECIPE).toString();
 
 	if ( lastConfigFile.isEmpty() )
 	{
 		auto docRoot = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
-		docRoot += "/Landa Corp/QCS Configuration";
+		docRoot += DEF_RECIPE_FOLDER;
 		lastConfigFile = docRoot;
 		(void)QDir().mkpath(lastConfigFile);
 		lastConfigFile += "/default.jconfig";
@@ -1023,13 +836,13 @@ void JuneUIWnd::onSaveConfig()
 void JuneUIWnd::onLoadConfig()
 {
 	CLIENT_SCOPED_LOG << "Loading configuration file...";
-	QSettings settings("Landa Corp", "June QCS");
-	auto lastConfigFile = settings.value("UIClient/lastConfigFile").toString();
+	QSettings settings(REG_COMPANY_NAME, REG_ROOT_KEY);
+	auto lastConfigFile = settings.value(CLIENT_KEY_LAST_RECIPE).toString();
 
 	if ( lastConfigFile.isEmpty() )
 	{
 		auto docRoot = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation)[0];
-		docRoot += "/Landa Corp/QCS Configuration";
+		docRoot += DEF_RECIPE_FOLDER;
 		lastConfigFile = docRoot;
 		(void)QDir().mkpath(lastConfigFile);
 	}
@@ -1201,7 +1014,8 @@ void JuneUIWnd::updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameDat
 {
 	const auto& sourceWidth = fData->_img->cols;
 	const auto& sourceHeight = fData->_img->rows;
-		
+	_originalFrame = fData->_img;
+
 	auto const imgRatio = static_cast<double>(sourceWidth) / static_cast<double>(sourceHeight);
 	if ( _lastFrameImageRatio != imgRatio )
 	{
@@ -1226,6 +1040,56 @@ void JuneUIWnd::updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameDat
 	ui.frameBox->setPixmap(QPixmap::fromImage(QImage(static_cast<unsigned char*>(previewImg.data), previewImg.cols, previewImg.rows, previewImg.step, QImage::Format_RGB888)));
 }
 
+void JuneUIWnd::updateFrameZone()
+{
+	if (!_originalFrame) {
+		return;
+	}
+
+	ui.verticalScrollBar->setMaximum(_originalFrame->rows);
+	ui.horizontalScrollBar->setMaximum(_originalFrame->cols);
+
+	cv::Mat croppedImg;
+	_frameZoneSize = ui.frameZone->size();
+	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
+	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
+	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
+}
+
+void JuneUIWnd::onVerticalScrollBarValueChanged(int val)
+{
+	if (!_originalFrame) {
+		return;
+	}
+
+	if (val + _frameZoneSize.height() >= _originalFrame->rows) {
+		return;
+	}
+	_frameZonePosition.setY(val);
+	
+	cv::Mat croppedImg;
+	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
+	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
+	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
+}
+
+void JuneUIWnd::onHorizontalScrollBarValueChanged(int val)
+{
+	if (!_originalFrame) {
+		return;
+	}
+
+	if (val + _frameZoneSize.width() >= _originalFrame->cols) {
+		return;
+	}
+	_frameZonePosition.setX(val);
+
+	cv::Mat croppedImg;
+	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
+	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
+	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
+}
+
 void JuneUIWnd::resizeEvent(QResizeEvent* event)
 {
 	_frameBoxWidth = ui.frameBox->parentWidget()->geometry().width();
@@ -1234,3 +1098,5 @@ void JuneUIWnd::resizeEvent(QResizeEvent* event)
 	_frameBoxRatio = static_cast<double>(_frameBoxWidth) / static_cast<double>(_frameBoxHeight);
 
 }
+
+#include "core_routines.hpp"
