@@ -21,7 +21,7 @@ void moveableLayerWidget::paintEvent(QPaintEvent* event)
 	QPen pen ((QBrush
 			(QColor(255,0,0,255))
 		)
-		, 6
+		, 3
 	);
 
 	painter.setPen (pen);

@@ -19,7 +19,7 @@ roiWidget::roiWidget(QWidget *parent)
 	connect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
 	connect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
 
-	ui.openGLWidget->assignScrollBars(ui.verticalScrollBar, ui.horizontalScrollBar);
+	ui.openGLWidget->assignScrollBars(ui.horizontalScrollBar, ui.verticalScrollBar);
 	ui.imageCoordsLabel->setText ("");
 
 	QMenu *menu = new QMenu();
@@ -83,6 +83,7 @@ void roiWidget::setZoom(int zoomPercentage)
 
 void roiWidget::setScales(float glScale, float imageScale)
 {
+	ui.labelZoom->setText(QString::number(int(imageScale * 100)));
 	_renderWidget->setScales(glScale, imageScale);
 }
 
@@ -91,10 +92,12 @@ void roiWidget::setScrolls(int hScrollVal, int vScrollVal)
 	disconnect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
 	disconnect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
 	ui.horizontalScrollBar->setValue(hScrollVal);
+
 	ui.verticalScrollBar->setValue(vScrollVal);
 	_renderWidget->updateHScroll(hScrollVal);
-	_renderWidget->updateHScroll(vScrollVal);
+	_renderWidget->updateVScroll(vScrollVal);
 	_renderWidget->update();
+
 	connect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
 	connect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
 

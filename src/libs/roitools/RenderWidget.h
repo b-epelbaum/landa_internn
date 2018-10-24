@@ -6,6 +6,8 @@
 #include <QOpenGLBuffer>
 #include <QRubberBand>
 #include <QVector>
+#include <QVector4D>
+#include <QMatrix4x4>
 #include "moveableLayerWidget.h"
 
 class roiRectWidget;
@@ -44,8 +46,14 @@ public:
 	bool setImage(const QString& file);
 	QSize getImageSize () const { return _hasImage ? _imageSize : QSize{}; }
 	
+	void addBox(const QRect & rc) { _boxes.push_back(rc); }
+	void cleanBoxes(void) { _boxes.clear(); }
+
 	void updateHScroll( int hVal);
 	void updateVScroll( int vVal);
+
+	QPoint toImageC(const QPoint & pt);
+	QSize toImageC(const QSize & sz);
 
 signals:
 
@@ -56,6 +64,8 @@ protected:
 	void initializeGL() override;
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
+
+	QMatrix4x4 getModelViewProjMatrix(void);
 
 	void updateLayers();
 	void updateScroll();
@@ -88,11 +98,8 @@ protected:
 	QPoint _origin;
 	QRubberBand * _rubberBand = nullptr;
 
-	QScrollBar *_horz = nullptr;
-	QScrollBar *_vert = nullptr;
-
-	QVector<roiRectWidget*> _roiRectArray;
-
+	QScrollBar *	_horizontalScrollbar = nullptr;
+	QScrollBar *	_verticalScrollbar = nullptr;
 	moveableLayerWidget * _triangleCross;
-
+	QList<QRect> _boxes;
 };
