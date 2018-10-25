@@ -144,7 +144,20 @@ void BaseCore::runOne()
 	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
 	std::shared_ptr<ProcessParameters> processParametersOnce;
 	processParametersOnce.reset(new ProcessParameters(*processParams.get()));
-	
+
+	// clean target folder
+	auto strTargetFolder = QString::fromStdString(getRootFolderForOneRun());
+
+	QDir dir("c:\\Temp\\june_out\\OneRun");
+	//dir.setNameFilters(QStringList() << "*.*");
+	dir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot );
+	for(auto const& dirFile :  dir.entryList())
+	{
+		if (!dir.remove(dirFile))
+			CORE_SCOPED_ERROR << "Cannot remove file for one run : " << dirFile;
+	}
+
+
 	processParametersOnce->setImageMaxCount(1);
 	processParametersOnce->setRootOutputFolder(QString::fromStdString(getRootFolderForOneRun()));
 
@@ -266,9 +279,11 @@ void BaseCore::stop()
 
 std::string BaseCore::getRootFolderForOneRun() const
 {
-	auto tempRoot = QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0];
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
+	auto tempRoot =  processParams->RootOutputFolder();
+	//auto tempRoot = QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0];
 
-	tempRoot += "/Landa/OneRun/";
+	tempRoot += "/OneRun/";
 
 	auto stdPath = tempRoot.toStdString();
 

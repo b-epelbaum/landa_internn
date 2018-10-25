@@ -13,8 +13,8 @@
             "Max": {
                 "ColorName": "",
                 "H": 255,
-                "S": 92,
-                "V": 140
+                "S": 50,
+                "V": 60
             },
             "Min": {
                 "ColorName": "",
@@ -27,14 +27,14 @@
             "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
-                "H": 120,
+                "H": 110,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 80,
-                "S": 90,
+                "H": 90,
+                "S": 100,
                 "V": 170
             }
         },
@@ -48,28 +48,73 @@
             },
             "Min": {
                 "ColorName": "",
-                "H": 135,
-                "S": 90,
-                "V": 70
+                "H": 160,
+                "S": 100,
+                "V": 170
             }
         },
         {
             "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 40,
+                "H": 35,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 10,
-                "S": 90,
+                "H": 15,
+                "S": 100,
                 "V": 170
+            }
+        },
+        {
+            "ColorName": "Orange",
+            "Max": {
+                "ColorName": "",
+                "H": 14,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 5,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Green",
+            "Max": {
+                "ColorName": "",
+                "H": 70,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 40,
+                "S": 100,
+                "V": 100
+            }
+        },
+        {
+            "ColorName": "Blue",
+            "Max": {
+                "ColorName": "",
+                "H": 130,
+                "S": 150,
+                "V": 100
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 110,
+                "S": 70,
+                "V": 51
             }
         }
     ],
-    "CycleImage": true,
+    "CycleImage": false,
     "EnableAlgorithmProcessing": true,
     "EnableAnyDataSaving": true,
     "EnableCSVSaving": true,
@@ -80,27 +125,27 @@
     "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,
-    "I2SOffsetFromPaperEdgeX_mm": 3.19,
-    "I2SOffsetFromPaperEdgeY_mm": 10.5,
+    "I2SOffsetFromPaperEdgeX_mm": 3.4,
+    "I2SOffsetFromPaperEdgeY_mm": 7.2,
     "I2SROIHeight_mm": 8.5,
     "I2SROIWidth_mm": 8.5,
     "ImageMaxCount": -1,
     "JobID": 0,
     "OffsetBetweenTriangles_mm": 990,
-    "OffsetFromLeftEdge_mm": 9.6,
+    "OffsetFromLeftEdge_mm": 3.16,
     "PanelCount": 11,
-    "ParalellizeCalculations": true,
+    "ParalellizeCalculations": false,
     "Pixel2MM_X": 0.08466683,
     "Pixel2MM_Y": 0.08660258,
-    "ProcessLeftC2C": false,
-    "ProcessLeftEdge": false,
-    "ProcessLeftI2S": false,
-    "ProcessLeftStrip": false,
+    "ProcessLeftC2C": true,
+    "ProcessLeftEdge": true,
+    "ProcessLeftI2S": true,
+    "ProcessLeftStrip": true,
     "ProcessRightC2C": false,
     "ProcessRightEdge": false,
     "ProcessRightI2S": false,
     "ProcessRightStrip": false,
-    "ProcessWave": true,
+    "ProcessWave": false,
     "ProcessWaveI2S": false,
     "ReferenceColorTriplet": {
         "ColorName": "",
@@ -115,30 +160,30 @@
     ],
     "SISO_ConfigurationFilePath": "",
     "SISO_OutputImageFormat": "",
-    "SaveC2CRegistrationCSV": false,
-    "SaveI2SPlacementCSV": false,
+    "SaveC2CRegistrationCSV": true,
+    "SaveI2SPlacementCSV": true,
     "SaveOverlayImages": true,
-    "SaveOverlayLeftC2C": false,
-    "SaveOverlayLeftEdge": false,
-    "SaveOverlayLeftI2S": false,
+    "SaveOverlayLeftC2C": true,
+    "SaveOverlayLeftEdge": true,
+    "SaveOverlayLeftI2S": true,
     "SaveOverlayRightC2C": false,
     "SaveOverlayRightEdge": false,
     "SaveOverlayRightI2S": false,
-    "SaveOverlayWave": true,
+    "SaveOverlayWave": false,
     "SaveSourceImages": true,
-    "SaveSourceLeftC2C": false,
-    "SaveSourceLeftI2S": false,
-    "SaveSourceLeftStrip": false,
+    "SaveSourceLeftC2C": true,
+    "SaveSourceLeftI2S": true,
+    "SaveSourceLeftStrip": true,
     "SaveSourceRightC2C": false,
     "SaveSourceRightI2S": false,
     "SaveSourceRightStrip": false,
-    "SaveSourceWave": true,
-    "SaveWaveCSV": true,
+    "SaveSourceWave": false,
+    "SaveWaveCSV": false,
     "ScanBitDepth": 24,
     "SheetID": 0,
-    "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\4_colors_wave_only_cycle\\Current0001.bmp",
-    "SourceFolderPath": "",
-    "StripWidth_mm": 13.7,
+    "SourceFilePath": "",
+    "SourceFolderPath": "d:\\Temp\\JUNE\\june_offline_input\\7_colors_registration_left_only_with_defects_offline",
+    "StripWidth_mm": 8.8,
     "SubstrateHeight_mm": 700,
     "SubstrateImageMargin_mm": 2,
     "SubstrateWidth_mm": 1000,

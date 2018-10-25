@@ -15,13 +15,18 @@ moveableLayerWidget::~moveableLayerWidget()
 }
 
 
+QPoint moveableLayerWidget::getCenterPoint(QPoint topLeft) const
+{
+	return QPoint(topLeft.x() + rect().width() / 2, topLeft.y() + rect().height() / 2);
+}
+
 void moveableLayerWidget::paintEvent(QPaintEvent* event)
 {
 	QPainter painter (this);
 	QPen pen ((QBrush
 			(QColor(255,0,0,255))
 		)
-		, 6
+		, 3
 	);
 
 	painter.setPen (pen);
@@ -35,7 +40,8 @@ void moveableLayerWidget::mouseMoveEvent(QMouseEvent *event)
 {
 	if (event->buttons() & Qt::LeftButton && _dragPosition.x() != -1 )
 	{
-		move(event->globalPos() - _dragPosition);
+		_lastDropPosition = event->globalPos() - _dragPosition;
+		move(_lastDropPosition);
 		event->accept();
 	}
 }
@@ -46,7 +52,7 @@ void moveableLayerWidget::mousePressEvent(QMouseEvent *event)
 	{
 		_dragPosition = event->globalPos() - frameGeometry().topLeft();
 	}
-	setCursor(Qt::DragMoveCursor);
+	setCursor(Qt::BlankCursor);
 	event->accept();
 }
 
@@ -56,7 +62,9 @@ void moveableLayerWidget::mouseReleaseEvent(QMouseEvent *event)
 	{
 		_dragPosition = QPoint(-1, -1);
 		event->accept();
+		setCursor(Qt::BlankCursor);
 		setCursor(Qt::OpenHandCursor);
+		emit dragStopped(geometry().topLeft(), getCenterPoint(geometry().topLeft()));
 	}
 
 }

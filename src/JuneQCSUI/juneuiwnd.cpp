@@ -1042,10 +1042,13 @@ void JuneUIWnd::updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameDat
 
 void JuneUIWnd::updateFrameZone()
 {
+	// TODO : fix crash
+	//return;
+
 	if (!_originalFrame) {
 		return;
 	}
-
+/*
 	ui.verticalScrollBar->setMaximum(_originalFrame->rows);
 	ui.horizontalScrollBar->setMaximum(_originalFrame->cols);
 
@@ -1054,6 +1057,7 @@ void JuneUIWnd::updateFrameZone()
 	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
 	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
 	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
+*/
 }
 
 void JuneUIWnd::onVerticalScrollBarValueChanged(int val)

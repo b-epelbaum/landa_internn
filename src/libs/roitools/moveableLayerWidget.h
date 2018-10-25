@@ -10,7 +10,13 @@ public:
 	moveableLayerWidget(QWidget *parent);
 	~moveableLayerWidget();
 
+signals:
+
+	 void dragStopped( QPoint topLeft, QPoint center );
+
 protected:
+
+	QPoint getCenterPoint (QPoint topLeft) const;
 
 	void paintEvent(QPaintEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
@@ -18,4 +24,5 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 	QPoint _dragPosition { -1, -1 };
+	QPoint _lastDropPosition { -1, -1 };
 };
