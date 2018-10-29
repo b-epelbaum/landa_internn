@@ -118,8 +118,11 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 
 	// values along tested line
 	for (iY = iY1; iY != iY2; iY += iStep)
-		if (iY >= 0 && iX < imImage.rows)
+		if (iY >= 0 && iY < imImage.rows) {
+			unsigned char dd = imImage.at<byte>(iY, iX) ;
 			afVal[iY - iMin_Y] = (float)imImage.at<byte>(iY, iX);
+			float yy = afVal[iY - iMin_Y] ;
+		}
 
 	// sort to find bright and dark pixels
 	qsort(afVal, iLen, sizeof(afVal[0]), Compare_Float);
@@ -155,6 +158,10 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 			iPoint_Y = iY;
 			break;
 		}
+
+	// check in image
+	if (iPoint_Y - iStep < 0)
+		return 0 ;
 
 	// get the sub pixel resolution
 	float fVal1 = (float)imImage.at<byte>(iPoint_Y - iStep, iX);

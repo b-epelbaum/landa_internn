@@ -228,9 +228,37 @@ void detect_wave(PARAMS_WAVE_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR waveTriangle
 //	}
 //	std::fstream tRes("e:\\temp\\Wave.txt", std::ios::app);
 
+	// find average distance in X between circles
+	// initial average is found, and then only distances near this average are use to find more accurate average
+	float fMean_Dist_X = 0 ;
+	int iSamples = 0 ;
+	for (iCnt = 1; iCnt < iLabels - 1; iCnt++) {
+		float fDiff_X = g_atCenters_Micron[iCnt]._x - g_atCenters_Micron[iCnt - 1]._x ;
+
+		if (g_atCenters_Micron[iCnt]._x > 0 && g_atCenters_Micron[iCnt-1]._x > 0) {
+			fMean_Dist_X += fDiff_X ;
+			iSamples ++ ;
+		}
+	}
+	float fAverage_Circle_Dist = fMean_Dist_X /= max (iSamples, 1) ;
+
+	fMean_Dist_X = 0;
+	iSamples = 0;
+	for (iCnt = 1; iCnt < iLabels - 1; iCnt++) {
+		float fDiff_X = g_atCenters_Micron[iCnt]._x - g_atCenters_Micron[iCnt - 1]._x;
+
+		if (g_atCenters_Micron[iCnt]._x > 0 && g_atCenters_Micron[iCnt - 1]._x > 0 && fabsf (fDiff_X - fAverage_Circle_Dist)  < 500) {
+			fMean_Dist_X += fDiff_X;
+			iSamples++;
+		}
+	}
+	fAverage_Circle_Dist = fMean_Dist_X /= max(iSamples, 1);
+
+
+	// assign closest circle to 'synthetic grid' - from the fAverage_Circle_Dist
 	int iIndex_Center = (output->_colorCenters.size() - 1) / 2;
 	for (iCnt = 0 ; iCnt < output->_colorCenters.size () ; iCnt ++) {
-		int iEstimated_X = waveTriangleOut->_triangeCorner._x + (iCnt - iIndex_Center) * 2713.6 ;
+		int iEstimated_X = waveTriangleOut->_triangeCorner._x + (iCnt - iIndex_Center) * fAverage_Circle_Dist ; // 2713.6 ;
 
 		int iMin_Dist = 500 ;
 		int iMin_Dist_Index = -1 ;
