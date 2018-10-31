@@ -164,20 +164,9 @@ void BaseCore::runOne()
 	processParametersOnce.reset(new ProcessParameters(*processParams.get()));
 
 	// clean target folder
-	auto strTargetFolder = QString::fromStdString(getRootFolderForOneRun());
-
-	//QDir dir("c:\\Temp\\june_out\\OneRun");
-	QDir dir(strTargetFolder);
-
-	//dir.setNameFilters(QStringList() << "*.*");
-	dir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot );
-	for(auto const& dirFile :  dir.entryList())
-	{
-		if (!dir.remove(dirFile))
-			CORE_SCOPED_ERROR << "Cannot remove file for one run : " << dirFile;
-	}
-
-
+	
+	cleanDestinationFolder(QString::fromStdString(getRootFolderForOneRun()));
+	
 	processParametersOnce->setImageMaxCount(1);
 	processParametersOnce->setRootOutputFolder(QString::fromStdString(getRootFolderForOneRun()));
 
@@ -210,6 +199,9 @@ void BaseCore::run(BaseParametersPtr params)
 		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_IS_BUSY);
 	}
 
+	// TODO : find better solution for waiting flag
+	// reset the waiting flag
+	_waitingForFirstSkippedHandledFrame = false;
 
 	// initialize frame pool
 	initFramePool();
@@ -259,6 +251,7 @@ void BaseCore::stop()
 	CORE_SCOPED_LOG << "Frame runner thread finished";
 
 	// stop file writer
+	// TODO : change the waiting behaviour, because writing queue can be still busy
 	initFileWriter(false);
 	CORE_SCOPED_LOG << "File writer stopped";
 
@@ -269,7 +262,26 @@ void BaseCore::stop()
 	if ( _currentAlgorithmRunner)
 		_currentAlgorithmRunner->cleanup();
 
+	_waitingForFirstSkippedHandledFrame = false;
 	emit coreStopped();
+}
+
+void BaseCore::cleanDestinationFolder (const QString& destFolder )
+{
+	QDir dir(destFolder);
+	//dir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot );
+	if (!dir.removeRecursively() )
+	{
+		// iterate on files and rename them 
+	}
+
+	/*
+	for(auto const& dirFile :  dir.entryList())
+	{
+		if (!dir.remove(dirFile))
+			CORE_SCOPED_ERROR << "Cannot remove file for one run : " << dirFile;
+	}
+	*/
 }
 
 std::string BaseCore::getRootFolderForOneRun() const
@@ -391,7 +403,11 @@ void BaseCore::_onProviderFrameSkipped( int frameIndex )
 void BaseCore::_onProviderFinished ()
 {
 	CORE_SCOPED_LOG << "Frame provider finished image generation";
-	stop();
+	// don't stop the threads, because consumer can still work on remaining frames
+	// wait for the first skipped handled frame
+
+	// TODO : find better solution for waiting flag
+	_waitingForFirstSkippedHandledFrame = true;
 	emit providerFinished();
 }
 
@@ -418,6 +434,10 @@ void BaseCore::_onRunnerFrameHandledOk ( int frameIndex )
 	 
 void BaseCore::_onRunnerFrameSkipped ( int frameIndex )
 {	 
+	if (_waitingForFirstSkippedHandledFrame )
+		stop();
+
+	_waitingForFirstSkippedHandledFrame = false;
 	emit runnerFrameSkipped(frameIndex); 
 }	 
 	 

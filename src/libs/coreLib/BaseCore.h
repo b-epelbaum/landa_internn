@@ -123,7 +123,8 @@ namespace LandaJune
 
 			virtual void run(BaseParametersPtr params);
 
-			
+			void cleanDestinationFolder (const QString& destFolder );
+						
 			void initProcessParameters();
 			void initFramePool() const;
 			void initProviders();
@@ -133,20 +134,21 @@ namespace LandaJune
 			void processProviderExceptionData(std::exception_ptr pex);
 			void processRunnerExceptionData(std::exception_ptr pex);
 			
-			bool _bInited = false;
+			bool _bInited			= false;
+			bool _reportEvents		= false;
+			bool _waitingForFirstSkippedHandledFrame = false;
+
 			std::list<FrameProviderPtr>			_providerList;
 			std::list<AlgorithmRunnerPtr>		_algorithmRunnerList;
 
 			FrameProviderPtr	_currentFrameProvider;
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
-			
 			BaseParametersPtr	_processParameters;
+	
 			
-			bool _reportEvents = false;
 			std::mutex _mutex;
 			
 			static EVENT_MAP _eventParserMap;
-
 			static void coreEventCallback ( ICore * coreObject, CoreCallbackType callbackType, std::any callbackData );
 
 			// static event parser functions
