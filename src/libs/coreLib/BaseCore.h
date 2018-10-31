@@ -11,8 +11,7 @@
 
 
 namespace LandaJune {
-	enum class FrameProviderDataCallbackType;
-	enum class FrameConsumerDataCallbackType;
+	enum class CoreCallbackType;
 }
 
 namespace LandaJune {
@@ -36,6 +35,8 @@ namespace LandaJune
 
 			using autolock = std::lock_guard<std::mutex>;
 
+			using EventParserFunction = std::function<void( BaseCore *, std::any& )>;
+			using EVENT_MAP = std::map<CoreCallbackType, EventParserFunction>;
 		
 		public:
 
@@ -76,16 +77,40 @@ namespace LandaJune
 
 			void coreStopped();
 			void coreException(const LandaJune::BaseException ec);
-			void frameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData );
-			void frameProcessed ( int frameIndex );
-			void offlineFileSourceCount( int iCount );
+
+			// provider signals
+			void providerScannedFilesCount		( int sourceFileCount );
+			void providerFrameGeneratedOk		( int frameIndex );	
+			void providerFrameSkipped			( int frameIndex );		
+			void providerFinished				();		
+			void providerFrameImageData			(std::shared_ptr<LandaJune::Core::SharedFrameData> frameData);
+
+			// runner signals
+			void runnerFrameHandledOk			( int frameIndex );
+			void runnerFrameSkipped				( int frameIndex );
+			void runnerDetectionSuccess			( int frameIndex );
+			void runnerDetectionFailure			( int frameIndex );
+
 
 		private slots:
 
-			void onCriticalException (BaseException ex);
-			void onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData);
-			void onFrameProcessed ( int frameIndex );
-			void onFileCountData ( int sourceFileCount );
+			// provider slots
+			void _onProviderScannedFilesCount		( int sourceFileCount );
+			void _onProviderFrameGeneratedOk		( int frameIndex );	
+			void _onProviderFrameSkipped			( int frameIndex );		
+			void _onProviderFinished				();		
+			void _onProviderFrameImageData			(std::shared_ptr<LandaJune::Core::SharedFrameData> frameData);	
+			void _onProviderException				(std::exception_ptr pex);
+
+			// runner slots
+			void _onRunnerFrameHandledOk			( int frameIndex );
+			void _onRunnerFrameSkipped				( int frameIndex );
+			void _onRunnerDetectionSuccess			( int frameIndex );
+			void _onRunnerDetectionFailure			( int frameIndex );
+			void _onRunnerException					(std::exception_ptr pex);
+
+	
+
 
 		protected :
 			
@@ -104,30 +129,47 @@ namespace LandaJune
 			void initProviders();
 			void initAlgorithmRunners();
 			void initFileWriter( bool bInit ) const;
-			void processExceptionData(BaseException& ex);
+
+			void processProviderExceptionData(std::exception_ptr pex);
+			void processRunnerExceptionData(std::exception_ptr pex);
 			
 			bool _bInited = false;
-			std::list<FrameProviderPtr> _providerList;
-			std::list<AlgorithmRunnerPtr> _algorithmRunnerList;
+			std::list<FrameProviderPtr>			_providerList;
+			std::list<AlgorithmRunnerPtr>		_algorithmRunnerList;
 
 			FrameProviderPtr	_currentFrameProvider;
 			AlgorithmRunnerPtr	_currentAlgorithmRunner;
 			
 			BaseParametersPtr	_processParameters;
-			bool _bCanAcceptExceptions = true;
-			bool _bCanAcceptEvents = true;
+			
 			bool _reportEvents = false;
 			std::mutex _mutex;
+			
+			static EVENT_MAP _eventParserMap;
 
-			static void providerDataCallback ( ICore * coreObject, FrameProviderDataCallbackType callbackType, std::any callbackData );
-			static void consumerDataCallback ( ICore * coreObject, FrameConsumerDataCallbackType callbackType, std::any callbackData );
+			static void coreEventCallback ( ICore * coreObject, CoreCallbackType callbackType, std::any callbackData );
 
-			static void coreExceptionHandler ( ICore * coreObject, BaseException& ex ) noexcept;
+			// static event parser functions
 
+			static void on_ProviderScannedFilesCount			( BaseCore *coreObject, std::any& callbackData );
+			static void on_ProviderFrameGeneratedOk				( BaseCore *coreObject, std::any& callbackData );
+			static void on_ProviderFrameSkipped					( BaseCore *coreObject, std::any& callbackData );
+			static void on_ProviderFinished						( BaseCore *coreObject, std::any& callbackData );
+			static void on_ProviderFrameImageData				( BaseCore *coreObject, std::any& callbackData );
+			static void on_ProviderException					( BaseCore *coreObject, std::any& callbackData );
+
+			static void on_RunnerFrameHandledOk					( BaseCore *coreObject, std::any& callbackData );
+			static void on_RunnerFrameSkipped					( BaseCore *coreObject, std::any& callbackData );
+			static void on_RunnerDetectionSuccess				( BaseCore *coreObject, std::any& callbackData );
+			static void on_RunnerDetectionFailure				( BaseCore *coreObject, std::any& callbackData );
+			static void on_RunnerException						( BaseCore *coreObject, std::any& callbackData );
+
+			static void on_UnknownEvent( BaseCore *coreObject, CoreCallbackType callbackType, std::any& callbackData );
 		};
 	}
 }
 
 Q_DECLARE_METATYPE(LandaJune::BaseException)
+Q_DECLARE_METATYPE(std::exception_ptr)
 Q_DECLARE_METATYPE(std::shared_ptr<LandaJune::Core::SharedFrameData>)
 

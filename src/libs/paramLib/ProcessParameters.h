@@ -16,6 +16,43 @@ namespace LandaJune
 			explicit ProcessParameters(const QJsonObject& obj );
 			ProcessParameters(const ProcessParameters& other) = default;
 
+			DECLARE_EDITABLE_ONLY_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Substrate parameters"})
+			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateWidth_mm,				double,					1000	)
+			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateHeight_mm,				double,					700		)
+			DECLARE_NORMAL_PARAM_PROPERTY(ScanStartToPaperEdgeOffset_mm,	double,					10.7	)
+			DECLARE_NORMAL_PARAM_PROPERTY(OffsetFromLeftEdge_mm,			double,					2.94	)
+			DECLARE_NORMAL_PARAM_PROPERTY(LeftStripWidth_mm,				double,					13.7	)
+			DECLARE_NORMAL_PARAM_PROPERTY(RightStripROIsOffsetY_mm,			double,					0.0	)
+			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_X,						double,					0.08466683	)
+			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_Y,						double,					0.08660258	)
+			DECLARE_NORMAL_PARAM_PROPERTY(ReferenceColorTriplet,			COLOR_TRIPLET_SINGLE,	{}		)
+			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripOnly,				bool,					false	)
+			DECLARE_NORMAL_PARAM_PROPERTY(OfflineTreatEvenFilesAsRight,		bool,					false	)
+			
+			// I2S Triangle
+			DECLARE_EDITABLE_ONLY_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" })
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm,	double,				3.19	)
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm,	double,				10.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SWidth_mm,					double,					8.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SHeight_mm,					double,					8.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SROIMarginX_mm,				double,					2.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(I2SROIMarginY_mm,				double,					2.5	)
+
+			// C2C ROIs
+			DECLARE_EDITABLE_ONLY_PROPERTY(C2CROI, PARAM_GROUP_HEADER, { "C2C ROI Parameters" })
+			DECLARE_NORMAL_PARAM_PROPERTY(C2COffsetsArray, QVector<QSizeF>, {})
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenDotsX_mm,	double,				3.048	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenDotsY_mm,	double,				3.048	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CCircleDiameter_mm,			double,				1.542	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CDROIMarginX_mm,			double,				2.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CDROIMarginY_mm,			double,				2.5	)
+
+			// HSV
+			DECLARE_EDITABLE_ONLY_PROPERTY(Colors, PARAM_GROUP_HEADER, { "Color Parameters" })
+			DECLARE_NORMAL_PARAM_PROPERTY(ColorArray,				QVector<COLOR_TRIPLET>, {})
+
+			///////////////////////////
+
 			DECLARE_EDITABLE_ONLY_PROPERTY(OffLineProvider, PARAM_GROUP_HEADER, { "Offline Frame Generator parameters" })
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath,			QString,			"c:\\temp")
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFilePath,			QString,			""	)
@@ -88,40 +125,7 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SaveOverlayRightC2C,			bool,				true	)
 			DECLARE_NORMAL_PARAM_PROPERTY(SaveOverlayWave,				bool,				true	)
 			
-			DECLARE_EDITABLE_ONLY_PROPERTY(Substrate, PARAM_GROUP_HEADER, {"Sheet parameters"})
-			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateWidth_mm,		double,					1000	)
-			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateHeight_mm,		double,					700		)
-			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateImageMargin_mm,	double,					2		)
-			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_X,				double,					0.08466683	)
-			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_Y,				double,					0.08660258	)
-			DECLARE_NORMAL_PARAM_PROPERTY(ReferenceColorTriplet,	COLOR_TRIPLET_SINGLE,	{}		)
 			
-			/// strip properties
-			DECLARE_EDITABLE_ONLY_PROPERTY(Strip, PARAM_GROUP_HEADER, { "Strip offsets" })
-			DECLARE_NORMAL_PARAM_PROPERTY(OffsetFromLeftEdge_mm,	double,					2.94	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OffsetBetweenTriangles_mm, double,				990		) 
-			DECLARE_NORMAL_PARAM_PROPERTY(StripWidth_mm,			double,					13.7	)
-
-			// I2S Triangle
-			DECLARE_EDITABLE_ONLY_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" })
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SOffsetFromPaperEdgeX_mm, double,				3.19	)
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SOffsetFromPaperEdgeY_mm, double,				10.5	)
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SMarginX_mm,			double,					2.5	)
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SMarginY_mm,			double,					2.5	)
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SROIWidth_mm,			double,					8.5	)
-			DECLARE_NORMAL_PARAM_PROPERTY(I2SROIHeight_mm,			double,					8.5	)
-
-			// C2C ROIs
-			DECLARE_EDITABLE_ONLY_PROPERTY(C2CROI, PARAM_GROUP_HEADER, { "C2C ROI Parameters" })
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CROISetsCount,			int,					5		)
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenDots_um, double,				3048	)
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenSets_um, double,				159300	)
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceFromTriangle2FirstSet_um, double,		9600	)
-
-			// HSV
-			DECLARE_EDITABLE_ONLY_PROPERTY(Colors, PARAM_GROUP_HEADER, { "Color Parameters" })
-			DECLARE_NORMAL_PARAM_PROPERTY(ColorArray,				QVector<COLOR_TRIPLET>, {})
-
 			DECLARE_EDITABLE_ONLY_PROPERTY(Wave, PARAM_GROUP_HEADER, { "Wave Parameters" })
 			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleApproximateX_um, double,				510230	)
 			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleApproximateY_um, double,				4223	)
@@ -135,42 +139,30 @@ namespace LandaJune
 			//-------------------------------------------------------
 			// calculated values
 
-			// Substrate values
 			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
-			DECLARE_CALCULATED_PROPERTY(SubstrateWidth_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(SubstrateHeight_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat, int, 0)
+			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(LeftEdgeApproxOffsetX_px,			int,	0)
+			
+			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,						QRect, {})
+			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,						QRect, {})
+			
+			DECLARE_CALCULATED_PROPERTY(I2RectLeft_px, QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2RectRight_px, QRect, {})
 
-			// Strip values
-			DECLARE_CALCULATED_PROPERTY(StripParamsCalc, PARAM_GROUP_HEADER, { "Strip values" })
-			DECLARE_CALCULATED_PROPERTY(LeftStripRect, QRect, {})
-			DECLARE_CALCULATED_PROPERTY(RightStripRect, QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,					int,	0)
+
+			DECLARE_CALCULATED_PROPERTY(C2CMarginX_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(C2CMarginY_px,					int,	0)
 
 
-			// edge values
-			DECLARE_CALCULATED_PROPERTY(OffsetParamsCalc, PARAM_GROUP_HEADER, { "Offset values" })
-			DECLARE_CALCULATED_PROPERTY(OffsetBetweenTriangles_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(EdgeApproximateDistanceX_px, int, 0)
+			// TODO : This value is never calculated, but used in algorithm : check
 			DECLARE_CALCULATED_PROPERTY(EdgeTriangleApproximateY_px, int, 0)
-
-						
-			// I2S values
-			DECLARE_CALCULATED_PROPERTY(I2SParamsCalc, PARAM_GROUP_HEADER, { "I2S values" })
-			DECLARE_CALCULATED_PROPERTY(I2SApproximateTriangleRectLeft, QRect, {})
-			DECLARE_CALCULATED_PROPERTY(I2SApproximateTriangleRectRight, QRect, {})
-
-			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(I2SROIWidth_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(I2SROIHeight_px, int, 0)
 			
 			// C2C ROIs values
-			DECLARE_CALCULATED_PROPERTY(C2CROIParamsCalc, PARAM_GROUP_HEADER, { "C2C ROI values" })
-			DECLARE_CALCULATED_PROPERTY(C2CDistanceBetweenDots_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(C2CDistanceBetweenSets_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(C2CDistanceFromTriangle2FirstSet_px, int, 0)
-			DECLARE_CALCULATED_PROPERTY(C2CROIArrayLeft, QVector<QRect>, {})
-			DECLARE_CALCULATED_PROPERTY(C2CROIArrayRight, QVector<QRect>, {})
+			DECLARE_CALCULATED_PROPERTY(C2CROICount, int, 0 )
+			DECLARE_CALCULATED_PROPERTY(C2CROIArrayLeft_px, QVector<QRect>, {})
+			DECLARE_CALCULATED_PROPERTY(C2CROIArrayRight_px, QVector<QRect>, {})
 
 			DECLARE_CALCULATED_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" })
 			DECLARE_CALCULATED_PROPERTY(WaveROI, QRect, {}) 
@@ -180,11 +172,15 @@ namespace LandaJune
 		protected:
 
 			void recalculate() override {_recalculate();};
-	
+			void reset() override;
 		
 		private:
 
 			void _recalculate();
+
+			void recalculateForFullImage();
+			void recalculateForOfflineLeftStrip();
+
 			int toPixelsX(const double val_mmx ) const { return val_mmx / _Pixel2MM_X;}
 			int toPixelsY(const double val_mmy ) const { return val_mmy / _Pixel2MM_Y;}
 			

@@ -2,6 +2,8 @@
 
 #include <QWidget>
 #include "ui_fullImageTab.h"
+#include "roiParamWidget.h"
+#include "common/type_usings.h"
 
 class roiWidget;
 
@@ -13,19 +15,35 @@ public:
 	fullImageTab(QWidget *parent = Q_NULLPTR);
 	~fullImageTab();
 
-	private slots:
+	void setParameters (roiParamWidget* paramWidget, LandaJune::ProcessParametersPtr params );
 
-	void onEditNumOfColorsEdited(const QString &text);
-	void onEditSpinnerStepEdited(const QString &text);
+private slots:
 
-	void onSpinTriangleOffsetXChanged(double dVal );
-	void onSpinTriangleOffsetYChanged(double dVal );
+	void onPropertyChanged (QString propName, QVariant newVal );
 
-	void onSpinA1Changed(double dVal );
-	void onSpinA2Changed(double dVal );
+	void oni2sPosChanged(QPoint pt);
+	void onc2cPosChanged(int idx, QPoint pt);
 
 private:
+
+	double toMMX(int val_pxx) const;
+	double toMMY(int val_pxy) const;
+
+
+	void buildControls();
+	void recalculate ();
+
+	void setupROIs() const;
+	void updateROIs() const;
+
 	Ui::fullImageTab ui;
 
-	roiWidget * _fullImageBox;
+	roiImageBox *		_fullImageBox;
+	roiParamWidget *	_paramWidget;
+
+	float _Pixel2MM_X = 0.0;
+	float _Pixel2MM_Y = 0.0;
+
+	LandaJune::ProcessParametersPtr _params;
+
 };

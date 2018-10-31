@@ -39,8 +39,17 @@ STATLIB_EXPORT void RealTimeStats::increment(const StatName stat, const double d
 }
 
 static const char *__names[RealTimeStats::statsNumber] = {
-	"Frames generated",
-	"Frames handled",
+	"Frame generated OK",
+	"Frame generation FAILED",
+	"Frame generation SKIPPED",
+	"Frame handled OK",
+	"Frame handling FAILED",
+	"Frame handling SKIPPED",
+	"Saved Bitmaps Ok",
+	"Saved Bitmaps Failures",
+	"Saved Bitmaps Skipped",
+	"Detection Success",
+	"Detection Fail",
 	"Regions generated",
 	"Regions copied",
 	"Handled strips",
@@ -48,13 +57,6 @@ static const char *__names[RealTimeStats::statsNumber] = {
 	"Handled I2S",
 	"Handled C2C",
 	"Handled Waves",
-	"Saved Bitmaps Ok",
-	"Generated Images Drop",
-	"Generated Images Fail",
-	"Performed Algo Fail",
-	"Performed Algo Result Fail",
-	"Created Regions Fail",
-	"Saved Bitmaps Fail",
 	"Save Queue Length"
 };
 

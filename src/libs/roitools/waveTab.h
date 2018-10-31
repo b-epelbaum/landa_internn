@@ -2,8 +2,11 @@
 
 #include <QWidget>
 #include "ui_waveTab.h"
+#include "common/type_usings.h"
 
 class roiWidget;
+class roiParamWidget;
+
 
 class waveTab : public QWidget
 {
@@ -12,20 +15,20 @@ class waveTab : public QWidget
 public:
 	waveTab(QWidget *parent = Q_NULLPTR);
 	~waveTab();
+	
+	void setParameters (roiParamWidget* paramWidget, LandaJune::ProcessParametersPtr params );
 
-	private slots:
+private slots:
 
-	void onEditNumOfColorsEdited(const QString &text);
-	void onEditSpinnerStepEdited(const QString &text);
-
-	void onSpinTriangleOffsetXChanged(double dVal );
-	void onSpinTriangleOffsetYChanged(double dVal );
-
-	void onSpinA1Changed(double dVal );
-	void onSpinA2Changed(double dVal );
+	void onPropertyChanged (QString propName, QVariant newVal );
 
 private:
-	Ui::waveTab ui;
 
-	roiWidget * _waveImageBox;
+	void buildControls();
+	void recalculate ();
+
+	Ui::waveTab ui;
+	roiImageBox * _waveImageBox;
+	roiParamWidget * _paramWidget;
+	LandaJune::ProcessParametersUniquePtr _params;
 };

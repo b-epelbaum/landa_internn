@@ -1,7 +1,7 @@
 #include "imagescrollarea.h"
 #include <QWheelEvent>
 #include <QDebug>
-#include "RenderWidget.h"
+#include "roiRenderWidget.h"
 
 imageScrollArea::imageScrollArea(QWidget *parent)
 	: QScrollArea(parent)

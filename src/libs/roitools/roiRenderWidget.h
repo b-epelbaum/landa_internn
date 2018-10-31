@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QWidget>
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>
 #include <QOpenGLBuffer>
@@ -9,6 +8,7 @@
 #include <QVector4D>
 #include <QMatrix4x4>
 #include "moveableLayerWidget.h"
+#include "common/june_errors.h"
 
 class roiRectWidget;
 
@@ -17,19 +17,23 @@ QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram);
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 
 
-class RenderWidget : public QOpenGLWidget, protected QOpenGLFunctions
+class roiRenderWidget : public QOpenGLWidget, protected QOpenGLFunctions
 {
 	Q_OBJECT
 
 private:
-	int ImageWidth;
-	int ImageHeight;
-	int ImageUpperWidth;
-	int ImageUpperHeight;
+	int ImageWidth{};
+	int ImageHeight{};
+	int ImageUpperWidth{};
+	int ImageUpperHeight{};
 
 public:
-	RenderWidget(QWidget *parent = 0);
-	~RenderWidget();
+	roiRenderWidget(QWidget *parent = 0);
+	~roiRenderWidget();
+
+	void setInitialROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins );
+	void updateROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects);
+
 
 	void assignScrollBars(QScrollBar *horz, QScrollBar *vert);
 
@@ -43,32 +47,43 @@ public:
 	void showFitOnScreen ();
 	void setZoom ( int zoom  );
 
-	bool setImage(const QString& file);
+	LandaJune::CORE_ERROR setImage(const QString& file);
 	QSize getImageSize () const { return _hasImage ? _imageSize : QSize{}; }
+
 	
-	void addBox(const QRect & rc) { _boxes.push_back(rc); }
-	void cleanBoxes(void) { _boxes.clear(); }
+	void addRect(const QRect & rc) { _c2cROIRects.push_back(rc); }
+	void cleanRects(void) { _i2sROIRect = {}; _c2cROIRects.clear(); }
 
 	void updateHScroll( int hVal);
 	void updateVScroll( int vVal);
-
-	QPoint toImageC(const QPoint & pt);
-	QSize  toImageC(const QSize & sz);
-	QPoint fromImageC(const QPoint & pt);
 
 signals:
 
 	void cursorPos(QPoint pt, QSize rectSize);
 	void scaleChanged( double newGLScale, double newImageScale );
 
+	void i2sPosChanged(QPoint pt);
+	void c2cPosChanged( int idx, QPoint pt);
+
 private slots:
 
-	void onTargetWidgetDragStopped( QPoint topLeft, QPoint centerPos );
+	void onI2SCrossMoved( QPoint topLeft, QPoint centerPos );
+	void onC2CrossMoved( QPoint topLeft, QPoint centerPos );
 
 protected:
 	void initializeGL() override;
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
+
+	void cleanup();
+
+	void createCrossHairs();
+	void showCrossHairs(bool bShow);
+	void paintROIs(QMatrix4x4& modelData );
+
+	QPoint fromWidget2OriginalImagePt(const QPoint & pt);
+	QSize  fromWidget2OriginalImageSize(const QSize & sz);
+	QPoint fromOrigImage2WidgetPt(const QPoint & pt);
 
 	QMatrix4x4 getModelViewProjMatrix(void);
 
@@ -105,6 +120,20 @@ protected:
 
 	QScrollBar *	_horizontalScrollbar = nullptr;
 	QScrollBar *	_verticalScrollbar = nullptr;
-	moveableLayerWidget * _triangleCross;
-	QList<QRect> _boxes;
+	
+	moveableLayerWidget * _i2sCross = nullptr;;
+	QVector<moveableLayerWidget *> _c2cCrosses;
+	
+	QVector<moveableLayerWidget *> _allCrossesArray;;
+
+	QRect _i2sROIRect;
+	QVector<QRect> _c2cROIRects;
+
+	int	_i2sMarginX = 0;
+	int	_i2sMarginY = 0;
+	int	_c2cMarginX = 0;
+	int	_c2cMarginY = 0;
+
+	static QSize _maxTextureSize;
+
 };

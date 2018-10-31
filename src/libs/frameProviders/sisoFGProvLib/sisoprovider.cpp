@@ -45,20 +45,6 @@ SiSoProvider::~SiSoProvider()
 	SISO_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
-bool SiSoProvider::canContinue(const CORE_ERROR lastError)
-{
-	if (lastError == RESULT_OK)
-		return true;
-
-	auto _canContinue = false;
-	switch (lastError)
-	{
-		case CORE_ERROR::ERR_FRAMEGRABBER_IMAGE_SKIPPED: _canContinue = true;  break;
-		default:
-			;
-	}
-	return _canContinue;
-}
 
 CORE_ERROR SiSoProvider::prepareData(FrameRef* frameRef)
 {
@@ -111,7 +97,7 @@ void SiSoProvider::releaseData(FrameRef* frameRef)
 {
 }
 
-CORE_ERROR SiSoProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
+void SiSoProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback)
 {
 	validateParameters(parameters);
 	connect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
@@ -358,7 +344,6 @@ CORE_ERROR SiSoProvider::init(BaseParametersPtr parameters, Core::ICore * coreOb
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
 	return CORE_ERROR::ERR_NO_ERROR;
 #endif
-	return RESULT_OK;
 }
 
 void SiSoProvider::validateParameters(BaseParametersPtr parameters)
@@ -378,7 +363,7 @@ void SiSoProvider::validateParameters(BaseParametersPtr parameters)
 }
 
 
-CORE_ERROR SiSoProvider::cleanup()
+void SiSoProvider::cleanup()
 {
 #ifdef ENABLE_FGRAB
 
@@ -400,7 +385,6 @@ CORE_ERROR SiSoProvider::cleanup()
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
 	SISO_PROVIDER_SCOPED_LOG << "Frame grabber has been cleaned up";
 	SISO_PROVIDER_SCOPED_LOG << "================================================";
-	return RESULT_OK;
 }
 
 

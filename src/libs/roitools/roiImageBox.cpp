@@ -1,20 +1,24 @@
-#include "roiWidget.h"
+#include "roiImageBox.h"
+
 #include <QAction>
 #include "commonTabs.h"
 #include <QMenuBar>
 
-roiWidget::roiWidget(QWidget *parent)
+roiImageBox::roiImageBox(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
 
 	QAction *opeFileAction = ui.browseFileEdit->addAction(QIcon(":/roiTools/Resources/file_open.png"), QLineEdit::TrailingPosition);
-	connect(opeFileAction, &QAction::triggered, this, &roiWidget::onOpenFile);
+	connect(opeFileAction, &QAction::triggered, this, &roiImageBox::onOpenFile);
 
 	_renderWidget = ui.openGLWidget;
 
-	connect(_renderWidget, &RenderWidget::cursorPos, this, &roiWidget::onImageCursorPos);
-	connect(_renderWidget, &RenderWidget::scaleChanged, this, &roiWidget::onScaleChanged);
+	connect(_renderWidget, &roiRenderWidget::i2sPosChanged, this, &roiImageBox::i2sPosChanged);
+	connect(_renderWidget, &roiRenderWidget::c2cPosChanged, this, &roiImageBox::c2cPosChanged);
+
+	connect(_renderWidget, &roiRenderWidget::cursorPos, this, &roiImageBox::onImageCursorPos);
+	connect(_renderWidget, &roiRenderWidget::scaleChanged, this, &roiImageBox::onScaleChanged);
 	
 	connect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
 	connect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
@@ -38,7 +42,7 @@ roiWidget::roiWidget(QWidget *parent)
 	for ( auto ac : menu->actions() )
 	{
 		ac->setProperty("idx", idxProp);
-		connect(ac, &QAction::triggered, this, &roiWidget::onZoomAction);
+		connect(ac, &QAction::triggered, this, &roiImageBox::onZoomAction);
 		idxProp ++;
 	}
 
@@ -46,26 +50,28 @@ roiWidget::roiWidget(QWidget *parent)
 	ui.zoomButt->setPopupMode(QToolButton::InstantPopup);
 }
 
-roiWidget::~roiWidget()
+roiImageBox::~roiImageBox()
 {
 }
 
-void roiWidget::setImage(const QString& strFilePath)
+LandaJune::CORE_ERROR roiImageBox::setImage(const QString& strFilePath)
 {
-	if (_renderWidget->setImage(strFilePath) )
+	auto err = _renderWidget->setImage(strFilePath);
+	if (err == LandaJune::CORE_ERROR::RESULT_OK)
 	{
 		displayMetaData();
 	}
+	return err;
 }
 
-void roiWidget::displayMetaData()
+void roiImageBox::displayMetaData()
 {
 	auto imgSize = _renderWidget->getImageSize();
 	ui.labelWidth->setText(QString::number(imgSize.width()));
 	ui.labelHeight->setText(QString::number(imgSize.height()));
 }
 
-void roiWidget::setZoom(int zoomPercentage)
+void roiImageBox::setZoom(int zoomPercentage)
 {
 	if ( zoomPercentage == -1)
 	{
@@ -81,13 +87,13 @@ void roiWidget::setZoom(int zoomPercentage)
 	}
 }
 
-void roiWidget::setScales(float glScale, float imageScale)
+void roiImageBox::setScales(float glScale, float imageScale)
 {
 	ui.labelZoom->setText(QString::number(int(imageScale * 100)));
 	_renderWidget->setScales(glScale, imageScale);
 }
 
-void roiWidget::setScrolls(int hScrollVal, int vScrollVal)
+void roiImageBox::setScrolls(int hScrollVal, int vScrollVal)
 {
 	disconnect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
 	disconnect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
@@ -103,7 +109,7 @@ void roiWidget::setScrolls(int hScrollVal, int vScrollVal)
 
 }
 
-void roiWidget::onOpenFile()
+void roiImageBox::onOpenFile()
 {
 	_loadedImageFilePath = commonTabs::selectBitmapFile(this, _strPrompt, _strFileSaveKey);
 	if (!_loadedImageFilePath.isEmpty())
@@ -113,7 +119,7 @@ void roiWidget::onOpenFile()
 	}
 }
 
-void roiWidget::onZoomAction()
+void roiImageBox::onZoomAction()
 {
 	auto ac = dynamic_cast<QAction*>(sender());
 	auto idx = ac->property("idx").toInt();
@@ -136,7 +142,7 @@ void roiWidget::onZoomAction()
 	setZoom(zoomPercentge);
 }
 
-void roiWidget::onImageCursorPos(QPoint pt, QSize size)
+void roiImageBox::onImageCursorPos(QPoint pt, QSize size)
 {
 	QString strText = QString("X = %1, Y = %2").arg(pt.x()).arg(pt.y());
 	if (!size.isEmpty() )
@@ -144,19 +150,19 @@ void roiWidget::onImageCursorPos(QPoint pt, QSize size)
 	ui.imageCoordsLabel->setText(strText);
 }
 
-void roiWidget::horzValueChanged(int hVal) 
+void roiImageBox::horzValueChanged(int hVal) 
 {
 	ui.openGLWidget->updateHScroll(hVal);
 	emit scrollValuesChanged (hVal, ui.verticalScrollBar->value());
 }
 
-void roiWidget::vertValueChanged(int vVal) 
+void roiImageBox::vertValueChanged(int vVal) 
 {
 	ui.openGLWidget->updateVScroll(vVal);
 	emit scrollValuesChanged (ui.horizontalScrollBar->value(), vVal);
 }
 
-void roiWidget::onScaleChanged(double newGLScale, double newImageScale)
+void roiImageBox::onScaleChanged(double newGLScale, double newImageScale)
 {
 	ui.labelZoom->setText(QString::number(int(newImageScale * 100)));
 	emit scaleChanged(newGLScale, newImageScale );

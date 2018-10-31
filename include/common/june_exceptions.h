@@ -8,10 +8,11 @@
 namespace LandaJune
 {
 	#define THROW_EX_ERR(x) throw BaseException(x, __FILE__, __LINE__);
-	#define THROW_EX_INT(x) throw BaseException(CORE_ERROR{x}, __FILE__, __LINE__);
-	#define THROW_EX_ERR_STR(x,y) throw BaseException(CORE_ERROR{x,y}, __FILE__, __LINE__);
-	
-	#define RETHROW(x,y) std::throw_with_nested(BaseException(CORE_ERROR{x, y }, __FILE__, __LINE__));
+	#define THROW_EX_INT(x) throw BaseException(CORE_ERROR(x), __FILE__, __LINE__);
+	#define THROW_EX_ERR_STR(x,y) throw BaseException(CORE_ERROR(x,y), __FILE__, __LINE__);
+
+	#define RETHROW(x) std::throw_with_nested(BaseException(CORE_ERROR(x), __FILE__, __LINE__));
+	#define RETHROW_STR(x,y) std::throw_with_nested(BaseException(CORE_ERROR(x, y), __FILE__, __LINE__));
 
 	class BaseException;
 
@@ -20,17 +21,27 @@ namespace LandaJune
 	public:
 
 		BaseException() 
-			: _error()
-			, _threadId(Helpers::Utility::threadId())
+			: _threadId(Helpers::Utility::threadId())
 			, _timeStamp(std::chrono::system_clock::now()) {}
 
 		BaseException(const char* sfile, const int iline) noexcept
-			  : _error()
-			  , _threadId(Helpers::Utility::threadId())
+			  : _threadId(Helpers::Utility::threadId())
 			  , _timeStamp(std::chrono::system_clock::now())
 			  , _file(sfile)
 			  , _line(iline)
 		{
+		}
+
+		BaseException(std::exception& ex, const CORE_ERROR& err, const char* sfile, const int iline) noexcept
+			  : _hasInternalException(true)
+			  , _error(err)
+			  , _threadId(Helpers::Utility::threadId())
+			  , _timeStamp(std::chrono::system_clock::now())
+			  , _file(sfile)
+			  , _internalExceptionMsg(ex.what())
+			  , _line(iline)
+		{
+			std::cout<<("aaaa");
 		}
 
 		BaseException(const CORE_ERROR& err, const char* sfile, const int iline) noexcept 
@@ -70,17 +81,19 @@ namespace LandaJune
 		std::chrono::system_clock::time_point timeStamp() const noexcept { return _timeStamp; }
 	private:
 
+		bool _hasInternalException = false;
 		CORE_ERROR _error;
 		unsigned long _threadId = 0;
 		std::chrono::system_clock::time_point _timeStamp;
 		std::string _file;
+		std::string _internalExceptionMsg;
 		int _line =-1;
 	};
 
 	inline void print_base_exception(const std::exception& e, std::ostringstream& ss, int level =  0)
 	{
 		if ( level != 0 )
-			ss << std::string(level, ' ') << "\t\tInternal exception: " << e.what() << std::endl;
+			ss << std::string(level, ' ') << "\t\tInternal exception: " << std::endl << "\t\t\t" << e.what() << std::endl;
 		try 
 		{
 			std::rethrow_if_nested(e);
@@ -101,7 +114,8 @@ namespace LandaJune
 		st <<  std::put_time(&bt, "%Y-%m-%d %H:%M:%S");
 		st << '.' << std::setfill('0') << std::setw(3) << ms.count();
 
-		ss << "--------------  Core exception caught -----------------\r\n\t\t\t\tException details : \r\n"
+		ss << "--------------  Core exception caught -----------------\r\n" 
+					<<"\t\t\t\tException details : \r\n"
 					<< "\t\t\t\t\tError ID  : \t" << ex.error()			<< "\r\n"
 					<< "\t\t\t\t\tError msg : \t" << ex.what()			<< "\r\n"
 					<< "\t\t\t\t\tThread#   : \t" << ex.thread()		<< "\r\n"

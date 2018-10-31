@@ -11,9 +11,17 @@ FrameRef::FrameRef(uint64_t frameRefIndex) : _frameRefIndex(frameRefIndex)
 
 void FrameRef::reset()
 {
+
 	if (_postDataFunc)
 	{
-		_postDataFunc(this);
+		try
+		{
+			_postDataFunc(this);
+		}
+		catch(...) // if provider has not been initialized 
+		{
+			
+		}
 	}
 
 	_index = -1;

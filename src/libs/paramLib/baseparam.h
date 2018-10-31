@@ -1,12 +1,14 @@
 #pragma once
 
 #include "paramlib_global.h"
+#include "common/type_usings.h"
+
+#include <QObject>
 #include <QVector>
 #include <QRect>
-#include "common/type_usings.h"
-#include <string>
-
 #include <QJsonObject>
+
+#include <string>
 #include <utility>
 
 // FLAG USER = true means parameter is editable, USER = false - parameter is readonly
@@ -32,7 +34,8 @@ namespace LandaJune
 			BaseParameters(const BaseParameters& other);
 			virtual ~BaseParameters() = default;
 
-			virtual QString	GetMetaClassFullName() const { return "BaseParameters"; }
+			BaseParameters& operator = (const BaseParameters& other);
+
 			virtual QString	GetMetaClassDebugName() const { return "BaseParameters"; }
 
 			virtual IPropertyTuple getPropertyTuple(const QString& strValName) const;
@@ -44,6 +47,8 @@ namespace LandaJune
 			virtual QVariant getParamProperty(const QString& strValName) const;
 			virtual bool setParamProperty(const QString& strValName, const QVariant& val);
 
+			virtual void updateValues() { recalculate(); }
+
 			virtual bool load (QString fileName, QString& error);
 			virtual QJsonObject toJson();
 			virtual bool fromJson(const QJsonObject& obj, bool bRootObject, QString& error );
@@ -52,13 +57,14 @@ namespace LandaJune
 
 			QString paramFilePath () const { return _configFilePath; }
 
-			signals:
+		signals:
 
 				void updateCalculated();
 				void loaded();
 
 		protected :
 
+			virtual void reset();
 			virtual IPropertyList getPropertyList(bool bReadOnly) const;
 			virtual void recalculate () {}
 			inline static bool _metaTypeRegistered = false;
@@ -168,6 +174,7 @@ namespace LandaJune
 	}
 }
 Q_DECLARE_METATYPE(QVector<QRect>)
+Q_DECLARE_METATYPE(QVector<QSizeF>)
 Q_DECLARE_METATYPE(LandaJune::Parameters::BaseParameters)
 Q_DECLARE_METATYPE(LandaJune::Parameters::PARAM_GROUP_HEADER)
 Q_DECLARE_METATYPE(LandaJune::Parameters::COLOR_TRIPLET_SINGLE)

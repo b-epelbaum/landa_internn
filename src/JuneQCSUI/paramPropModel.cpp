@@ -72,6 +72,7 @@ ParamPropModel::ParamPropModel(QObject *parent)
 	_iconInt = QIcon(":/JuneUIWnd/Resources/integer.png");
 	_iconFloat = QIcon(":/JuneUIWnd/Resources/float.png");
 	_iconRect = QIcon(":/JuneUIWnd/Resources/rect.png");
+	_iconSize = QIcon(":/JuneUIWnd/Resources/size.png");
 	_iconBoolean = QIcon(":/JuneUIWnd/Resources/boolean.png");
 	_iconLiteral = QIcon(":/JuneUIWnd/Resources/literal.png");
 	_iconData = QIcon(":/JuneUIWnd/Resources/data.png");
@@ -156,6 +157,10 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
 		{
 			return _iconRect;
 		}
+		if (tName == "QSizeF")
+		{
+			return _iconSize;
+		}
 		if (tName == "LandaJune::Parameters::COLOR_TRIPLET_SINGLE" || tName == "LandaJune::Parameters::COLOR_TRIPLET")
 		{
 			return _iconColors;
@@ -170,15 +175,24 @@ QVariant ParamPropModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole && role != Qt::EditRole)
         return QVariant();
 
-	if (index.column() == 1) {
-		if (var.canConvert<QPoint>()) {
+	if (index.column() == 1) 
+	{
+		if (var.canConvert<QPoint>()) 
+		{
 			const auto point = var.toPoint();
 			return QString("(%1, %2)").arg(QString::number(point.x()), QString::number(point.y()));
 		}
-		if (var.canConvert<QRect>()) {
+		if (var.canConvert<QRect>()) 
+		{
 			const auto rect = var.toRect();
-			return QString("(%1, %2, %3, %4)").arg(QString::number(rect.x()), QString::number(rect.y())
+			return QString("[(%1, %2), %3 x %4]").arg(QString::number(rect.x()), QString::number(rect.y())
 													, QString::number(rect.width()), QString::number(rect.height()));
+		}
+		if (var.canConvert<QSizeF>()) 
+		{
+			const auto sz = var.toSizeF();
+			auto dsp = QString("[%1 x %2]").arg(QString::number(sz.width()), QString::number(sz.height()));
+			return QString("[%1 x %2]").arg(QString::number(sz.width()), QString::number(sz.height()));
 		}
 		if (var.canConvert<COLOR_TRIPLET>())
 			return var.value<COLOR_TRIPLET>().toDisplayString();
@@ -203,7 +217,9 @@ Qt::ItemFlags ParamPropModel::flags(const QModelIndex &index) const
 	
 	if (var.canConvert<COLOR_TRIPLET>() || var.canConvert<COLOR_TRIPLET_SINGLE>()
 		|| var.canConvert<QVector<COLOR_TRIPLET>>() || var.canConvert<QPoint>()
-		|| var.canConvert<QRect>())
+		|| var.canConvert<QRect>()
+		|| var.canConvert<QSizeF>()
+		)
 		return Qt::ItemIsSelectable;
 	
 	const auto tName = QString(var.typeName());
@@ -422,6 +438,9 @@ void ParamPropModel::setupProp(ParamPropItem *rootItem, const LandaJune::IProper
 	else if (var.canConvert<QVector<QRect>>()) {
 		setupQRectVector(rootItem, propTuple);
 	}
+	else if (var.canConvert<QVector<QSize>>()) {
+		setupQSizeVector(rootItem, propTuple);
+	}
 	else if (var.canConvert<QRect>()) {
 		setupQRect(rootItem, propTuple);
 	}
@@ -461,12 +480,33 @@ LandaJune::IPropertyTuple ParamPropModel::propertyValue(ParamPropItem *child) co
 			{
 				return { rect->data(0).toString(), QVariant::fromValue(createQRect(rect)), _readOnlyView };
 			}
+
+			
+			if (const auto sz = parentItem; sz->data(1).canConvert<QSizeF>()) 
+			{
+				if ( const auto sizeArray = parentItem->parent(); sizeArray->data(1).canConvert<QVector<QSizeF>>())
+				{
+					return { sizeArray->data(0).toString(), QVariant::fromValue(createVectorOfSizes(sizeArray)), _readOnlyView };
+				}
+			}
+			
 			
 			if ( parentItem->parent() && parentItem->parent()->parent() )
 			{
-				const auto colorTripletVector = parentItem->parent()->parent(); 
-				if (colorTripletVector->data(1).canConvert<QVector<COLOR_TRIPLET>>()) 
+				const auto colorTripletVector = parentItem->parent()->parent();
+
+				auto name = colorTripletVector->data(0).toString();
+				if (colorTripletVector->data(1).canConvert<QVector<COLOR_TRIPLET>>())
+				{
 					return { colorTripletVector->data(0).toString(), QVariant::fromValue(createColorTripletVector(colorTripletVector)), _readOnlyView };
+				}
+
+				const auto roiVector = parentItem->parent()->parent(); 
+				if (roiVector->data(1).canConvert<QVector<QSizeF>>())
+				{
+					return { roiVector->data(0).toString(), QVariant::fromValue(createVectorOfSizes(roiVector)), _readOnlyView };
+				}
+
 			} 
 			else if (parentItem->parent() ) 
 			{
@@ -474,7 +514,8 @@ LandaJune::IPropertyTuple ParamPropModel::propertyValue(ParamPropItem *child) co
 				if (colorTriplet->data(1).canConvert<COLOR_TRIPLET>())
 					return { colorTriplet->data(0).toString(), QVariant::fromValue(createColorTriplet(colorTriplet)), _readOnlyView };
 			}
-			else if (const auto colorTipletSingle = parentItem; colorTipletSingle->data(1).canConvert<COLOR_TRIPLET_SINGLE>()) {
+			else if (const auto colorTipletSingle = parentItem; colorTipletSingle->data(1).canConvert<COLOR_TRIPLET_SINGLE>()) 
+			{
 				return { colorTipletSingle->data(0).toString(), QVariant::fromValue(createColorTripletSingle(colorTipletSingle)), _readOnlyView };
 			}
 			
@@ -507,6 +548,31 @@ QRect ParamPropModel::createQRect(ParamPropItem *item) const noexcept
 	item->setData(1, QVariant::fromValue(rect));
 
 	return rect;
+}
+
+QSizeF ParamPropModel::createQSizeF(ParamPropItem *item) const noexcept
+{
+	const auto x = item->child(0)->data(1).toDouble();
+	const auto y = item->child(1)->data(1).toDouble();
+	const QSizeF sz(x, y);
+	item->setData(1, QVariant::fromValue(sz));
+	return sz;
+}
+
+
+QVector<QSizeF> ParamPropModel::createVectorOfSizes(ParamPropItem *item) const noexcept
+{
+	const int count = item->childCount();
+	QVector<QSizeF> vec;
+	vec.reserve(count);
+
+	for (int i = 0; i < count; ++i)
+	{
+		vec.push_back(createQSizeF(item->child(i)));
+	}
+	item->setData(1, QVariant::fromValue(vec));
+
+	return vec;
 }
 
 QVector<COLOR_TRIPLET> ParamPropModel::createColorTripletVector(ParamPropItem *item) const noexcept
@@ -591,16 +657,40 @@ void ParamPropModel::setupQRect(ParamPropItem *parent, const LandaJune::IPropert
 	insertChild(child, "Height", rect.height());
 }
 
+void ParamPropModel::setupQSize(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
+{
+	const auto&[name, sizeVal, editable] = prop;
+	auto child = insertChild(parent, name, sizeVal);
+	
+	const auto sz = sizeVal.toSizeF();
+
+	insertChild(child, "X", sz.width());
+	insertChild(child, "Y", sz.height());
+}
+
 void ParamPropModel::setupQRectVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
 {
-	const auto&[name, _colorVar, editable] = prop;
+	const auto&[name, rectVar, editable] = prop;
 
-	const auto qRectVector = _colorVar.value<QVector<QRect>>();
-	auto child = insertChild(parent, name, _colorVar);
+	const auto qRectVector = rectVar.value<QVector<QRect>>();
+	auto child = insertChild(parent, name, rectVar);
 
 	for (int i = 0, size = qRectVector.size(); i < size; ++i)
 	{
 		setupQRect(child, { QString("[%1]").arg(i) , QVariant::fromValue(qRectVector[i]), editable });
+	}
+}
+
+void ParamPropModel::setupQSizeVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept
+{
+	const auto&[name, sizeVar, editable] = prop;
+
+	const auto qSizeVector = sizeVar.value<QVector<QSizeF>>();
+	auto child = insertChild(parent, name, sizeVar);
+
+	for (int i = 0, size = qSizeVector.size(); i < size; ++i)
+	{
+		setupQSize(child, { QString("[%1]").arg(i) , QVariant::fromValue(qSizeVector[i]), editable });
 	}
 }
 

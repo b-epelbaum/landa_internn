@@ -22,19 +22,18 @@ namespace LandaJune
 			cyclicGenerator(cyclicGenerator &&) = delete;
 			virtual ~cyclicGenerator();
 
+			void init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback) override;
+			void cleanup() override;
+
+
 			const cyclicGenerator & operator = (const cyclicGenerator &) = delete;
 			cyclicGenerator & operator = (cyclicGenerator &&) = delete;
-
-			bool canContinue(CORE_ERROR lastError) override;
 
 			int32_t getFrameLifeSpan() const override;
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency();  }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
-
-			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
-			CORE_ERROR cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFilePath, QString, "")
 			DECLARE_NORMAL_PARAM_PROPERTY(FrameFrequencyInMSec, int, 1000)

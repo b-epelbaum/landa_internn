@@ -1,11 +1,7 @@
 #include "stdafx.h"
 #include "BackgroundThread.h"
-//#include "applog.h"
 
 using namespace LandaJune::Threading;
-
-//#define THREAD_SCOPED_LOG PRINT_INFO7 << " -- [BackgroundThread : " << _name.c_str() << "] : "
-//#define THREAD_SCOPED_ERROR PRINT_ERROR << " -- [BackgroundThread : " << _name.c_str() << "] : "
 
 BackgroundThread::BackgroundThread(std::string name, const int index, const THREAD_PRIORITY tP ) 
 	: _error_handler(default_error_handler)
@@ -13,7 +9,6 @@ BackgroundThread::BackgroundThread(std::string name, const int index, const THRE
 	, _name(std::move(name))
 	, _index(index)
 {
-	
 }
 
 BackgroundThread::~BackgroundThread()
@@ -60,7 +55,6 @@ bool BackgroundThread::join()
 
 void BackgroundThread::threadFunction(BackgroundThread *pThis)
 {
-	//PRINT_INFO7 << "[BackgroundThread: " << pThis->_name.c_str() << "; IDX: " << pThis->_index << "(" << GetCurrentThreadId() << ")] started on CPU #" << GetCurrentProcessorNumber();
 	pThis->setState(THREAD_STATE::BUSY);
 
 	// TODO : think about removing sleep
@@ -77,24 +71,41 @@ void BackgroundThread::threadFunction(BackgroundThread *pThis)
 			{
 				taskbg_ptr();
 				auto fut = taskbg_ptr.get_future();
-				fut.get();
+				auto res = static_cast<int>(fut.get());
+				if (	res > 0 && res < 50 )
+				{
+					pThis->stop();
+				}
 			}
-		} 
+		}
+		// just for sanity, if thread function has missed the thrown exception
 		catch (BaseException& e) 
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get(); 
 			handler(pThis->_coreObject, e);
 		}
-		catch (std::runtime_error& re) 
+		catch (std::exception& ex) 
 		{
 			auto wrapper = pThis->getErrorHandler();
 			const auto handler = wrapper.get();
-			BaseException ex(CORE_ERROR{CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, re.what()}, __FILE__, __LINE__);
-			handler(pThis->_coreObject, ex);
+			BaseException bex(CORE_ERROR{CORE_ERROR::ERR_PROVIDER_EXCEPTION, ex.what()}, __FILE__, __LINE__);
+			handler(pThis->_coreObject, bex);
 		}
 		taskbg_ptr.reset();
 	}
+
+	auto taskExitFunc = pThis->getThreadExitFunction();
+	auto & taskexit_ptr = taskExitFunc.get();
+
+	if (taskexit_ptr.valid())
+	{
+		taskexit_ptr();
+	}
+	
+	std::cout << "----------------------------------------------------------------" << std::endl
+			  << "--------  >>> Thread \"" << pThis->_name << " [ID : " << GetCurrentThreadId() << " ] has exited" << std::endl
+			  << "----------------------------------------------------------------" << std::endl;
 }
 
 void BackgroundThread::setThreadPriority(const std::thread::native_handle_type handle) const

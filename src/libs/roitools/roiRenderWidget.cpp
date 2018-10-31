@@ -1,4 +1,4 @@
-#include "RenderWidget.h"
+#include "roiRenderWidget.h"
 
 #include <QOpenGLShaderProgram>
 #include <QOpenGLTexture>
@@ -7,7 +7,6 @@
 #include <QScrollBar>
 #include <QPainter>
 
-#include "roiRectWidget.h"
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
@@ -24,12 +23,16 @@
 
 #define ZOOM_STEP 1.2
 
+using namespace LandaJune;
+
 bool double_equals(double a, double b, double epsilon = 0.001)
 {
     return std::abs(a - b) < epsilon;
 }
 
-RenderWidget::RenderWidget(QWidget *parent)
+QSize roiRenderWidget::_maxTextureSize = {0,0};
+
+roiRenderWidget::roiRenderWidget(QWidget *parent)
 	: QOpenGLWidget(parent)
 	, _glScale(1.0f)
 	, _texture(nullptr)
@@ -38,16 +41,14 @@ RenderWidget::RenderWidget(QWidget *parent)
 {
 	setMouseTracking(true);
 	parentWidget()->installEventFilter(this);
-
-	_triangleCross = new moveableLayerWidget(this);
-	_triangleCross->setGeometry(10, 10, 30, 30);
-	_triangleCross->raise();
-	_triangleCross->show();
-
-	connect (_triangleCross, &moveableLayerWidget::dragStopped, this, &RenderWidget::onTargetWidgetDragStopped );
 }
 
-RenderWidget::~RenderWidget()
+roiRenderWidget::~roiRenderWidget()
+{
+	cleanup();
+}
+
+void roiRenderWidget::cleanup()
 {
 	makeCurrent();
 	if (_vbo.bufferId())
@@ -59,21 +60,108 @@ RenderWidget::~RenderWidget()
 	{
 		delete _texture;
 	}
+	_texture = nullptr;
 
 	if (_program)
 	{
 		delete _program;
 	}
+	_program = nullptr;
 
 	doneCurrent();
+
+	if (_i2sCross != nullptr )
+		delete _i2sCross;
+
+	if (!_c2cCrosses.isEmpty())
+		qDeleteAll(_c2cCrosses);
+
 }
 
-void RenderWidget::assignScrollBars(QScrollBar* horz, QScrollBar* vert)
+void roiRenderWidget::assignScrollBars(QScrollBar* horz, QScrollBar* vert)
 {
 	_horizontalScrollbar = horz; _verticalScrollbar = vert;
 }
 
-void RenderWidget::setScales(float glScale, float imageScale)
+void roiRenderWidget::setInitialROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins )
+{
+	_i2sROIRect = is2sRc;
+	_c2cROIRects = c2cRects;
+
+	_i2sMarginX = i2sMargins.width();
+	_i2sMarginY = i2sMargins.height();
+
+	_c2cMarginX = c2cMargins.width();
+	_c2cMarginY = c2cMargins.height();
+
+	if(_hasImage )
+		update();
+}
+
+
+void roiRenderWidget::updateROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects)
+{
+	qDebug () << " ---- CALCULATED I2S RECT : " << is2sRc;
+
+	//_i2sROIRect = is2sRc;
+	//_c2cROIRects = c2cRects;
+	
+	//if(_hasImage )
+	//	update();
+}
+
+void roiRenderWidget::createCrossHairs()
+{		
+	if (_i2sCross != nullptr )
+		delete _i2sCross;
+
+	if (!_i2sROIRect.isEmpty())
+	{
+		_i2sCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_I2S, _i2sMarginX * 2, _i2sMarginY * 2, _i2sROIRect.topLeft());
+		connect (_i2sCross, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onI2SCrossMoved );
+	}
+
+	if (!_c2cCrosses.isEmpty())
+		qDeleteAll(_c2cCrosses);
+
+	if (_c2cROIRects.isEmpty())
+	{
+		return;
+	}
+
+	auto c2cCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2, _c2cMarginY*2, _c2cROIRects[0].topLeft());
+	c2cCross->setProperty("idx", 0);
+	_c2cCrosses.push_back(c2cCross);
+
+	for (auto i = 1; i < _c2cROIRects.size(); i++ )
+	{
+		auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2, _c2cMarginY*2, _c2cROIRects[i].topLeft());
+		c2c->setProperty("idx", i);
+		_c2cCrosses.push_back(c2c);
+	}
+
+	for ( auto const c2c : _c2cCrosses)
+	{
+		connect (c2c, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onC2CrossMoved );
+	}
+
+	_allCrossesArray << _i2sCross << _c2cCrosses;
+	updateLayers();
+}
+
+void roiRenderWidget::showCrossHairs(bool bShow)
+{
+	if (_i2sCross )
+		_i2sCross->showCross(bShow);
+
+	for ( auto const& cross : _c2cCrosses )
+	{
+		if ( cross )
+			cross->showCross(bShow);
+	}
+}
+
+void roiRenderWidget::setScales(float glScale, float imageScale)
 {
 	if(!_hasImage )
 		return;
@@ -83,7 +171,7 @@ void RenderWidget::setScales(float glScale, float imageScale)
 	updateScroll();
 }
 
-void RenderWidget::setScrolls(int hScrollVal, int vScrollVal)
+void roiRenderWidget::setScrolls(int hScrollVal, int vScrollVal)
 {
 	if(!_hasImage )
 		return;
@@ -95,7 +183,7 @@ void RenderWidget::setScrolls(int hScrollVal, int vScrollVal)
 	update();
 }
 
-void RenderWidget::showActualPixels ()
+void roiRenderWidget::showActualPixels ()
 {
 	if(!_hasImage )
 		return;
@@ -115,7 +203,7 @@ void RenderWidget::showActualPixels ()
 	emit scaleChanged (_glScale, _imageScale);
 }
 	
-void RenderWidget::showFitOnScreen ()
+void roiRenderWidget::showFitOnScreen ()
 {
 	if(!_hasImage )
 		return;
@@ -135,13 +223,13 @@ void RenderWidget::showFitOnScreen ()
 	emit scaleChanged (_glScale, _imageScale);
 }
 	
-void RenderWidget::setZoom ( int zoom  )
+void roiRenderWidget::setZoom ( int zoom  )
 {
 	if(!_hasImage )
 		return;
 }
 
-void RenderWidget::zoomIn()
+void roiRenderWidget::zoomIn()
 {
 	if(!_hasImage )
 		return;
@@ -164,7 +252,7 @@ void RenderWidget::zoomIn()
 	updateScroll();
 }
 	
-void RenderWidget::zoomOut()
+void roiRenderWidget::zoomOut()
 {
 	if(!_hasImage )
 		return;
@@ -187,72 +275,80 @@ void RenderWidget::zoomOut()
 }
 
 
-bool RenderWidget::setImage(const QString& file)
+CORE_ERROR roiRenderWidget::setImage(const QString& file)
 {
+	cleanup ();
 	makeCurrent();
 
 	cv::Mat cvImage = cv::imread(file.toStdString());
+	if (cvImage.dims != 2)
+		{
+		return CORE_ERROR::UI_ROITOOL_INVALID_IMAGE;
+	}
+
+	if ( cvImage.cols > _maxTextureSize.width() || cvImage.rows > _maxTextureSize.height())
+	{
+		return CORE_ERROR::UI_ROITOOL_IMAGE_TOO_BIG;
+	}
+
 	cv::cvtColor(cvImage, cvImage, CV_BGR2RGB);
 
 	QImage img(static_cast<unsigned char*>(cvImage.data), cvImage.cols, cvImage.rows, cvImage.step, QImage::Format_RGB888);
-	if (_texture)
-	{
-		delete _texture;
-	}
+	
 	_texture = new QOpenGLTexture(img);
 	_imageSize = img.size();
 	
 
 	_imageScale = 1.0;
-	_imageRatio = (double)_imageSize.width() / (double)_imageSize.height();
+	_imageRatio = static_cast<double>(_imageSize.width()) / static_cast<double>(_imageSize.height());
 
 	if ( _imageRatio < 1 ) // vertical image
 	{
-		_glScale = (double)_imageSize.height() /  (double)height();
+		_glScale = static_cast<double>(_imageSize.height()) /  static_cast<double>(height());
 	}
 	else
 	{
-		_glScale =  (double)_imageSize.width() /  (double)width();
+		_glScale =  static_cast<double>(_imageSize.width()) /  static_cast<double>(width());
 	}
 
 	_hasImage = true;
 	_startWidgetSize = size();
 	setCursor(Qt::CrossCursor);
 
-	addBox({14, 20, 100, 100});
-
 	doneCurrent();
 	repaint();
+
+	createCrossHairs();
 
 	emit scaleChanged(_glScale, _imageScale);
 	return true;
 }
 
-QPoint RenderWidget::toImageC(const QPoint & pt) 
+QPoint roiRenderWidget::fromWidget2OriginalImagePt(const QPoint & pt) 
 {
 	if(!_hasImage )
 		return pt;
 
-	QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QSize widgetSize = size();
 	GLfloat xn = 2 * pt.x() / GLfloat(widgetSize.width()) - 1;
 	GLfloat yn = 2 * (widgetSize.height() - pt.y()) / GLfloat(widgetSize.height()) - 1;
+	QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QVector4D r = m * QVector4D(xn, yn, 0, 1);
-	int x = int((r.x() + 1) * _imageSize.width() / 2);
-	int y = int((1 - r.y()) * _imageSize.height() / 2);
+	const auto x = int((r.x() + 1) * _imageSize.width() / 2);
+	const auto y = int((1 - r.y()) * _imageSize.height() / 2);
 	QPoint result(x, y);
 	return std::move(result);
 }
 
-QSize RenderWidget::toImageC(const QSize & sz) 
+QSize roiRenderWidget::fromWidget2OriginalImageSize(const QSize & sz) 
 {
 	if(!_hasImage )
 		return sz;
 
-		QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QSize widgetSize = size();
 	GLfloat xn = 2 * sz.width() / GLfloat(widgetSize.width()) - 1;
 	GLfloat yn = 2 * (widgetSize.height() - sz.height()) / GLfloat(widgetSize.height()) - 1;
+	QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QVector4D r0 = m * QVector4D(-1, 1, 0, 1);
 	QVector4D r1 = m * QVector4D(xn, yn, 0, 1);
 	int x0 = int((r0.x() + 1) * _imageSize.width() / 2);
@@ -264,42 +360,71 @@ QSize RenderWidget::toImageC(const QSize & sz)
 }
 
 // backward
-QPoint RenderWidget::fromImageC(const QPoint & pt)
+QPoint roiRenderWidget::fromOrigImage2WidgetPt(const QPoint & pt)
 {
 	if(!_hasImage )
 		return pt;
 
-	QMatrix4x4 m = getModelViewProjMatrix();
 	QSize widgetSize = size();
 	GLfloat rx = 2 * pt.x() / GLfloat(_imageSize.width()) - 1;
 	GLfloat ry = 1 - 2 * pt.y() / GLfloat(_imageSize.height());
+	QMatrix4x4 m = getModelViewProjMatrix();
 	QVector4D rn = m * QVector4D(rx, ry, 0, 1);
 	int xw = (1 + rn.x()) * widgetSize.width() / 2;
-	int yw = (1 + rn.x()) * widgetSize.height() / 2;
+	int yw = widgetSize.height() - (1 + rn.y()) * widgetSize.height() / 2;
+
 	QPoint result(xw, yw);
 	return std::move(result);
 }
 
-void RenderWidget::onTargetWidgetDragStopped(QPoint topLeft, QPoint centerPos )
+void roiRenderWidget::onI2SCrossMoved(QPoint topLeft, QPoint centerPos )
 {
 	auto targetWidget = dynamic_cast<moveableLayerWidget*>(sender());
-	targetWidget->setProperty("widgetPosTopLeft", topLeft);
-	targetWidget->setProperty("widgetPosCenter", centerPos);
-	targetWidget->setProperty("imagePosTopLeft", toImageC(topLeft));
-	targetWidget->setProperty("imagePosCenter", toImageC(centerPos));
 
-	qDebug () << " ---- DRAG STOPPED AT : " << toImageC(centerPos);
+	auto newI2SPos = fromWidget2OriginalImagePt(centerPos);
+	const auto newLeftToPos = fromWidget2OriginalImagePt(topLeft);
+
+	targetWidget->setTopLeftOnOriginalImage(newLeftToPos);
+
+	_i2sROIRect = QRect(newLeftToPos.x(), newLeftToPos.y(), _i2sROIRect.width(), _i2sROIRect.height());
+
+	qDebug () << " ---- LOCAL I2S RECT : " << _i2sROIRect;
+	emit i2sPosChanged(newI2SPos);
+	update();
 }
 
-void RenderWidget::initializeGL()
+void roiRenderWidget::onC2CrossMoved( QPoint topLeft, QPoint centerPos )
+{
+	auto targetWidget = dynamic_cast<moveableLayerWidget*>(sender());
+
+	auto newC2CPos = fromWidget2OriginalImagePt(centerPos);
+	const auto newLeftToPos = fromWidget2OriginalImagePt(topLeft);
+
+	targetWidget->setTopLeftOnOriginalImage(newLeftToPos);
+
+	auto idx = targetWidget->property("idx").toInt();
+
+	_c2cROIRects[idx] = QRect(newLeftToPos.x(), newLeftToPos.y(), _c2cROIRects[idx].width(), _c2cROIRects[idx].height());
+
+	qDebug () << " ---- NEW C2C RECT [idx=" << idx << "]: " << _c2cROIRects[idx] ;
+	emit c2cPosChanged(idx, newC2CPos);
+	update();
+}
+
+void roiRenderWidget::initializeGL()
 {
 	initializeOpenGLFunctions();
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	GLint dims[2];
-	glGetIntegerv(GL_MAX_VIEWPORT_DIMS, dims);
+	if (_maxTextureSize.isEmpty())
+	{
+		GLint dims[2];
+		glGetIntegerv(GL_MAX_VIEWPORT_DIMS, dims);
+		_maxTextureSize.setWidth(dims[0]);
+		_maxTextureSize.setHeight(dims[1]);
+	}
 
 	static const GLfloat vertData[] = {
 		-1, -1, 0, 0, 1,
@@ -361,7 +486,7 @@ void RenderWidget::initializeGL()
 
 }
 
-void RenderWidget::paintGL()
+void roiRenderWidget::paintGL()
 {
 	if(!_hasImage )
 		return;
@@ -392,14 +517,27 @@ void RenderWidget::paintGL()
 	_program->release();
 	_vbo.release();
 
+	paintROIs(m);
+
+	/*
+	glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+
+	painter.endNativePainting();
+	painter.fillRect(10,10, 100, 100, QColor(Qt::darkBlue));
+	*/
+}
+
+void roiRenderWidget::paintROIs(QMatrix4x4& modelData )
+{
 	// TODO: replace it with modern approach
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf(m.data());
+	glLoadMatrixf(modelData.data());
 
-	glLineWidth(3.0);
+	glLineWidth(4.0);
 	glColor3d(1, 0, 0);
 
-	for (QRect rc : _boxes) 
+	auto drawLambda = [this](const QRect& rc)
 	{
 		GLfloat l = 2 * rc.left() / GLfloat(_imageSize.width()) - 1;
 		GLfloat t = 1 - 2 * rc.top() / GLfloat(_imageSize.height());
@@ -412,20 +550,17 @@ void RenderWidget::paintGL()
 		glVertex3f(r, b, 0.1);
 		glVertex3f(l, b, 0.1);
 		glEnd();
+	};
+
+	drawLambda(_i2sROIRect);
+	for (QRect rc : _c2cROIRects) 
+	{
+		drawLambda(rc);
 	}
-	// 
-
-	/*
-	glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-
-	painter.endNativePainting();
-	painter.fillRect(10,10, 100, 100, QColor(Qt::darkBlue));
-	*/
 }
 
 
-QMatrix4x4 RenderWidget::getModelViewProjMatrix(void) 
+QMatrix4x4 roiRenderWidget::getModelViewProjMatrix(void) 
 {
 	QSize widgetSize = size();
 	
@@ -464,21 +599,26 @@ QMatrix4x4 RenderWidget::getModelViewProjMatrix(void)
 }
 
 
-void RenderWidget::updateLayers()
+void roiRenderWidget::updateLayers()
 {
 	if(!_hasImage )
 		return;
-
-	auto imageTopLeft = _triangleCross->property("imagePosTopLeft").toPoint();
-	_triangleCross->move(fromImageC(imageTopLeft));
+	
+	std::for_each(std::begin(_allCrossesArray), std::end(_allCrossesArray), 
+			[this](auto w)
+			{
+				if (w)
+					w->mapOnActualImage(_imageScale, fromOrigImage2WidgetPt(w->topLeftOnOriginalImage()));
+			}
+	);
 }
 
-void RenderWidget::resizeGL(int w, int h)
+void roiRenderWidget::resizeGL(int w, int h)
 {
 	glViewport(0, 0, w, h);
 }
 
-void RenderWidget::updateHScroll( int hVal)
+void roiRenderWidget::updateHScroll( int hVal)
 {
 	if(!_hasImage )
 		return;
@@ -487,7 +627,7 @@ void RenderWidget::updateHScroll( int hVal)
 	updateLayers();
 }
 
-void RenderWidget::updateVScroll( int vVal)
+void roiRenderWidget::updateVScroll( int vVal)
 {
 	if(!_hasImage )
 		return;
@@ -496,7 +636,7 @@ void RenderWidget::updateVScroll( int vVal)
 	updateLayers();
 }
 
-void RenderWidget::updateScroll() 
+void roiRenderWidget::updateScroll() 
 {
 	if(!_hasImage )
 	{
@@ -564,12 +704,12 @@ void RenderWidget::updateScroll()
 	updateLayers();
 }
 
-void RenderWidget::mouseMoveEvent(QMouseEvent* event)
+void roiRenderWidget::mouseMoveEvent(QMouseEvent* event)
 {
 	if(!_hasImage )
 		return;
 
-	auto pos = toImageC(event->pos());
+	auto pos = fromWidget2OriginalImagePt(event->pos());
 	QSize sentSize;
 
 	if (_rubberBand && _rubberBand->isVisible())
@@ -577,13 +717,13 @@ void RenderWidget::mouseMoveEvent(QMouseEvent* event)
 		_rubberBand->setGeometry(QRect(_origin, event->pos()).normalized());
 		sentSize = _rubberBand->geometry().size();
 		sentSize = sentSize / _imageScale;
-		pos = toImageC(_rubberBand->geometry().topLeft()) ;
+		pos = fromWidget2OriginalImagePt(_rubberBand->geometry().topLeft()) ;
 	}
 	emit cursorPos(pos, sentSize);
 	//emit cursorPos(event->pos() / _imageScale, sentSize / _imageScale);
 }
 
-void RenderWidget::mousePressEvent(QMouseEvent *event)
+void roiRenderWidget::mousePressEvent(QMouseEvent *event)
 {
 	if(!_hasImage )
 		return;
@@ -596,7 +736,7 @@ void RenderWidget::mousePressEvent(QMouseEvent *event)
     _rubberBand->show();
 }
 
-void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
+void roiRenderWidget::mouseReleaseEvent(QMouseEvent *event)
 {
 	if(!_hasImage )
 		return;
@@ -604,7 +744,7 @@ void RenderWidget::mouseReleaseEvent(QMouseEvent *event)
 }
 
 
-bool RenderWidget::eventFilter(QObject* obj, QEvent* event)
+bool roiRenderWidget::eventFilter(QObject* obj, QEvent* event)
 {
 	if(!_hasImage )
 		return QObject::eventFilter(obj, event);
@@ -629,10 +769,8 @@ bool RenderWidget::eventFilter(QObject* obj, QEvent* event)
 }
 
 
-void RenderWidget::wheelEvent(QWheelEvent* event)
+void roiRenderWidget::wheelEvent(QWheelEvent* event)
 {
-	if(!_hasImage )
-		return;
 
 	if(event->modifiers().testFlag(Qt::ControlModifier))
 	{
@@ -640,8 +778,8 @@ void RenderWidget::wheelEvent(QWheelEvent* event)
 	}
 	else
 	{
-		auto const val = event->angleDelta().y() < 0 ? _verticalScrollbar->singleStep() : -_verticalScrollbar->singleStep();
-		_verticalScrollbar->setValue(_verticalScrollbar->value() + val) ;
+		auto const val = event->angleDelta().y() < 0 ? _verticalScrollbar->pageStep() : -_verticalScrollbar->pageStep();
+		_verticalScrollbar->setValue(_verticalScrollbar->value() + val / 2) ;
 		update();
 	}
 }

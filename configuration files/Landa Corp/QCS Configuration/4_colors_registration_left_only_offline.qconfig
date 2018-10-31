@@ -1,10 +1,33 @@
 {
     "AlgorithmRunner": "Full Image Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
-    "C2CDistanceBetweenDots_um": 3048,
-    "C2CDistanceBetweenSets_um": 159300,
-    "C2CDistanceFromTriangle2FirstSet_um": 9600,
-    "C2CROISetsCount": 5,
+    "C2CCircleDiameter_mm": 1.542,
+    "C2CDROIMarginX_mm": 2.5,
+    "C2CDROIMarginY_mm": 2.5,
+    "C2CDistanceBetweenDotsX_mm": 3.048,
+    "C2CDistanceBetweenDotsY_mm": 3.048,
+    "C2COffsetsArray": [
+        {
+            "dx": -0.2,
+            "dy": 9.03
+        },
+        {
+            "dx": -0.3,
+            "dy": 167.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 327.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 487.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 647.9
+        }
+    ],
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
@@ -78,16 +101,18 @@
     "FrameFrequencyInMSec": 500,
     "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
-    "I2SMarginX_mm": 2.5,
-    "I2SMarginY_mm": 2.5,
-    "I2SOffsetFromPaperEdgeX_mm": 3.19,
-    "I2SOffsetFromPaperEdgeY_mm": 10.5,
-    "I2SROIHeight_mm": 8.5,
-    "I2SROIWidth_mm": 8.5,
+    "I2SHeight_mm": 4.4,
+    "I2SOffsetFromPaperEdgeX_mm": 3.44,
+    "I2SOffsetFromPaperEdgeY_mm": 9.21,
+    "I2SROIMarginX_mm": 2.5,
+    "I2SROIMarginY_mm": 2.5,
+    "I2SWidth_mm": 3.03,
     "ImageMaxCount": -1,
     "JobID": 0,
-    "OffsetBetweenTriangles_mm": 990,
-    "OffsetFromLeftEdge_mm": 2.94,
+    "LeftStripWidth_mm": 12.13,
+    "OfflineRegStripOnly": true,
+    "OfflineTreatEvenFilesAsRight": false,
+    "OffsetFromLeftEdge_mm": 2.98,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -108,6 +133,7 @@
         "S": 0,
         "V": 0
     },
+    "RightStripROIsOffsetY_mm": 0,
     "RootOutputFolder": "C:\\temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,
@@ -135,12 +161,11 @@
     "SaveSourceWave": false,
     "SaveWaveCSV": false,
     "ScanBitDepth": 24,
+    "ScanStartToPaperEdgeOffset_mm": 10.7,
     "SheetID": 0,
     "SourceFilePath": "",
     "SourceFolderPath": "d:\\Temp\\JUNE\\june_offline_input\\4_colors_registration_left_only_offline",
-    "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
-    "SubstrateImageMargin_mm": 2,
     "SubstrateWidth_mm": 1000,
     "WaveCircleDiameter_um": 1016,
     "WaveDistanceBetweenDotsX_um": 2709.3,

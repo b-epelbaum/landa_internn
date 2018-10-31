@@ -4,15 +4,20 @@
 #include <QObject>
 #include <QMetaObject>
 #include "applog.h"
-
 #include "baseparam.h"
-
-//#define DECLARE_PROVIDER_PROPERTY(x,type,initval) Q_PROPERTY(type x READ x WRITE set##x) private: type _##x = initval; public: type x() const { return _##x; } void set##x(type val) { _##x = val; }
 
 namespace LandaJune
 {
 	namespace FrameProviders
 	{
+		#define CHECK_INIT if (!_coreObject ) \
+		return CORE_ERROR::ERR_PROVIDER_UNINITIALIZED; \
+		if (!_currentOfflineProvider ) \
+		{ \
+			THROW_EX_ERR(CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER); \
+		}
+
+
 		class BaseFrameProvider :  public QObject, public IFrameProvider
 		{
 			Q_OBJECT
@@ -28,21 +33,19 @@ namespace LandaJune
 			const BaseFrameProvider & operator = (const BaseFrameProvider &) = delete;
 			BaseFrameProvider & operator = (BaseFrameProvider &&) = delete;
 
+			bool isInited() const override { return _coreObject && _dataCallback && _providerParameters; }
+
 			QString getName() const override { return _name;  }
 			QString getDescription() const override { return _description; }
 
-			bool warnAboutDroppedFrames() override { return true; }
-
 			BaseParametersPtr getProviderParameters() const override { return _providerParameters;  }
+			IPropertyList getProviderProperties() const override;
 
 			int32_t getFrameDropDelayTimeout() const override {
 				return _DropFrameWaitTimeout;
 			}
 
 			int64_t getCurrentFrameIndex() const override { return _lastAcquiredImage; };
-
-			IPropertyList getProviderProperties() const override;
-			bool setProviderProperties(const IPropertyList& vals) override;
 
 			QVariant getProviderProperty(const QString& strValName) const override;
 			bool setProviderProperty(const QString& strValName, const QVariant& val) override;
@@ -59,16 +62,19 @@ namespace LandaJune
 
 		protected :
 			
+		
 			virtual int64_t getLastImageIndex() const {
 				return _lastAcquiredImage;
 			}
 
 			virtual void validateParameters(BaseParametersPtr parameters) = 0;
 
-			FrameProviderCallback _dataCallback;
+			CoreEventCallback _dataCallback;
 			Core::ICore * _coreObject = nullptr;
 			BaseParametersPtr _providerParameters;
+			
 			bool _busy = false;
+
 			int64_t _lastAcquiredImage = 0;
 			QString _name;
 			QString _description;

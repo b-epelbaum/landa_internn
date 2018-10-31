@@ -45,11 +45,29 @@ using namespace Functions;
 }
 
 
+BaseCore::EVENT_MAP BaseCore::_eventParserMap =
+{
+	  {CoreCallbackType::CALLBACK_PROVIDER_SCANNED_FILES_COUNT,			&BaseCore::on_ProviderScannedFilesCount }
+	, {CoreCallbackType::CALLBACK_PROVIDER_FRAME_GENERATED_OK,			&BaseCore::on_ProviderFrameGeneratedOk }
+	, {CoreCallbackType::CALLBACK_PROVIDER_FRAME_SKIPPED,				&BaseCore::on_ProviderFrameSkipped }
+	, {CoreCallbackType::CALLBACK_PROVIDER_FINISHED,					&BaseCore::on_ProviderFinished }
+	, {CoreCallbackType::CALLBACK_PROVIDER_FRAME_IMAGE_DATA,			&BaseCore::on_ProviderFrameImageData }
+	, {CoreCallbackType::CALLBACK_PROVIDER_EXCEPTION,					&BaseCore::on_ProviderException }
+																		
+	, {CoreCallbackType::CALLBACK_RUNNER_FRAME_HANDLED_OK,				&BaseCore::on_RunnerFrameHandledOk }
+	, {CoreCallbackType::CALLBACK_RUNNER_FRAME_SKIPPED,					&BaseCore::on_RunnerFrameSkipped }
+	, {CoreCallbackType::CALLBACK_RUNNER_DETECTION_OK,					&BaseCore::on_RunnerDetectionSuccess }
+	, {CoreCallbackType::CALLBACK_RUNNER_DETECTION_FAILED,				&BaseCore::on_RunnerDetectionFailure }
+	, {CoreCallbackType::CALLBACK_RUNNER_EXCEPTION,						&BaseCore::on_RunnerException }
+};
+
 void BaseCore::init(bool reportEvents )
 {
 	_reportEvents = reportEvents;
 
 	qRegisterMetaType<BaseException>("BaseException");
+	qRegisterMetaType<std::exception_ptr>("std::exception_ptr");
+
 	if (_bInited)
 	{
 		CORE_SCOPED_WARNING << "Core is already initialized";
@@ -148,7 +166,9 @@ void BaseCore::runOne()
 	// clean target folder
 	auto strTargetFolder = QString::fromStdString(getRootFolderForOneRun());
 
-	QDir dir("c:\\Temp\\june_out\\OneRun");
+	//QDir dir("c:\\Temp\\june_out\\OneRun");
+	QDir dir(strTargetFolder);
+
 	//dir.setNameFilters(QStringList() << "*.*");
 	dir.setFilter(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot );
 	for(auto const& dirFile :  dir.entryList())
@@ -190,38 +210,10 @@ void BaseCore::run(BaseParametersPtr params)
 		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_IS_BUSY);
 	}
 
-	
-	_bCanAcceptEvents = true;
-	_bCanAcceptExceptions = true;
 
-	// call algorithms initialization functions
-	try
-	{
-		_currentAlgorithmRunner->init(params, this, consumerDataCallback);
-	}
-	catch(...)
-	{
-		// TODO : rethrow nested exception
-		THROW_EX_INT(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION);
-	}
-
+	// initialize frame pool
 	initFramePool();
 
-	CORE_ERROR initErr;
-	try
-	{
-		initErr = _currentFrameProvider->init(params, this, providerDataCallback);
-	}
-	catch (...)
-	{
-		// TODO : rethrow nested exception
-		THROW_EX_INT(CORE_ERROR::ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION);
-	}
-
-	if ( initErr != NO_ERROR )
-	{
-		THROW_EX_INT(CORE_ERROR::ERR_CORE_PROVIDER_FAILED_TO_INIT);
-	}
 
 	// start file writer
 	initFileWriter(true);
@@ -229,16 +221,22 @@ void BaseCore::run(BaseParametersPtr params)
 	// start one and only frame consuming thread
 	// the entry point of this thread is the "frameConsume" static function, which uses image processing and file saving thread pools inside
 	// see "frameConsume" implementation
-	frameConsumerThread().setThreadFunction(frameConsume, _currentAlgorithmRunner, this, consumerDataCallback );
-	frameConsumerThread().setErrorHandler(coreExceptionHandler, this);
+	// frameRunnerCleanup will run when the consumer thread is going to exit
+	// 
+
+	frameConsumerThread().setName ("Frame Handler");
+	frameConsumerThread().setThreadFunction(frameConsume, params, _currentAlgorithmRunner, this, coreEventCallback );
+	frameConsumerThread().setThreadExitFunction(frameRunnerCleanup,_currentAlgorithmRunner, this, coreEventCallback );
 	frameConsumerThread().start();
 
 	
 	// start one and only frame producing/generation/capture thread
 	// the entry point of this thread is the "frameGenerate" static function, which invokes the data generation functions of IAbstractImageProvider object
 	// see "frameGenerate" implementation
-	frameProducerThread().setThreadFunction(frameGenerate, _currentFrameProvider, this, providerDataCallback);
-	frameProducerThread().setErrorHandler(coreExceptionHandler, this);
+	// frameGeneratorCleanup will run when the producer thread is going to exit
+	frameProducerThread().setName ("Frame Producer");
+	frameProducerThread().setThreadFunction(frameGenerate, params, _currentFrameProvider, this, coreEventCallback);
+	frameProducerThread().setThreadExitFunction(frameGeneratorCleanup,_currentFrameProvider, this, coreEventCallback );
 	frameProducerThread().start();
 }
 
@@ -249,9 +247,6 @@ void BaseCore::stop()
 	{
 		return;
 	}
-
-	_bCanAcceptEvents = false;
-	_bCanAcceptExceptions = false;
 
 	CORE_SCOPED_LOG << "Stopping Frame producer thread...";
 	frameProducerThread().stop();
@@ -298,7 +293,7 @@ std::string BaseCore::getRootFolderForOneRun() const
 		catch (fs::filesystem_error& er)
 		{
 			PRINT_ERROR << "Cannot create folder " << stdPath.c_str() << "; exception caught : " << er.what();
-			RETHROW (CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + stdPath);
+			RETHROW_STR (CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + stdPath);
 		}
 	}
 
@@ -313,27 +308,6 @@ bool BaseCore::isBusy()
 		return false;
 
 	return _currentFrameProvider->isBusy();
-}
-
-void BaseCore::onCriticalException(BaseException ex)
-{
-	stop();
-	emit coreException(ex);
-}
-
-void BaseCore::onFrameData (std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
-{
-	emit frameData(fData);
-}
-
-void BaseCore::onFileCountData ( int sourceFileCount )
-{
-	emit offlineFileSourceCount(sourceFileCount);
-}
-
-void BaseCore::onFrameProcessed ( int frameIndex )
-{
-	emit frameProcessed(frameIndex);
 }
 
 QString BaseCore::getDefaultConfigurationFileName() const
@@ -389,112 +363,220 @@ void BaseCore::initFileWriter(bool bInit) const
 	}
 }
 
-void BaseCore::processExceptionData(BaseException& ex)
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////// CALLBACK PARSERS
+////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////
+////////     PROVIDER SLOTS
+
+
+void BaseCore::_onProviderScannedFilesCount ( int sourceFileCount )
 {
-	{
-		autolock lock(_mutex);
-		if ( !_bCanAcceptExceptions )
-			return;
-	}
-
-	std::ostringstream ss;
-	print_exception(ex, ss);
-	CORE_SCOPED_ERROR << ss.str().c_str();
-
-	//TODO : we should analyze exception information to decide whether we have to stop
-	// processing or continue 
-
-	bool bShouldStop = true;
-
-	if (bShouldStop)
-	{
-		_bCanAcceptExceptions = false;
-		_bCanAcceptEvents = false;
-		// post message for stopping processing
-		auto bRes = QMetaObject::invokeMethod(this, "onCriticalException", Qt::QueuedConnection, Q_ARG(BaseException, ex));
-	}
+	emit providerScannedFilesCount(sourceFileCount);
 }
 
-void BaseCore::coreExceptionHandler ( ICore * coreObject, BaseException& ex ) noexcept
+void BaseCore::_onProviderFrameGeneratedOk ( int frameIndex )
 {
-	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
-	if ( pCore == nullptr )
-		return;
-
-	pCore->processExceptionData(ex);
+	emit providerFrameGeneratedOk (frameIndex);
 }
 
-void BaseCore::providerDataCallback ( ICore * coreObject, FrameProviderDataCallbackType callbackType, std::any callbackData  )
+void BaseCore::_onProviderFrameSkipped( int frameIndex )
 {
-	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
-	if ( pCore == nullptr )
-		return;
+	emit providerFrameSkipped (frameIndex);
+}
 
-	{
-		autolock lock(pCore->_mutex);
-		if ( !pCore->_bCanAcceptEvents )
-			return;
-	}
+void BaseCore::_onProviderFinished ()
+{
+	CORE_SCOPED_LOG << "Frame provider finished image generation";
+	stop();
+	emit providerFinished();
+}
 
-	std::string typeName = "unknown";
+void BaseCore::_onProviderFrameImageData (std::shared_ptr<LandaJune::Core::SharedFrameData> frameData)
+{
+	if (frameData)
+		emit providerFrameImageData(frameData);
+}
+
+void BaseCore::_onProviderException	(std::exception_ptr pex)
+{
+	processProviderExceptionData(pex);
+}
+
+
+///////////////////////////////////////////////
+////////     RUNNER SLOTS
+
+
+void BaseCore::_onRunnerFrameHandledOk ( int frameIndex )
+{	
+	emit runnerFrameHandledOk(frameIndex);
+}	
+	 
+void BaseCore::_onRunnerFrameSkipped ( int frameIndex )
+{	 
+	emit runnerFrameSkipped(frameIndex); 
+}	 
+	 
+void BaseCore::_onRunnerDetectionSuccess( int frameIndex )
+{	 
+	 emit runnerDetectionSuccess(frameIndex); 
+}	 
+	 
+void BaseCore::_onRunnerDetectionFailure( int frameIndex )
+{	
+	emit runnerDetectionFailure(frameIndex); 
+}	
+	
+void BaseCore::_onRunnerException	(std::exception_ptr pex)
+{
+	processRunnerExceptionData(pex);
+}
+
+
+void BaseCore::processProviderExceptionData(std::exception_ptr pex)
+{
 	try
 	{
-		switch (callbackType)
+		if (pex)
 		{
-			case FrameProviderDataCallbackType::CALLBACK_FRAME_DATA :
-			{
-				typeName = "FrameProviderDataCallbackType::CALLBACK_FRAME_DATA";
-				if (pCore->_reportEvents )
-					auto bRes = QMetaObject::invokeMethod(pCore, "onFrameData", Qt::QueuedConnection, Q_ARG(std::shared_ptr<LandaJune::Core::SharedFrameData>, std::any_cast<std::shared_ptr<LandaJune::Core::SharedFrameData>>(callbackData)));
-			}
-			break;
-
-			case FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT :
-			{
-				typeName = "FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT";
-				if (pCore->_reportEvents )
-					auto bRes = QMetaObject::invokeMethod(pCore, "onFileCountData", Qt::QueuedConnection, Q_ARG(qint32, (qint32)std::any_cast<int>(callbackData)));
-			}
-			break;
-			default: ;
+			std::rethrow_exception(pex);
 		}
+	}
+	catch (BaseException& bex)
+	{
+		std::ostringstream ss;
+		print_exception(bex, ss);
+
+		CORE_SCOPED_ERROR << ss.str().c_str();
+	}
+
+
+	// post message for stopping processing
+	stop();
+	
+	//emit coreException(ex);
+}
+
+void BaseCore::processRunnerExceptionData(std::exception_ptr pex)
+{
+	try
+	{
+		if (pex)
+		{
+			std::rethrow_exception(pex);
+		}
+	}
+	catch (BaseException& bex)
+	{
+		std::ostringstream ss;
+		print_exception(bex, ss);
+
+		CORE_SCOPED_ERROR << ss.str().c_str();
+	}
+
+
+	// post message for stopping processing
+	stop();
+	//emit coreException(ex);
+}
+
+void BaseCore::coreEventCallback ( ICore * coreObject, CoreCallbackType callbackType, std::any callbackData  )
+{
+	// core event callback receives all events from 
+	// providers and runners
+	// and routes them accordingly to even type
+	// also, callbackData is treated differently for different event codes
+
+	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
+	if ( pCore == nullptr )
+		return;
+
+	auto funcIter = _eventParserMap.find(callbackType);
+	if ( funcIter == _eventParserMap.end())
+	{
+		on_UnknownEvent(pCore, callbackType, callbackData);
+		return;
+	}
+
+	try
+	{
+		std::invoke (funcIter->second, pCore, callbackData);
 	}
 	catch (const std::bad_any_cast& e)
 	{
-		CORE_SCOPED_ERROR << "Provider callback type : " << typeName.c_str() << " bad cast exception : " << e.what();
+		CORE_SCOPED_ERROR << "Bad type cast occured during processng event of type : " << static_cast<int>(callbackType) << " exception error : " << e.what();
 	}
 }
 
-
-void BaseCore::consumerDataCallback ( ICore * coreObject, FrameConsumerDataCallbackType callbackType, std::any callbackData  )
+void BaseCore::on_UnknownEvent( BaseCore *coreObject, CoreCallbackType callbackType, std::any& callbackData )
 {
-	const auto pCore = dynamic_cast<BaseCore*>(coreObject);
-	if ( pCore == nullptr )
-		return;
+	CORE_SCOPED_WARNING << "Received event with unknown ( still unmapped ? )  callback type : " << static_cast<int>(callbackType);
+}
 
-	{
-		autolock lock(pCore->_mutex);
-		if ( !pCore->_bCanAcceptEvents )
-			return;
-	}
+/////////////////////////////////////////////////////////
+// provider callbacks
 
-	std::string typeName = "unknown";
-	try
-	{
-		switch (callbackType)
-		{
-			case FrameConsumerDataCallbackType::CALLBACK_FRAME_HANDLED :
-			{
-				typeName = "FrameProviderDataCallbackType::CALLBACK_FRAME_HANDLED";
-				if (pCore->_reportEvents )
-					auto bRes = QMetaObject::invokeMethod(pCore, "onFrameProcessed", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
-			}
-			break;
-			default: ;
-		}
-	}
-	catch (const std::bad_any_cast& e)
-	{
-		CORE_SCOPED_ERROR << "Consumer callback type : " << typeName.c_str() << " bad cast exception : " << e.what();
-	}
+void BaseCore::on_ProviderScannedFilesCount( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onProviderScannedFilesCount", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_ProviderFrameGeneratedOk( BaseCore *coreObject, std::any& callbackData )
+{
+	auto bRes = QMetaObject::invokeMethod(coreObject, "_onProviderFrameGeneratedOk", Qt::QueuedConnection,  Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_ProviderFrameSkipped( BaseCore *coreObject, std::any& callbackData )
+{
+	auto bRes = QMetaObject::invokeMethod(coreObject, "_onProviderFrameSkipped",  Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_ProviderFinished( BaseCore *coreObject, std::any& callbackData )
+{
+	auto bRes = QMetaObject::invokeMethod(coreObject, "_onProviderFinished", Qt::QueuedConnection );
+}
+
+void BaseCore::on_ProviderFrameImageData( BaseCore *coreObject, std::any& callbackData )
+{
+	auto bRes = QMetaObject::invokeMethod(coreObject, "_onProviderFrameImageData", Qt::QueuedConnection, Q_ARG(std::shared_ptr<LandaJune::Core::SharedFrameData>, std::any_cast<std::shared_ptr<LandaJune::Core::SharedFrameData>>(callbackData)));
+}
+
+void BaseCore::on_ProviderException( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onProviderException", Qt::QueuedConnection, Q_ARG(std::exception_ptr, std::any_cast<std::exception_ptr>(callbackData)));
+}
+
+
+/////////////////////////////////////////////////////////
+// runner callbacks
+
+
+void BaseCore::on_RunnerFrameHandledOk( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onRunnerFrameHandledOk", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_RunnerFrameSkipped( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onRunnerFrameSkipped", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+
+void BaseCore::on_RunnerDetectionSuccess( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onRunnerDetectionSuccess", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_RunnerDetectionFailure( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onRunnerDetectionFailure", Qt::QueuedConnection, Q_ARG(qint32, static_cast<qint32>(std::any_cast<int>(callbackData))));
+}
+
+void BaseCore::on_RunnerException( BaseCore *coreObject, std::any& callbackData )
+{
+	QMetaObject::invokeMethod(coreObject, "_onRunnerException", Qt::QueuedConnection, Q_ARG(std::exception_ptr, std::any_cast<std::exception_ptr>(callbackData)));
 }

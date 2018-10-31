@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="JuneUIWnd">
+    <file>Resources/size.png</file>
     <file>Resources/roi_cut.png</file>
     <file>Resources/counter.png</file>
     <file>Resources/start_once.png</file>

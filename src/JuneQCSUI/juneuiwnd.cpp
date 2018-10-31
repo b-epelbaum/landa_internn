@@ -438,7 +438,7 @@ void JuneUIWnd::runBatchMode( bool bAll )
 void JuneUIWnd::showROITools()
 {
 	roitools _roiTools;
-	_roiTools.showROITools(this);
+	_roiTools.showROITools(ICore::get()->getProcessParameters(), this);
 }
 
 void JuneUIWnd::createActions()

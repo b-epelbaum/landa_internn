@@ -126,14 +126,14 @@ namespace LandaJune
 				PVOID  m_pvData;
 		};
 
-		void writeRawDataSeq(const char* buf, const size_t dataSize, const std::string& filePath )
+		CORE_ERROR writeRawDataSeq(const char* buf, const size_t dataSize, const std::string& filePath )
 		{
 			auto const hFile = CreateFileA(filePath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,  FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, nullptr);
 			if (hFile == INVALID_HANDLE_VALUE)
 			{
 				//throw 
 				PRINT_ERROR << "frameSaveData [file " << filePath.c_str() << "] failed to open";
-				return;
+				return CORE_ERROR::ERR_DATA_SAVE_FAILURE;
 			}
 			DWORD dwWritten = 0;
 			auto const bRes =  WriteFile(hFile, buf, dataSize, &dwWritten, nullptr);
@@ -142,7 +142,10 @@ namespace LandaJune
 			if (!bRes)
 			{
 				PRINT_ERROR << "frameSaveImage [file " << filePath.c_str() << "] failed to write";
+				return CORE_ERROR::ERR_DATA_SAVE_FAILURE;
 			}
+
+			return RESULT_OK;
 		}
 
 		void writeRawDataIOCP(const char* buf, const size_t dataSize, const std::string& filePath )
@@ -226,15 +229,16 @@ namespace LandaJune
 			}
 		}
 
-		void frameSaveData(SaveDataType& args) 
+		CORE_ERROR frameSaveData(SaveDataType& args) 
 		{
 			const auto sPath = std::get<1>(args);
 			const auto sData = std::get<0>(args);
 			const auto t0 = Utility::now_in_microseconds();
 			
-			writeRawDataSeq(reinterpret_cast<const char*>(sData->data()), sData->size(), sPath );
+			auto retVal = writeRawDataSeq(reinterpret_cast<const char*>(sData->data()), sData->size(), sPath );
 
 			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, sData->size());
+			return retVal;
 		}
 	}
 }

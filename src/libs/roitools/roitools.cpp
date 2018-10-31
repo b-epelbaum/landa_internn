@@ -1,15 +1,27 @@
 #include "roitools.h"
-#include "roiview.h"
+#include "roiToolManWnd.h"
+#include "common/june_errors.h"
+
+#include "ProcessParameters.h"
+#include <QDialog>
+
+using namespace LandaJune;
+using namespace Parameters;
 
 roitools::roitools()
+= default;
+
+int roitools::showROITools(LandaJune::BaseParametersPtr params, QWidget* parentWidget) const
 {
-}
+	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(params);
+	if (!processParams)
+	{
+		return -1;
+	}
 
-int roitools::showROITools(QWidget* parentWidget)
-{
-	auto roiToolsView = roiview(parentWidget);
-	auto resVal = roiToolsView.exec();
-
-
-	return resVal;
+	auto roiToolsView = new roiToolMainWnd(processParams, parentWidget);
+	roiToolsView->setAttribute(Qt::WA_DeleteOnClose);
+	roiToolsView->setWindowModality(Qt::ApplicationModal);
+	roiToolsView->show();
+	return 0;
 }

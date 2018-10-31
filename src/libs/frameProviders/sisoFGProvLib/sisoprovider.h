@@ -25,8 +25,6 @@ namespace LandaJune
 			const SiSoProvider & operator = (const SiSoProvider &) = delete;
 			SiSoProvider & operator = (SiSoProvider &&) = delete;
 
-			bool canContinue(CORE_ERROR lastError) override;
-
 			int32_t getFrameLifeSpan() const override;
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency() / 2 + 1; }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
@@ -34,8 +32,8 @@ namespace LandaJune
 			void releaseData(Core::FrameRef* frameRef) override;
 
 
-			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
-			CORE_ERROR cleanup() override;
+			void init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback) override;
+			void cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(AppletFilePath, QString, "")
 			DECLARE_NORMAL_PARAM_PROPERTY(ConfigurationFilePath, QString, "")

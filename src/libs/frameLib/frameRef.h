@@ -105,7 +105,9 @@ namespace LandaJune
 		};
 
 		struct SharedFrameData
-		{
+		{ 
+			//TODO: V802https://www.viva64.com/en/w/v802/On 64-bit platform, structure size can be reduced from 48 to 40 bytes by rearranging the fields according to their sizes in decreasing order.
+			
 			explicit SharedFrameData (const FrameRef * frame, int32_t maxLifeSpan)
 				: _img(frame->image())
 				, _index(frame->_index)

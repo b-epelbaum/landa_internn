@@ -7,6 +7,7 @@
 #include <any>
 
 #include "common/type_usings.h"
+#include "common/june_errors.h"
 
 
 namespace LandaJune {
@@ -39,11 +40,13 @@ namespace LandaJune
 {
 	namespace Functions
 	{
-		void frameGenerate(FrameProviderPtr, Core::ICore * coreObject, FrameProviderCallback );
-		void frameConsume(AlgorithmRunnerPtr, Core::ICore * coreObject, FrameConsumerCallback );
+		CORE_ERROR frameGenerate(BaseParametersPtr, FrameProviderPtr, Core::ICore *, CoreEventCallback );
+		void frameGeneratorCleanup	(FrameProviderPtr, Core::ICore *, CoreEventCallback );
+		
+		CORE_ERROR frameConsume	(BaseParametersPtr, AlgorithmRunnerPtr, Core::ICore *, CoreEventCallback );
+		void frameRunnerCleanup	(AlgorithmRunnerPtr, Core::ICore *, CoreEventCallback );
 
-		void frameRunAlgorithms(Core::FrameRef *frame, const AlgorithmRunnerUniquePtr& algorithmHandler);
-		void frameSaveData(SaveDataType& args);
+		CORE_ERROR frameSaveData(SaveDataType& args);
 	}
 }
 

@@ -35,29 +35,26 @@ namespace LandaJune
 			IFrameProvider(IFrameProvider &&) = delete;
 			const IFrameProvider & operator = (const IFrameProvider &) = delete;
 			IFrameProvider & operator = (IFrameProvider &&) = delete;
+
+			virtual void init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback) = 0;
+			virtual void cleanup() = 0;
+
+			virtual bool isInited() const = 0;
 		
 			virtual QString getName() const = 0;
 			virtual QString getDescription() const = 0;
 			virtual int getRecommendedFramePoolSize() = 0;
 			
 			virtual BaseParametersPtr getProviderParameters() const = 0;
+			virtual IPropertyList getProviderProperties() const = 0;
 
 			virtual CORE_ERROR prepareData(Core::FrameRef* frameRef) = 0;
 			virtual CORE_ERROR accessData(Core::FrameRef* frameRef) = 0;
 			virtual void releaseData(Core::FrameRef* frameRef) = 0;
 
-			virtual bool canContinue(CORE_ERROR lastError) = 0;
-			virtual bool warnAboutDroppedFrames() = 0;
-
-			virtual CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback ) = 0;
-			virtual CORE_ERROR cleanup() = 0;
-
 			virtual int32_t getFrameLifeSpan() const = 0;
 			virtual int32_t getFrameDropDelayTimeout() const = 0;
 			virtual int64_t getCurrentFrameIndex() const = 0;
-
-			virtual IPropertyList getProviderProperties() const = 0;
-			virtual bool setProviderProperties(const IPropertyList& vals ) = 0;
 			
 			virtual QVariant getProviderProperty(const QString& strValName) const = 0;
 			virtual bool setProviderProperty(const QString& strValName, const QVariant& val) = 0;
@@ -69,8 +66,8 @@ namespace LandaJune
 		protected:
 
 			virtual ~IFrameProvider() = default;
-			
 
+		private:
 			static IFrameProvider* loadNextProvider(const QString& strPath);
 		};
 	}

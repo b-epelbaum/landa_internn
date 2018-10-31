@@ -84,7 +84,7 @@ namespace LandaJune
 				// TODO : implement exception handler
 				if (_srcRequestedRect.empty() || _srcRequestedRect.width == 0 || _srcRequestedRect.height == 0)
 				{
-					THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_INVALID_RECT, "ROI rectangle is invalid. Batch input parameters init problem ?");
+					THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_INVALID_RECT, "ROI rectangle is invalid ( null rect ). Batch input parameters init problem ?");
 				}
 				// todo : think about exceeding frame dimensions
 				if (regReqLeft < 0
@@ -93,7 +93,14 @@ namespace LandaJune
 					|| regReqBottom > srcHeight
 					)
 				{
-					//THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_RECT_EXCEEDS_FRAME_RECT, "ROI rectangle limits exceed frame dimensions");
+					std::ostringstream ss;
+					ss << "ROI rectangle limits exceed frame dimensions; "<< std::endl 
+								<<"\t\tSource rect => [0,0," 
+								<< srcWidth << "," << srcWidth << "]" << std::endl
+								<<"\t\tTarget rect => [" << regReqLeft << "," << regReqTop << ","
+								<< regReqRight << "," << regReqBottom << "]" << std::endl;
+
+					//THROW_EX_ERR_STR(CORE_ERROR::ALGO_ROI_RECT_EXCEEDS_FRAME_RECT, ss.str());
 				}
 
 				cv::Rect retValRect;
@@ -114,19 +121,30 @@ namespace LandaJune
 
 			static void performCopy(ImageRegion& rgn)
 			{
-				// create a new MAT object by making a deep copy from the source MAT
-				*rgn._targetMatContainer = std::move((*rgn._srcMatContainer)(rgn._srcNormalizedRect));
-
-				if ( !rgn._params->EnableAnyDataSaving() )
-					return;
-
-				if ( !rgn._params->EnableImageSaving() )
-					return;
-
-				// dump input regions if needed
-				if ( rgn._bNeedSaving && !rgn._fullSavePath.empty())
+				try
 				{
-					Files::dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, rgn._bParallelizeCopy, rgn._bSaveAsync);
+					// create a new MAT object by making a deep copy from the source MAT
+					*rgn._targetMatContainer = std::move((*rgn._srcMatContainer)(rgn._srcNormalizedRect));
+
+					if ( !rgn._params->EnableAnyDataSaving() )
+						return;
+
+					if ( !rgn._params->EnableImageSaving() )
+						return;
+
+					// dump input regions if needed
+					if ( rgn._bNeedSaving && !rgn._fullSavePath.empty())
+					{
+						Files::dumpMatFile(rgn._targetMatContainer, rgn._fullSavePath, rgn._bParallelizeCopy, rgn._bSaveAsync);
+					}
+				}
+				catch(BaseException& bex)
+				{
+					throw;
+				}
+				catch ( std::exception& ex)
+				{
+					RETHROW (CORE_ERROR::ALGO_PERFORM_COPY_FUNC_FAILED);
 				}
 			}
 		};

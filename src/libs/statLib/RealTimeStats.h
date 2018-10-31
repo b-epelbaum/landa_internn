@@ -16,24 +16,25 @@ namespace LandaJune
 
 			enum StatName {
 				objectsPerSec_acquiredFramesOk = 0,
+				objectsPerSec_acquiredFramesFailures,
+				objectsPerSec_acquiredFramesSkipped,
 				objectsPerSec_framesHandledOk,
-				objectsPerSec_regionsGeneratedOk,
-				objectsPerSec_regionsCopiedOk,
-				objectsPerSec_stripsHandledOk,
-				objectsPerSec_edgeHandledOk,
-				objectsPerSec_I2SHandledOk,
-				objectsPerSec_C2CHandledOk,
-				objectsPerSec_WaveHandledOk,
+				objectsPerSec_framesHandledFailures,
+				objectsPerSec_framesHandledSkipped,
 				objectsPerSec_savedBitmapsOk,
-				objectsPerSec_acquiredFramesFail,
-				objectsPerSec_generatedImagesFail,
+				objectsPerSec_savedBitmapsFailed,
+				objectsPerSec_savedBitmapsDropped,
+				objectsPerSec_performedAlgoSucess,
 				objectsPerSec_performedAlgoFail,
-				objectsPerSec_performedAlgoResultFail,
-				objectsPerSec_createdRegionsFail,
-				objectsPerSec_savedBitmapsFail,
+				objectsPerSec_regionsGenerated,
+				objectsPerSec_regionsCopied,
+				objectsPerSec_stripsHandled,
+				objectsPerSec_edgeHandled,
+				objectsPerSec_I2SHandled,
+				objectsPerSec_C2CHandled,
+				objectsPerSec_WaveHandled,
 				objects_saveQueueLength,
 				statsNumber
-
 			};
 
 			struct StatInfo {

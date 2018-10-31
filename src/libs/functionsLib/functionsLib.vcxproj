@@ -163,9 +163,6 @@
     <ClCompile Include="frameGenerate.cpp">
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>
-    <ClCompile Include="frameRunAlgorithms.cpp">
-      <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
-    </ClCompile>
     <ClCompile Include="frameSaveImage.cpp">
       <BrowseInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</BrowseInformation>
     </ClCompile>

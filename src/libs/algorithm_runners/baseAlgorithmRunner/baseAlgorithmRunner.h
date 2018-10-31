@@ -47,10 +47,13 @@ namespace LandaJune
 			baseAlgorithmRunner(baseAlgorithmRunner &&) = delete;
 			virtual ~baseAlgorithmRunner() = default;
 
+
 			const baseAlgorithmRunner & operator = (const baseAlgorithmRunner &) = delete;
 			baseAlgorithmRunner & operator = (baseAlgorithmRunner &&) = delete;
 
-			void process(const Core::FrameRef * frame) override final;
+			bool isInited() const override { return _coreObject && _callback && _processParameters; }
+
+			CORE_ERROR process(const Core::FrameRef * frame) override final;
 
 			BaseParametersPtr getParameters() const override { return _processParameters; }
 
@@ -60,7 +63,8 @@ namespace LandaJune
 
 			virtual void validateProcessParameters(BaseParametersPtr parameters) = 0;
 			virtual void setupFrameData(const Core::FrameRef* frame);
-			virtual void processInternal () = 0;
+			
+			virtual CORE_ERROR processInternal () = 0;
 
 			virtual void setupCommonProcessParameters	(ABSTRACT_INPUT_PTR input);
 			virtual void setupSheetProcessParameters	(PARAMS_C2C_SHEET_INPUT_PTR input);
@@ -106,7 +110,7 @@ namespace LandaJune
 			/////////////   OUTPUT PROCESSING FUNCTIONS
 			
 			// general sheet output processing
-			virtual void processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)						= 0;
+			virtual CORE_ERROR processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)						= 0;
 
 			// general strip output processing
 			virtual void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput)						= 0;
@@ -138,7 +142,7 @@ namespace LandaJune
 
 			const Core::FrameRef*		_frame				= nullptr;
 			Core::ICore*				_coreObject			= nullptr;
-			FrameConsumerCallback		_callback			= nullptr;
+			CoreEventCallback			_callback			= nullptr;
 
 			ProcessParametersPtr		_processParameters;
 			int							_frameIndex			= 0;

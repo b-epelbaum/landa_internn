@@ -10,6 +10,8 @@
 #include <synchapi.h>
 #include "global.h"
 
+#include "common/june_errors.h"
+
 
 namespace LandaJune
 {
@@ -76,7 +78,7 @@ namespace LandaJune
 				return true;
 			}
 
-			bool empty(void) {
+			bool empty() {
 				NativeThreadAutoLock l(_cs);
 				return _queue.empty();
 			}
@@ -109,7 +111,7 @@ namespace LandaJune
 		class NativeThread
 		{
 		    typedef void (*EXCEPTION_HANDLER)(std::exception &);
-		    typedef void (*CALLBACKF_HANDLER)(std::tuple<Args...> &);
+		    typedef CORE_ERROR (*CALLBACKF_HANDLER)(std::tuple<Args...> &);
 
 		public:
 			explicit NativeThread(const THREAD_PRIORITY tP = NORMAL) 
