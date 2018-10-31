@@ -65,57 +65,72 @@ BaseParametersPtr fullImageRunner::getParameters() const
 	return std::static_pointer_cast<BaseParameters>(_processParameters);
 }
 
-void fullImageRunner::init(BaseParametersPtr parameters, Core::ICore* coreObject, FrameConsumerCallback callback)
+void fullImageRunner::init(BaseParametersPtr parameters, Core::ICore* coreObject, CoreEventCallback callback)
 {
-	validateProcessParameters(parameters);
-	_coreObject = coreObject;
-	_callback = callback;
-
-	if (_processParameters->EnableAnyDataSaving() && _processParameters->EnableCSVSaving() &&
-		(_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
-		)
+	try
 	{
-		_csvOutFolder = createCSVFolder(_processParameters);
-	}
+		validateProcessParameters(parameters);
 
-	// C2C template image ( temporary solution ) - read from resources
-	QFile templateTifC2C(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceC2C()));
-	
-	if (templateTifC2C.open(QFile::ReadOnly))
-		_processParameters->setCircleTemplateBufferC2C(templateTifC2C.readAll());
-	else
+		_coreObject = coreObject;
+		_callback = callback;
+
+		if (_processParameters->EnableAnyDataSaving() && _processParameters->EnableCSVSaving() &&
+			(_processParameters->SaveC2CRegistrationCSV() || _processParameters->SaveI2SPlacementCSV() || _processParameters->SaveWaveCSV())
+			)
+		{
+			_csvOutFolder = createCSVFolder(_processParameters);
+		}
+
+
+		// C2C template image ( temporary solution ) - read from resources
+		QFile templateTifC2C(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceC2C()));
+		
+		if (templateTifC2C.open(QFile::ReadOnly))
+			_processParameters->setCircleTemplateBufferC2C(templateTifC2C.readAll());
+		else
+		{
+			FULLIMAGE_RUNNER_SCOPED_WARNING << "C2C Circle template cannot be read : " << _processParameters->CircleTemplateResourceC2C();
+			THROW_EX_ERR_STR (CORE_ERROR::ALGO_C2C_IMAGE_TEMPLATE_INVALID, "C2C Circle template cannot be read : " +  _processParameters->CircleTemplateResourceC2C().toStdString() );
+		}
+
+		// Wave template image ( temporary solution ) - read from resources
+		QFile templateTifWave(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceWave()));
+		
+		if (templateTifWave.open(QFile::ReadOnly))
+			_processParameters->setCircleTemplateBufferWave(templateTifWave.readAll());
+		else
+		{
+			FULLIMAGE_RUNNER_SCOPED_WARNING << "Wave Circle template cannot be read : " << _processParameters->CircleTemplateResourceWave();
+			THROW_EX_ERR_STR (CORE_ERROR::ALGO_WAVE_IMAGE_TEMPLATE_INVALID, "Wave Circle template cannot be read : " +  _processParameters->CircleTemplateResourceWave().toStdString() );
+		}
+
+		const INIT_PARAMETER edgeInitParam ( toROIRect(_processParameters->LeftStripRect_px()) );
+		initEdge(edgeInitParam);
+
+		const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2RectLeft_px()) };
+		initI2S(i2sInitParam);
+
+		if (!_processParameters->C2CROIArrayLeft_px().empty())
+		{
+			const INIT_PARAMETER c2croiInitParam{ toROIRect(_processParameters->C2CROIArrayLeft_px()[0]) };
+			initC2CRoi(c2croiInitParam);
+		}
+		else
+		{
+			FULLIMAGE_RUNNER_SCOPED_WARNING << "No C2C ROI defined !";
+		}
+
+		const INIT_PARAMETER waveInitParam{ toROIRect(_processParameters->WaveROI()) };
+		initWave(waveInitParam);
+	}
+	catch(BaseException& bex)
 	{
-		FULLIMAGE_RUNNER_SCOPED_WARNING << "C2C Circle template cannot be read : " << _processParameters->CircleTemplateResourceC2C();
+		throw;
 	}
-
-	// Wave template image ( temporary solution ) - read from resources
-	QFile templateTifWave(QString(":/templates/Resources/%1").arg(_processParameters->CircleTemplateResourceWave()));
-	
-	if (templateTifWave.open(QFile::ReadOnly))
-		_processParameters->setCircleTemplateBufferWave(templateTifWave.readAll());
-	else
+	catch ( std::exception& ex)
 	{
-		FULLIMAGE_RUNNER_SCOPED_WARNING << "Wave Circle template cannot be read : " << _processParameters->CircleTemplateResourceWave();
+		RETHROW( CORE_ERROR::ERR_RUNNER_FAILED_TO_INIT);
 	}
-
-	const INIT_PARAMETER edgeInitParam ( toROIRect(_processParameters->LeftStripRect()) );
-	initEdge(edgeInitParam);
-
-	const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2SApproximateTriangleRectLeft()) };
-	initI2S(i2sInitParam);
-
-	if (!_processParameters->C2CROIArrayLeft().empty())
-	{
-		const INIT_PARAMETER c2croiInitParam{ toROIRect(_processParameters->C2CROIArrayLeft()[0]) };
-		initC2CRoi(c2croiInitParam);
-	}
-	else
-	{
-		FULLIMAGE_RUNNER_SCOPED_WARNING << "No C2C ROI defined !";
-	}
-
-	const INIT_PARAMETER waveInitParam{ toROIRect(_processParameters->WaveROI()) };
-	initWave(waveInitParam);
 }
 
 void fullImageRunner::cleanup()
@@ -124,45 +139,60 @@ void fullImageRunner::cleanup()
 	shutdownI2S();
 	shutdownC2CRoi();
 	shutdownWave();
+
+	_coreObject = nullptr;
+	_callback = nullptr;
+	_processParameters.reset();
 }
 
 void fullImageRunner::validateProcessParameters(BaseParametersPtr parameters)
 {
 	_processParameters = std::dynamic_pointer_cast<ProcessParameters>(parameters);
+	if (_processParameters == nullptr )
+	{
+		THROW_EX_ERR(CORE_ERROR::ALGO_INVALID_PARAMETER_TYPE_PASSED);
+	}
 }
 
-void fullImageRunner::processInternal()
+CORE_ERROR fullImageRunner::processInternal()
 {
-	if ( !_processParameters->EnableProcessing() )
-		return;
-
-	const auto input = std::make_shared<PARAMS_C2C_SHEET_INPUT>(_frame);
-
 	try
 	{
+		if ( !_processParameters->EnableProcessing() )
+			return RESULT_OK;
+
+		const auto input = std::make_shared<PARAMS_C2C_SHEET_INPUT>(_frame);
+
 		// fill process parameters
+		// throws an exception in case of error
 		setupSheetProcessParameters(input);
 
 		// generate ROIs for all required elements
+		// throws an exception in case of error
 		auto tStart = Utility::now_in_microseconds();
 		IMAGE_REGION_LIST regionList;
 		generateSheetRegions(input, regionList);
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsGeneratedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
+		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsGenerated, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
 		// and perform a deep copy
+		// throws an exception in case of error
 		tStart = Utility::now_in_microseconds();
 		copyRegions(regionList);
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsCopiedOk, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
+		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_regionsCopied, (static_cast<double>(Utility::now_in_microseconds()) - static_cast<double>(tStart)) / 1000);
 
 		if ( !_processParameters->EnableAlgorithmProcessing() )
-			return;
+			return RESULT_OK;
 
-		// process whoe sheet and output data
-		processSheetOutput(processSheet(input));
+		// process whole sheet and output data
+		return processSheetOutput(processSheet(input));
 	}
-	catch ( BaseException& bex)
+	catch(BaseException& bex)
 	{
 		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ALGO_PROCESS_UNCAUGHT_EXCEPTION);
 	}
 }
 
@@ -171,102 +201,138 @@ void fullImageRunner::processInternal()
 ////////////// PROCESSING OUTPUTS
 //////////////////////////////////////////////////////////
 
-void fullImageRunner::processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)
+CORE_ERROR fullImageRunner::processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)
 {
-	if ( _processParameters->ProcessWave())
-		processWaveOutputs(sheetOutput->_waveOutputs, sheetOutput->_waveTriangleOutput);
+	try
+	{
+		auto processResult = sheetOutput->_result;
 
+		if ( _processParameters->ProcessWave())
+			processWaveOutputs(sheetOutput->_waveOutputs, sheetOutput->_waveTriangleOutput);
+
+		return ( processResult == ALG_STATUS_SUCCESS ) ? RESULT_OK : CORE_ERROR::ERR_RUNNER_ANALYSIS_FAILED;
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ALGO_PROCESS_SHEET_OUTPUT_FAILED);
+	}
 }
 
 void fullImageRunner::processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput )
 {
-	// update C2C centers with I2S coordinates offsets
-	auto const offsetX = stripOutput->_i2sOutput->_triangeCorner._x;
-	auto const offsetY = stripOutput->_i2sOutput->_triangeCorner._y;
-
-	auto const updateCoordsLambda = [&](auto &c2cOut) 
+	try
 	{
-		std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
+		// update C2C centers with I2S coordinates offsets
+		auto const offsetX = stripOutput->_i2sOutput->_triangeCorner._x;
+		auto const offsetY = stripOutput->_i2sOutput->_triangeCorner._y;
+
+		auto const updateCoordsLambda = [&](auto &c2cOut) 
 		{
-			colorCenter._x -= offsetX;
-			colorCenter._y -= offsetY;
-		});
-	};
-
-
-	if (_bParallelCalc)
-	{
-		parallel_for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
-	}
-	else
-	{
-		for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
-	}
-
-	stripOutput->_result = 
-	std::all_of(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), 
-			[](auto& out)
+			std::for_each(c2cOut->_colorCenters.begin(), c2cOut->_colorCenters.end(), [&](auto &colorCenter)
 			{
-				return out->_result == ALG_STATUS_SUCCESS;
-			})
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
+				colorCenter._x -= offsetX;
+				colorCenter._y -= offsetY;
+			});
+		};
 
-	if (stripOutput->_result != ALG_STATUS_SUCCESS )
-	{
-		// if strip handling failed, write to log
-		logFailedStrip(stripOutput);
 
-		// TODO : dump failed strip to file
+		if (_bParallelCalc)
+		{
+			parallel_for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
+		}
+		else
+		{
+			for_each(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), updateCoordsLambda);
+		}
+
+		stripOutput->_result = 
+		std::all_of(begin(stripOutput->_c2cROIOutputs), end(stripOutput->_c2cROIOutputs), 
+				[](auto& out)
+				{
+					return out->_result == ALG_STATUS_SUCCESS;
+				})
+				? ALG_STATUS_SUCCESS
+				: ALG_STATUS_FAILED;
+
+		if (stripOutput->_result != ALG_STATUS_SUCCESS )
+		{
+			// if strip handling failed, write to log
+			logFailedStrip(stripOutput);
+
+			// TODO : dump failed strip to file
+		}
+
+		if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving()  )
+		{
+			processStripOutputCSV (stripOutput);
+		}
 	}
-
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving()  )
+	catch(BaseException& bex)
 	{
-		processStripOutputCSV (stripOutput);
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ALGO_PROCESS_STRIP_OUTPUT_FAILED);
 	}
 }
 
 void fullImageRunner::processStripOutputCSV(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput)
 {
-	auto const jobID = _processParameters->JobID();
-	auto const frameIndex = _frameIndex;
-	auto const imgIndex = _imageIndex;
-	auto const csvFolder = _csvOutFolder;
-	auto const bAsyncWrite = _bAsyncWrite;
-	auto const sourceFilePath = _sourceFramePath;
-
-	auto const dumpCSVRegLambda = [=]()
+	try
 	{
-		dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
-	};
+		auto const jobID = _processParameters->JobID();
+		auto const frameIndex = _frameIndex;
+		auto const imgIndex = _imageIndex;
+		auto const csvFolder = _csvOutFolder;
+		auto const bAsyncWrite = _bAsyncWrite;
+		auto const sourceFilePath = _sourceFramePath;
 
-	auto const dumpCSVPlacementLambda = [=]()
-	{
-		dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder, bAsyncWrite  );
-	};
-
-	if (_bParallelCalc)
-	{
-		if (_processParameters->SaveC2CRegistrationCSV())
+		auto const dumpCSVRegLambda = [=]()
 		{
-			task<void> stripOutTaskReg(dumpCSVRegLambda);
+			dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
+		};
+
+		auto const dumpCSVPlacementLambda = [=]()
+		{
+			dumpPlacementCSV(stripOutput, frameIndex, imgIndex, csvFolder, bAsyncWrite  );
+		};
+
+		if (_bParallelCalc)
+		{
+			if (_processParameters->SaveC2CRegistrationCSV())
+			{
+				task<void> stripOutTaskReg(dumpCSVRegLambda);
+			}
+
+			if (_processParameters->SaveI2SPlacementCSV())
+			{
+				task<void> stripOutTaskPlacement(dumpCSVPlacementLambda);
+			}
 		}
-
-		if (_processParameters->SaveI2SPlacementCSV())
+		else
 		{
-			task<void> stripOutTaskPlacement(dumpCSVPlacementLambda);
+			if (_processParameters->SaveC2CRegistrationCSV())
+			{
+				dumpCSVRegLambda();
+			}
+			if (_processParameters->SaveI2SPlacementCSV())
+			{
+				dumpCSVPlacementLambda();
+			}
 		}
 	}
-	else
+	catch(BaseException& bex)
 	{
-		if (_processParameters->SaveC2CRegistrationCSV())
-		{
-			dumpCSVRegLambda();
-		}
-		if (_processParameters->SaveI2SPlacementCSV())
-		{
-			dumpCSVPlacementLambda();
-		}
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ALGO_PROCESS_STRIP_OUTPUT_CSV_FAILED);
 	}
 }
 
@@ -300,92 +366,114 @@ void fullImageRunner::sortWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR>
 
 void fullImageRunner::processWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  )
 {
-	// sort wave outputs
-	sortWaveOutputs(waveOutputs);
-
-	const auto sumProcLambda = [&](auto &singleOut) 
+	try
 	{
-		auto & resArray = singleOut->_colorDetectionResults;
-		if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
+		// sort wave outputs
+		sortWaveOutputs(waveOutputs);
+
+		const auto sumProcLambda = [&](auto &singleOut) 
 		{
-			singleOut->_result = ALG_STATUS_FAILED;
-			return;
-		}
-			
-		if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
+			auto & resArray = singleOut->_colorDetectionResults;
+			if (static_cast<int>(resArray.size()) > _processParameters->WaveNumberOfColorDotsPerLine())
+			{
+				singleOut->_result = ALG_STATUS_FAILED;
+				return;
+			}
+				
+			if (static_cast<int>(resArray.size()) < _processParameters->WaveNumberOfColorDotsPerLine())
+			{
+				auto & resPoints = singleOut->_colorCenters;
+				resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
+				resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
+				singleOut->_result = ALG_STATUS_FAILED;
+				return;
+			}
+
+			singleOut->_result = 
+				std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
+				? ALG_STATUS_SUCCESS
+				: ALG_STATUS_FAILED;
+		};
+
+
+		if (_bParallelCalc)
 		{
-			auto & resPoints = singleOut->_colorCenters;
-			resArray.resize(_processParameters->WaveNumberOfColorDotsPerLine(), ALG_STATUS_FAILED );
-			resPoints.resize(_processParameters->WaveNumberOfColorDotsPerLine(), {-1,-1 } );
-			singleOut->_result = ALG_STATUS_FAILED;
-			return;
+			parallel_for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda );
+		}
+		else
+		{
+			for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda ); 
 		}
 
-		singleOut->_result = 
-			std::all_of(resArray.begin(), resArray.end(), [](auto& singleResult) { return singleResult == ALG_STATUS_SUCCESS; } )
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
-	};
+		const auto allResult = std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& singleWave)
+		{
+			return singleWave->_result == ALG_STATUS_SUCCESS;
+		})
+				? ALG_STATUS_SUCCESS
+				: ALG_STATUS_FAILED;
 
+		if (allResult != ALG_STATUS_SUCCESS )
+		{
+			// if strip handling failed, write to log
+			logFailedWaves(waveOutputs);
 
-	if (_bParallelCalc)
-	{
-		parallel_for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda );
+			// TODO : dump failed waves to file
+		}
+
+		// process and save
+		if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
+		{
+			processWaveOutputsCSV (waveOutputs);
+		}
 	}
-	else
+	catch(BaseException& bex)
 	{
-		for_each(begin(waveOutputs), end(waveOutputs), sumProcLambda ); 
+		throw;
 	}
-
-	const auto allResult = std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& singleWave)
+	catch ( std::exception& ex)
 	{
-		return singleWave->_result == ALG_STATUS_SUCCESS;
-	})
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
-
-	if (allResult != ALG_STATUS_SUCCESS )
-	{
-		// if strip handling failed, write to log
-		logFailedWaves(waveOutputs);
-
-		// TODO : dump failed waves to file
-	}
-
-	// process and save
-	if ( _processParameters->EnableAnyDataSaving() &&  _processParameters->EnableCSVSaving())
-	{
-		processWaveOutputsCSV (waveOutputs);
+		RETHROW( CORE_ERROR::ALGO_PROCESS_WAVE_OUTPUT_FAILED);
 	}
 }
 
 void fullImageRunner::processWaveOutputsCSV(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs )
 {
-	auto const jobID = _processParameters->JobID();
-	auto const frameIndex = _frameIndex;
-	auto const imgIndex = _imageIndex;
-	auto const csvFolder = _csvOutFolder;
-	auto const bAsyncWrite = _bAsyncWrite;
-	auto const sourceFilePath = _sourceFramePath;
-
-	const auto saveWaveCSVLambda = [=]()
+	try
 	{
-		dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
-	};
+		auto const jobID = _processParameters->JobID();
+		auto const frameIndex = _frameIndex;
+		auto const imgIndex = _imageIndex;
+		auto const csvFolder = _csvOutFolder;
+		auto const bAsyncWrite = _bAsyncWrite;
+		auto const sourceFilePath = _sourceFramePath;
 
-	if (_bParallelCalc)
-	{
-		if (_processParameters->SaveWaveCSV())
+		const auto saveWaveCSVLambda = [=]()
 		{
-			task<void> tWaveCSV(saveWaveCSVLambda);
-		}
-		else
+			dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
+		};
+
+		if (_bParallelCalc)
 		{
 			if (_processParameters->SaveWaveCSV())
 			{
-				saveWaveCSVLambda();
+				task<void> tWaveCSV(saveWaveCSVLambda);
+			}
+			else
+			{
+				if (_processParameters->SaveWaveCSV())
+				{
+					saveWaveCSVLambda();
+				}
 			}
 		}
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ALGO_PROCESS_WAVE_OUTPUT_CSV_FAILED);
 	}
 }
 

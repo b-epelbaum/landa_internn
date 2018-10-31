@@ -20,22 +20,17 @@ namespace LandaJune
 			folderReader(folderReader &&) = delete;
 			virtual ~folderReader();
 
+			void init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback) override;
+			void cleanup() override;
 
 			const folderReader & operator = (const folderReader &) = delete;
 			folderReader & operator = (folderReader &&) = delete;
-
-			bool warnAboutDroppedFrames() override { return false; }
-			bool canContinue(CORE_ERROR lastError) override;
 
 			int32_t getFrameLifeSpan() const override;
 			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency(); }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override {}
-
-
-			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
-			CORE_ERROR cleanup() override;
 
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath, QString, "")
 			DECLARE_NORMAL_PARAM_PROPERTY(ImageMaxCount, int, -1)

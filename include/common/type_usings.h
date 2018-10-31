@@ -36,8 +36,7 @@ namespace cv {
 }
 
 namespace LandaJune {
-	enum class FrameProviderDataCallbackType;
-	enum class FrameConsumerDataCallbackType;
+	enum class CoreCallbackType;
 }
 
 namespace LandaJune
@@ -45,14 +44,16 @@ namespace LandaJune
 	using FrameProviderPtr = std::shared_ptr<FrameProviders::IFrameProvider>;
 	using AlgorithmRunnerPtr = std::shared_ptr<Algorithms::IAlgorithmRunner>;
 	using AlgorithmRunnerUniquePtr = std::shared_ptr<Algorithms::IAlgorithmRunner>;
+	
 	using ProcessParametersPtr = std::shared_ptr<Parameters::ProcessParameters>;
+	using ProcessParametersUniquePtr = std::unique_ptr<Parameters::ProcessParameters>;
 	using BaseParametersPtr = std::shared_ptr<Parameters::BaseParameters>;
+	using BaseParametersUniquePtr = std::unique_ptr<Parameters::BaseParameters>;
 
 	using IPropertyTuple = std::tuple<QString, QVariant, bool>;
 	using IPropertyList = QVector<IPropertyTuple>;
 
-	using FrameProviderCallback = std::function<void( Core::ICore *, FrameProviderDataCallbackType, std::any)>;
-	using FrameConsumerCallback = std::function<void( Core::ICore *, FrameConsumerDataCallbackType, std::any)>;
+	using CoreEventCallback = std::function<void( Core::ICore *, CoreCallbackType, std::any)>;
 
 	using SaveDataType = std::tuple<std::shared_ptr<std::vector<unsigned char>>, std::string>;
 }

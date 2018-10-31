@@ -29,26 +29,59 @@
       <Extensions>ui</Extensions>
       <ParseFiles>true</ParseFiles>
     </Filter>
+    <Filter Include="Form Files\imageTabs">
+      <UniqueIdentifier>{2471d26f-6317-43dd-bb91-c5fa8af1c226}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\imageTabs">
+      <UniqueIdentifier>{33149b25-9402-40c8-9a5c-d80f95166311}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imageTabs">
+      <UniqueIdentifier>{4f9289ce-8345-45f5-bbec-2047d1542824}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="roitools.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="roiview.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="RenderWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="imagescrollarea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="roiWidget.cpp">
+    <ClCompile Include="roiRectWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="moveableLayerWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="commonTabs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="roiParamWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="roiToolManWnd.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="waveTab.cpp">
+      <Filter>Source Files\imageTabs</Filter>
+    </ClCompile>
+    <ClCompile Include="offlineRegTab.cpp">
+      <Filter>Source Files\imageTabs</Filter>
+    </ClCompile>
+    <ClCompile Include="fullImageTab.cpp">
+      <Filter>Source Files\imageTabs</Filter>
+    </ClCompile>
+    <ClCompile Include="roiRenderWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="roiImageBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="roitools.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="commonTabs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -58,25 +91,71 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="roiview.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="RenderWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="imagescrollarea.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="roiWidget.h">
+    <QtMoc Include="roiRectWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="moveableLayerWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="unitSwitchLabel.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="roiParamWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="roiToolManWnd.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="fullImageTab.h">
+      <Filter>Header Files\imageTabs</Filter>
+    </QtMoc>
+    <QtMoc Include="offlineRegTab.h">
+      <Filter>Header Files\imageTabs</Filter>
+    </QtMoc>
+    <QtMoc Include="waveTab.h">
+      <Filter>Header Files\imageTabs</Filter>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidget.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="roiImageBox.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <QtUic Include="roiview.ui">
+    <QtUic Include="unitSwitchLabel.ui">
       <Filter>Form Files</Filter>
     </QtUic>
-    <QtUic Include="roiWidget.ui">
+    <QtUic Include="roiParamWidget.ui">
       <Filter>Form Files</Filter>
     </QtUic>
+    <QtUic Include="roiToolManWnd.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="fullImageTab.ui">
+      <Filter>Form Files\imageTabs</Filter>
+    </QtUic>
+    <QtUic Include="offlineRegTab.ui">
+      <Filter>Form Files\imageTabs</Filter>
+    </QtUic>
+    <QtUic Include="waveTab.ui">
+      <Filter>Form Files\imageTabs</Filter>
+    </QtUic>
+    <QtUic Include="roiImageBox.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\file_open.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="roitools.qrc">
+      <Filter>Resource Files</Filter>
+    </QtRcc>
   </ItemGroup>
 </Project>

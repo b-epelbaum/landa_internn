@@ -27,15 +27,13 @@ namespace LandaJune
 			const offlineFrameProvider & operator = (const offlineFrameProvider &) = delete;
 			offlineFrameProvider & operator = (offlineFrameProvider &&) = delete;
 
-			bool canContinue(CORE_ERROR lastError) override;
-
 			int getRecommendedFramePoolSize() override { return 4;  }
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;
 
-			CORE_ERROR init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback) override;
-			CORE_ERROR cleanup() override;
+			void init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback) override;
+			void cleanup() override;
 
 			int32_t getFrameLifeSpan() const override;
 

@@ -77,6 +77,10 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 
 		if (iSize < 500 || iSize > 1500)
 			g_imTriangle_T(Rect(iXS, iYS, iWH, iHT)) = 0;
+
+		// if too close to the edge
+		if (iXS < 10 || iXS >= g_imTriangle_T.cols - 10 || iYS < 10 || iYS >= g_imTriangle_T.rows - 10)
+			g_imTriangle_T(Rect(iXS, iYS, iWH, iHT)) = 0;
 	}
 
 	// find - again connected componenets for the triangle detection

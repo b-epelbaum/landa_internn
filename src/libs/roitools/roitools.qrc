@@ -1,0 +1,10 @@
+<RCC>
+  <qresource prefix="/roiTools">
+    <file>Resources/setting.png</file>
+    <file>Resources/zoom.png</file>
+    <file>Resources/file_open.png</file>
+    <file>Resources/full.png</file>
+    <file>Resources/strips.png</file>
+    <file>Resources/wave.png</file>
+  </qresource>
+</RCC>

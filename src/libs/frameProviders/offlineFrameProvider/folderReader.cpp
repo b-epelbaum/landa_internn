@@ -61,50 +61,81 @@ void folderReader::sortImageFileList()
 			});
 }
 
-CORE_ERROR folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
+void folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback)
 {
-	validateParameters(parameters);
-	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-	
-	_dataCallback = callback;
-	_coreObject = coreObject;
+	try
+	{
+		validateParameters(parameters);
+		connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
 		
-	_lastAcquiredImage = -1;
-	_imagePaths.clear();
+		_dataCallback = callback;
+		_coreObject = coreObject;
+			
+		_lastAcquiredImage = -1;
+		_imagePaths.clear();
 
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "Scanning for source files...";
-	const auto imageFolder = _SourceFolderPath; 
-	if ( !QFileInfo(imageFolder).exists())
-	{
-		FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << "cannot be found. Aborting scan...";
-		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID;
+		
+		const auto imageFolder = _SourceFolderPath; 
+		if ( imageFolder.isEmpty() || !QFileInfo(imageFolder).exists())
+		{
+			FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << " invalid or cannot be found. Aborting scan...";
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Source folder invalid or cannot be found : " + imageFolder.toStdString() );
+		}
+
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "Scanning for source files at " << imageFolder << "...";
+		QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
+
+		while (it.hasNext()) 
+		{
+			_imagePaths.push_back(it.next());
+		}
+		
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "found " << _imagePaths.size() << " files. Sorting...";
+		if (_imagePaths.isEmpty())
+		{
+			FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << " contains no viable files";
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_NO_FILES_TO_LOAD, "Source folder icontains no files for loading : " + imageFolder.toStdString() );
+		}
+
+		sortImageFileList();
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "sorting complete.";
+
+		if (_dataCallback)
+		{
+			int itemsToReport = ( _ImageMaxCount > 0 ) ? qMin(_imagePaths.size(), _ImageMaxCount) : _imagePaths.size();
+			_dataCallback(_coreObject, CoreCallbackType::CALLBACK_PROVIDER_SCANNED_FILES_COUNT, std::make_any<int>(itemsToReport));
+		}
 	}
-
-	QDirIterator it(imageFolder, QStringList() << "*.bmp" << "*.BMP", QDir::Files, QDirIterator::Subdirectories);
-
-	while (it.hasNext()) 
+	catch(BaseException& bex)
 	{
-		_imagePaths.push_back(it.next());
+		throw;
 	}
-	
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "found " << _imagePaths.size() << " files. Sorting...";
-	sortImageFileList();
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "sorting complete";
-
-	if (_dataCallback)
+	catch ( std::exception& ex )
 	{
-		int itemsToReport = ( _ImageMaxCount > 0 ) ? qMin(_imagePaths.size(), _ImageMaxCount) : _imagePaths.size();
-		_dataCallback(_coreObject, FrameProviderDataCallbackType::CALLBACK_SCANNED_FILES_COUNT, std::make_any<int>(itemsToReport));
+		RETHROW( CORE_ERROR::ERR_PROVIDER_FAILED_TO_INIT);
 	}
-	return RESULT_OK;
 }
 
-CORE_ERROR folderReader::cleanup()
+void folderReader::cleanup()
 {
-	disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-	_imagePaths.clear();
-	FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
-	return RESULT_OK;
+	try
+	{
+		disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+		_imagePaths.clear();
+		_coreObject = nullptr;
+		_dataCallback = nullptr;
+		_providerParameters.reset();
+
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "cleaned up";
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex )
+	{
+		RETHROW( CORE_ERROR::ERR_PROVIDER_CLEANUP_FAILED);
+	}
 }
 
 
@@ -126,21 +157,6 @@ void folderReader::validateParameters(BaseParametersPtr parameters)
 	_providerParameters = parameters;
 }
 
-bool folderReader::canContinue(CORE_ERROR lastError)
-{
-	auto _canContinue = true;
-	switch (lastError) 
-	{ 
-		case CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES:
-		case CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT:
-			_canContinue = false;  
-		break;
-		default: 
-		;
-	}
-	return _canContinue;
-}
-
 int32_t folderReader::getFrameLifeSpan() const
 {
 	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_providerParameters);
@@ -155,10 +171,11 @@ CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 		return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
 	}
 
-	if (_ImageMaxCount > 0 &&  _lastAcquiredImage >= _ImageMaxCount)
+	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount -1 )
+	{
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "Reached a maximum number of provided images. Exiting...";
 		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
-
-
+	}
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	return RESULT_OK;
 }

@@ -30,6 +30,7 @@ static const QString OFFLINE_GENERATOR_DESC = "Offline Frame Provider performs f
 #define OFFLINE_GENERATOR_SCOPED_ERROR PRINT_ERROR << "[offlineFrameProvider] : "
 #define OFFLINE_GENERATOR_SCOPED_WARNING PRINT_WARNING << "[offlineFrameProvider] : "
 
+
 offlineFrameProvider::offlineFrameProvider()
 {
 	_name = OFFLINE_GENERATOR_PROVIDER_NAME;
@@ -42,40 +43,58 @@ offlineFrameProvider::~offlineFrameProvider()
 	OFFLINE_GENERATORSCOPED_LOG << "destroyed";
 }
 
-bool offlineFrameProvider::canContinue(CORE_ERROR lastError)
-{
-	return _currentOfflineProvider ? _currentOfflineProvider->canContinue(lastError) : false;
-}
 
 CORE_ERROR offlineFrameProvider::prepareData(FrameRef* frameRef)
 {
-	return _currentOfflineProvider ? _currentOfflineProvider->prepareData(frameRef) : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
+	CHECK_INIT
+
+	return _currentOfflineProvider->prepareData(frameRef);
 }
 
 CORE_ERROR offlineFrameProvider::accessData(FrameRef* frameRef)
 {
-	return _currentOfflineProvider ? _currentOfflineProvider->accessData(frameRef) : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
+	CHECK_INIT
+
+	return _currentOfflineProvider->accessData(frameRef);
 }
 
 void offlineFrameProvider::releaseData(FrameRef* frameRef)
 {
-	if (_currentOfflineProvider)
-		_currentOfflineProvider->releaseData(frameRef);
+	if (_coreObject )
+	{
+		if (_currentOfflineProvider)
+			_currentOfflineProvider->releaseData(frameRef);
+	}
 }
 
-CORE_ERROR offlineFrameProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
+void offlineFrameProvider::init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback)
 {
-	validateParameters(parameters);
-	if (_CyclicGeneration)
+	try
 	{
-		_currentOfflineProvider.reset(new cyclicGenerator);
-	}
-	else
-	{
-		_currentOfflineProvider.reset(new folderReader);
-	}
+		validateParameters(parameters);
+		
+		_dataCallback = callback;
+		_coreObject = coreObject;
 
-	return _currentOfflineProvider->init(parameters, coreObject, callback);
+		if (_CyclicGeneration)
+		{
+			_currentOfflineProvider.reset(new cyclicGenerator);
+		}
+		else
+		{
+			_currentOfflineProvider.reset(new folderReader);
+		}
+
+		return _currentOfflineProvider->init(parameters, coreObject, callback);
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ERR_PROVIDER_FAILED_TO_INIT);
+	}
 }
 
 void offlineFrameProvider::validateParameters(BaseParametersPtr parameters)
@@ -104,14 +123,33 @@ void offlineFrameProvider::validateParameters(BaseParametersPtr parameters)
 		_currentOfflineProvider->validateParameters(parameters);
 }
 
-CORE_ERROR offlineFrameProvider::cleanup()
+void offlineFrameProvider::cleanup()
 {
-	auto retVal =  _currentOfflineProvider ? _currentOfflineProvider->cleanup() : CORE_ERROR::ERR_PROVIDER_INVALID_SELECTED_PROVIDER;
-	_currentOfflineProvider.reset();
-	return  retVal;
+	try
+	{
+		if (_currentOfflineProvider	)
+		{
+			_currentOfflineProvider->cleanup();
+			_currentOfflineProvider.reset();
+		}
+
+		_coreObject = nullptr;
+		_dataCallback = nullptr;
+		_providerParameters.reset();
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex)
+	{
+		RETHROW( CORE_ERROR::ERR_PROVIDER_CLEANUP_FAILED);
+	}
 }
 
 int32_t offlineFrameProvider::getFrameLifeSpan() const
 {
+	CHECK_INIT
+
 	return  _currentOfflineProvider ? _currentOfflineProvider->getFrameLifeSpan() : -1;
 }

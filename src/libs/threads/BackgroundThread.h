@@ -56,29 +56,23 @@ namespace LandaJune
 			{
 				autolock l(_mutex);
 				auto boundFunc = std::bind(func, args...);
+				std::packaged_task<CORE_ERROR()> task(std::move(boundFunc));
+				_threadFunc = std::move(task);
+			}
+
+			template <typename Func, typename... Args>
+			void setThreadExitFunction(Func func, Args... args)
+			{
+				autolock l(_mutex);
+				auto boundFunc = std::bind(func, args...);
 				std::packaged_task<void()> task(std::move(boundFunc));
-				_threafFunc = std::move(task);
-			}
-	
-
-		protected:
-
-			auto getErrorHandler()
-			{
-				autolock l(_mutex);
-				return std::ref(_error_handler);
+				_threadExitFunc = std::move(task);
 			}
 
-			auto getThreadFunction()
+			void setName(std::string name)
 			{
 				autolock l(_mutex);
-				return std::ref(_threafFunc);
-			}
-			
-			void setName(std::string state)
-			{
-				autolock l(_mutex);
-				_name = std::move(state);
+				_name = std::move(name);
 			}
 
 			std::string getName()
@@ -98,7 +92,28 @@ namespace LandaJune
 				autolock l(_mutex);
 				return _index;
 			}
+	
 
+		protected:
+
+			auto getErrorHandler()
+			{
+				autolock l(_mutex);
+				return std::ref(_error_handler);
+			}
+
+			auto getThreadFunction()
+			{
+				autolock l(_mutex);
+				return std::ref(_threadFunc);
+			}
+
+			auto getThreadExitFunction()
+			{
+				autolock l(_mutex);
+				return std::ref(_threadExitFunc);
+			}
+			
 			void setState(const THREAD_STATE state)
 			{
 				autolock l(_mutex);
@@ -124,7 +139,8 @@ namespace LandaJune
 			std::unique_ptr<std::thread> _thread;
 			std::function<void(Core::ICore*, BaseException &)> _error_handler = default_error_handler;
 			
-			std::packaged_task<void()> _threafFunc;
+			std::packaged_task<CORE_ERROR()> _threadFunc;
+			std::packaged_task<void()> _threadExitFunc;
 			
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;

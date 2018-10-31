@@ -3,6 +3,7 @@
 #include <QPluginLoader>
 #include <QCoreApplication>
 #include "interfaces/IQBAse.h"
+#include "common/june_errors.h"
 #include "common/june_exceptions.h"
 #include "common/type_usings.h"
 
@@ -37,12 +38,14 @@ namespace LandaJune
 			virtual std::unique_ptr<IAlgorithmRunner> clone() = 0;
 			virtual QString getName() const = 0;
 			virtual QString getDescription() const = 0;
-			
-			virtual void init(BaseParametersPtr parameters, Core::ICore* coreObject, FrameConsumerCallback callback ) = 0;
-			virtual void cleanup() = 0;
-			
-			virtual void process(const Core::FrameRef * frame) = 0;
 
+			virtual bool isInited() const = 0;
+			
+			virtual void init(BaseParametersPtr parameters, Core::ICore* coreObject, CoreEventCallback callback ) = 0;
+			virtual void cleanup() = 0;
+
+			virtual CORE_ERROR process(const Core::FrameRef * frame) = 0;
+			
 			virtual std::shared_ptr<Parameters::BaseParameters> getParameters() const = 0;
 
 			static std::list<std::shared_ptr<IAlgorithmRunner>> enumerateAlgorithmRunners();

@@ -1,0 +1,177 @@
+{
+    "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
+    "C2CCircleDiameter_mm": 1.542,
+    "C2CDROIMarginX_mm": 2.5,
+    "C2CDROIMarginY_mm": 2.5,
+    "C2CDistanceBetweenDotsX_mm": 3.048,
+    "C2CDistanceBetweenDotsY_mm": 3.048,
+    "C2COffsetsArray": [
+        {
+            "dx": -0.2,
+            "dy": 9.03
+        },
+        {
+            "dx": -0.3,
+            "dy": 167.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 327.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 487.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 647.9
+        }
+    ],
+    "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
+    "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
+    "ColorArray": [
+        {
+            "ColorName": "Black",
+            "Max": {
+                "ColorName": "",
+                "H": 255,
+                "S": 100,
+                "V": 128
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 0,
+                "S": 0,
+                "V": 0
+            }
+        },
+        {
+            "ColorName": "Cyan",
+            "Max": {
+                "ColorName": "",
+                "H": 110,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 80,
+                "S": 170,
+                "V": 0
+            }
+        },
+        {
+            "ColorName": "Magenta",
+            "Max": {
+                "ColorName": "",
+                "H": 179,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 160,
+                "S": 100,
+                "V": 150
+            }
+        },
+        {
+            "ColorName": "Yellow",
+            "Max": {
+                "ColorName": "",
+                "H": 30,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 0,
+                "S": 170,
+                "V": 0
+            }
+        }
+    ],
+    "CycleImage": false,
+    "EnableAlgorithmProcessing": true,
+    "EnableAnyDataSaving": true,
+    "EnableCSVSaving": true,
+    "EnableImageSaving": true,
+    "EnableProcessing": true,
+    "FrameFrequencyInMSec": 500,
+    "FrameProviderName": "Offline Frame Provider",
+    "GenerateOverlays": true,
+    "I2SHeight_mm": 4.4,
+    "I2SOffsetFromPaperEdgeX_mm": 3.44,
+    "I2SOffsetFromPaperEdgeY_mm": 9.21,
+    "I2SROIMarginX_mm": 2.5,
+    "I2SROIMarginY_mm": 2.5,
+    "I2SWidth_mm": 3.03,
+    "ImageMaxCount": -1,
+    "JobID": 0,
+    "LeftStripWidth_mm": 12.13,
+    "OfflineRegStripOnly": true,
+    "OfflineTreatEvenFilesAsRight": false,
+    "OffsetFromLeftEdge_mm": 2.98,
+    "PanelCount": 11,
+    "ParalellizeCalculations": true,
+    "Pixel2MM_X": 0.08466683,
+    "Pixel2MM_Y": 0.08660258,
+    "ProcessLeftC2C": true,
+    "ProcessLeftEdge": true,
+    "ProcessLeftI2S": true,
+    "ProcessLeftStrip": true,
+    "ProcessRightC2C": false,
+    "ProcessRightEdge": false,
+    "ProcessRightI2S": false,
+    "ProcessRightStrip": false,
+    "ProcessWave": false,
+    "ProcessWaveI2S": false,
+    "ReferenceColorTriplet": {
+        "ColorName": "",
+        "H": 0,
+        "S": 0,
+        "V": 0
+    },
+    "RightStripROIsOffsetY_mm": 0,
+    "RootOutputFolder": "C:\\temp\\june_out",
+    "SISO_AppletFilePath": "",
+    "SISO_BoardIndex": 0,
+    "SISO_BoardList": [
+    ],
+    "SISO_ConfigurationFilePath": "",
+    "SISO_OutputImageFormat": "",
+    "SaveC2CRegistrationCSV": true,
+    "SaveI2SPlacementCSV": true,
+    "SaveOverlayImages": true,
+    "SaveOverlayLeftC2C": true,
+    "SaveOverlayLeftEdge": true,
+    "SaveOverlayLeftI2S": true,
+    "SaveOverlayRightC2C": false,
+    "SaveOverlayRightEdge": false,
+    "SaveOverlayRightI2S": false,
+    "SaveOverlayWave": false,
+    "SaveSourceImages": true,
+    "SaveSourceLeftC2C": true,
+    "SaveSourceLeftI2S": true,
+    "SaveSourceLeftStrip": true,
+    "SaveSourceRightC2C": false,
+    "SaveSourceRightI2S": false,
+    "SaveSourceRightStrip": false,
+    "SaveSourceWave": false,
+    "SaveWaveCSV": false,
+    "ScanBitDepth": 24,
+    "ScanStartToPaperEdgeOffset_mm": 10.7,
+    "SheetID": 0,
+    "SourceFilePath": "",
+    "SourceFolderPath": "d:\\Temp\\JUNE\\june_offline_input\\4_colors_registration_left_only_offline",
+    "SubstrateHeight_mm": 700,
+    "SubstrateWidth_mm": 1000,
+    "WaveCircleDiameter_um": 1016,
+    "WaveDistanceBetweenDotsX_um": 2709.3,
+    "WaveDistanceBetweenDotsY_um": 3048,
+    "WaveDistanceBetweenTriangleAndFirstRow_um": 9687,
+    "WaveImageMarginX_um": 2000,
+    "WaveTriangleApproximateX_um": 510230,
+    "WaveTriangleApproximateY_um": 4223
+}

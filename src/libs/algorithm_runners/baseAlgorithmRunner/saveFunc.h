@@ -91,7 +91,7 @@ namespace LandaJune
 				catch (fs::filesystem_error& er)
 				{
 					PRINT_ERROR << "[" << __FUNCTION__ << "] : Cannot create folder " << pathName.c_str() << "; exception caught : " << er.what();
-					RETHROW(CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + pathName);
+					RETHROW_STR(CORE_ERROR::ERR_CORE_CANNOT_CREATE_FOLDER, "Cannot create folder " + pathName);
 				}
 			}
 		}
@@ -205,7 +205,7 @@ namespace LandaJune
 				try
 				{
 					const auto data = std::make_shared<std::vector<unsigned char>>();
-					if ( imencode(".bmp",*img.get(), *data ) )
+					if (cv::imencode(".bmp",*img.get(), *data ) )
 					{
 						if (!Core::dumpThreadPostJob(data, filePath, asyncWrite))
 						{
@@ -220,7 +220,7 @@ namespace LandaJune
 				catch ( const std::exception& ex)
 				{
 					PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << ex.what();
-					RETHROW(CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP, "");
+					RETHROW(CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP);
 				}
 			};
 

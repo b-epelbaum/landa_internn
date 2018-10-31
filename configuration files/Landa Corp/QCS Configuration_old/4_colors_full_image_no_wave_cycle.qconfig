@@ -1,39 +1,41 @@
 {
+    "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
     "C2CDistanceBetweenDots_um": 3048,
-    "C2CDistanceBetweenSets_um": 158940,
-    "C2CDistanceFromTriangle2FirstSet_um": 9000,
+    "C2CDistanceBetweenSets_um": 159300,
+    "C2CDistanceFromTriangle2FirstSet_um": 9600,
     "C2CROISetsCount": 5,
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
+            "ColorName": "Black",
+            "Max": {
+                "ColorName": "",
+                "H": 255,
+                "S": 100,
+                "V": 128
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 0,
+                "S": 0,
+                "V": 0
+            }
+        },
+        {
             "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
-                "H": 30,
+                "H": 110,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
                 "H": 80,
-                "S": 90,
-                "V": 170
-            }
-        },
-        {
-            "ColorName": "Yellow",
-            "Max": {
-                "ColorName": "",
-                "H": 40,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 10,
-                "S": 90,
-                "V": 170
+                "S": 170,
+                "V": 0
             }
         },
         {
@@ -46,23 +48,23 @@
             },
             "Min": {
                 "ColorName": "",
-                "H": 135,
-                "S": 90,
-                "V": 170
+                "H": 160,
+                "S": 100,
+                "V": 150
             }
         },
         {
-            "ColorName": "Black",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 255,
-                "S": 90,
-                "V": 140
+                "H": 30,
+                "S": 255,
+                "V": 255
             },
             "Min": {
                 "ColorName": "",
                 "H": 0,
-                "S": 0,
+                "S": 170,
                 "V": 0
             }
         }
@@ -74,17 +76,18 @@
     "EnableImageSaving": true,
     "EnableProcessing": true,
     "FrameFrequencyInMSec": 250,
+    "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,
-    "I2SOffsetFromPaperEdgeX_mm": 5.3,
-    "I2SOffsetFromPaperEdgeY_mm": 5.6,
+    "I2SOffsetFromPaperEdgeX_mm": 5,
+    "I2SOffsetFromPaperEdgeY_mm": 4,
     "I2SROIHeight_mm": 8.5,
     "I2SROIWidth_mm": 8.5,
-    "ImageMaxCount": 20,
+    "ImageMaxCount": 50,
     "JobID": 0,
     "OffsetBetweenTriangles_mm": 990,
-    "OffsetFromLeftEdge_mm": 10.2,
+    "OffsetFromLeftEdge_mm": 9,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -121,20 +124,20 @@
     "SaveOverlayRightC2C": true,
     "SaveOverlayRightEdge": true,
     "SaveOverlayRightI2S": true,
-    "SaveOverlayWave": true,
+    "SaveOverlayWave": false,
     "SaveSourceImages": true,
-    "SaveSourceLeftC2C": false,
-    "SaveSourceLeftI2S": false,
+    "SaveSourceLeftC2C": true,
+    "SaveSourceLeftI2S": true,
     "SaveSourceLeftStrip": true,
-    "SaveSourceRightC2C": false,
-    "SaveSourceRightI2S": false,
-    "SaveSourceRightStrip": false,
+    "SaveSourceRightC2C": true,
+    "SaveSourceRightI2S": true,
+    "SaveSourceRightStrip": true,
     "SaveSourceWave": false,
     "SaveWaveCSV": false,
     "ScanBitDepth": 24,
     "SheetID": 0,
-    "SourceFilePath": "c:\\Temp\\full_image\\Image_300dpi.bmp",
-    "SourceFolderPath": "c:\\temp\\registration",
+    "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\4_colors_full_image_no_wave_cycle\\Image_300dpi.bmp",
+    "SourceFolderPath": "",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
     "SubstrateImageMargin_mm": 2,

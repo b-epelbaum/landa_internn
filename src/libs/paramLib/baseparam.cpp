@@ -18,6 +18,7 @@ using serializeFunction = std::function<QString(BaseParameters*)>;
 
 static std::map<int, serializeFunction> typesMap;
 
+
 BaseParameters::BaseParameters()
 {
 	if (_metaTypeRegistered )
@@ -29,9 +30,16 @@ BaseParameters::BaseParameters()
 	qRegisterMetaType<COLOR_TRIPLET_SINGLE>("COLOR_TRIPLET_SINGLE");
 	
 	qRegisterMetaType<QVector<QRect>>("QVector<QRect>");
+	qRegisterMetaType<QVector<QSize>>("QVector<QSizeF>");
 	qRegisterMetaType<QVector<COLOR_TRIPLET>>("QVector<COLOR_TRIPLET>");
+
 	_metaTypeRegistered = true;
 
+}
+
+void BaseParameters::reset()
+{
+	*this = {};
 }
 
 BaseParameters::BaseParameters(const BaseParameters& other)
@@ -44,6 +52,19 @@ BaseParameters::BaseParameters(const BaseParameters& other)
 		const auto name = metaproperty.name();
 		setProperty(name, other.property(name));
 	}
+}
+
+BaseParameters& BaseParameters::operator=(const BaseParameters& other)
+{
+	const auto metaobject = other.metaObject();
+	const auto count = metaobject->propertyCount();
+	for (auto i = 0; i<count; ++i)
+	{
+		auto metaproperty = metaobject->property(i);
+		const auto name = metaproperty.name();
+		setProperty(name, other.property(name));
+	}
+	return *this;
 }
 
 QJsonObject BaseParameters::toJson()
@@ -61,7 +82,20 @@ QJsonObject BaseParameters::toJson()
 		
 		if (var.userType() > 100 ) // user custom type
 		{
-			if (var.canConvert<COLOR_TRIPLET_SINGLE>())
+			if (var.canConvert<QVector<QSizeF>>())
+			{
+				QJsonArray arr;
+				auto sizeArray = var.value<QVector<QSizeF>>();
+				for(auto sz: sizeArray)
+				{
+					QJsonObject jsSz;
+					jsSz["dx"] = sz.width();
+					jsSz["dy"] = sz.height();
+					arr.append(jsSz);
+				}
+				retVal[name] = arr;
+			}
+			else if (var.canConvert<COLOR_TRIPLET_SINGLE>())
 			{
 				retVal[name] = var.value<COLOR_TRIPLET_SINGLE>().toJson();
 			}
@@ -88,6 +122,7 @@ QJsonObject BaseParameters::toJson()
 
 bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString& error )
 {
+	reset();
 	const auto metaobject = metaObject();
 	const auto count = metaobject->propertyCount();
 	for (auto i = 0; i<count; ++i)
@@ -144,6 +179,20 @@ bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString&
 				{
 					PARAM_SCOPED_ERROR << "Error while parsing parameter"  << propName;
 				}
+			}
+			(void)setProperty(propName, QVariant::fromValue(t));
+		}
+		else if (strcmp(typeName, "QVector<QSizeF>") == 0 )
+		{
+			auto arr = obj[propName].toArray();
+			QVector<QSizeF> t;
+			for ( auto j = 0; j < arr.count(); j++ )
+			{
+				QSizeF sz ( 
+					arr.at(j).toObject()["dx"].toDouble(),
+					arr.at(j).toObject()["dy"].toDouble()
+				);
+				t << sz;
 			}
 			(void)setProperty(propName, QVariant::fromValue(t));
 		}
@@ -224,7 +273,8 @@ QVariant BaseParameters::getParamProperty(const QString& strValName) const
 		if (strValName == name)
 			return property(name);
 	}
-	return QVariant{};
+
+	return retVal.isNull() ? property(strValName.toLocal8Bit()) : retVal;
 }
 
 bool BaseParameters::setParamProperty(const QString& strValName, const QVariant& val)
@@ -257,7 +307,7 @@ bool BaseParameters::load(QString fileName, QString& error)
 		return false;
 	}
 
-	_ConfigFileName = QFileInfo(fileName).baseName();
+	//_ConfigFileName = QFileInfo(fileName).baseName();
 	_configFilePath = fileName;
 
 	QJsonParseError pError;

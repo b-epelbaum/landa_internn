@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>roiToolMainWindow</class>
+ <widget class="QMainWindow" name="roiToolMainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1383</width>
+    <height>882</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>JuneUIWnd</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <property name="leftMargin">
+     <number>2</number>
+    </property>
+    <property name="topMargin">
+     <number>2</number>
+    </property>
+    <property name="rightMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
+     <number>2</number>
+    </property>
+    <item>
+     <widget class="QStackedWidget" name="imageStackWidget">
+      <widget class="offlineRegTab" name="offlineTool"/>
+      <widget class="waveTab" name="waveTool"/>
+      <widget class="fullImageTab" name="fullImageTool"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="dockWidget_4">
+   <property name="minimumSize">
+    <size>
+     <width>250</width>
+     <height>38</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>250</width>
+     <height>524287</height>
+    </size>
+   </property>
+   <property name="windowIcon">
+    <iconset resource="roitools.qrc">
+     <normaloff>:/roiTools/Resources/setting.png</normaloff>:/roiTools/Resources/setting.png</iconset>
+   </property>
+   <property name="features">
+    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>ROI Parameters</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="roiParamWidget" name="paramWidget"/>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>roiParamWidget</class>
+   <extends>QWidget</extends>
+   <header>roiparamwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>offlineRegTab</class>
+   <extends>QWidget</extends>
+   <header location="global">offlineregtab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>waveTab</class>
+   <extends>QWidget</extends>
+   <header>wavetab.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>fullImageTab</class>
+   <extends>QWidget</extends>
+   <header>fullimagetab.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="roitools.qrc"/>
+ </resources>
+ <connections/>
+</ui>

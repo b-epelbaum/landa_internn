@@ -34,31 +34,39 @@ cyclicGenerator::~cyclicGenerator()
 
 
 
-CORE_ERROR cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObject, FrameProviderCallback callback)
+void cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObject, CoreEventCallback callback)
 {
-	validateParameters(parameters);
-	connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-
-	_dataCallback = callback;
-	_coreObject = coreObject;
-
-	_lastAcquiredImage = -1;
-	_sourceTemplateImage.release();
-
-	const auto t1 = Utility::now_in_millisecond();
-	const auto pathName = _SourceFilePath;
-	CYCLIC_GENERATOR_SCOPED_LOG << "found BMP image : " << pathName << "; loading...";
-	_sourceTemplateImage = cv::imread(pathName.toStdString());
-
-	if (_sourceTemplateImage.empty() )
+	try
 	{
-		CYCLIC_GENERATOR_SCOPED_ERROR << "cannot load image file from " << pathName;
-		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		validateParameters(parameters);
+		connect (parameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+
+		_dataCallback = callback;
+		_coreObject = coreObject;
+
+		_lastAcquiredImage = -1;
+		_sourceTemplateImage.release();
+
+		const auto t1 = Utility::now_in_millisecond();
+		const auto pathName = _SourceFilePath;
+		CYCLIC_GENERATOR_SCOPED_LOG << "found source image : " << pathName << "; loading...";
+		_sourceTemplateImage = cv::imread(pathName.toStdString());
+
+		if (_sourceTemplateImage.empty() )
+		{
+			CYCLIC_GENERATOR_SCOPED_ERROR << "cannot load image file from " << pathName;
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Cannot load source image from " + pathName.toStdString() );
+		}
+		CYCLIC_GENERATOR_SCOPED_LOG << "finished loading file " << pathName << " in " << Utility::now_in_millisecond() - t1 << " msec";
 	}
-	
-	CYCLIC_GENERATOR_SCOPED_LOG << "finished loading file " << pathName << " in " << Utility::now_in_millisecond() - t1 << " msec";
-	
-	return RESULT_OK;
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex )
+	{
+		RETHROW( CORE_ERROR::ERR_PROVIDER_FAILED_TO_INIT);
+	}
 }
 
 void cyclicGenerator::validateParameters(BaseParametersPtr parameters)
@@ -80,19 +88,29 @@ void cyclicGenerator::validateParameters(BaseParametersPtr parameters)
 	_providerParameters = parameters;
 }
 
-CORE_ERROR cyclicGenerator::cleanup()
+void cyclicGenerator::cleanup()
 {
-	disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
-	_sourceTemplateImage.release();
-	CYCLIC_GENERATOR_SCOPED_LOG << "cleaned up";
-	return RESULT_OK;
+	try
+	{
+		disconnect (_providerParameters.get(), &BaseParameters::updateCalculated, this, &BaseFrameProvider::onUpdateParameters);
+		_sourceTemplateImage.release();
+
+		_coreObject = nullptr;
+		_dataCallback = nullptr;
+		_providerParameters.reset();
+
+		CYCLIC_GENERATOR_SCOPED_LOG << "cleaned up";
+	}
+	catch(BaseException& bex)
+	{
+		throw;
+	}
+	catch ( std::exception& ex )
+	{
+		RETHROW( CORE_ERROR::ERR_PROVIDER_FAILED_TO_INIT);
+	}
 }
 
-
-bool cyclicGenerator::canContinue(CORE_ERROR lastError)
-{
-	return false;
-}
 
 int32_t cyclicGenerator::getFrameLifeSpan() const
 {
@@ -105,7 +123,7 @@ CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 	if ( _sourceTemplateImage.empty() )
 		return CORE_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
 
-	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount )
+	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount  - 1)
 		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(_FrameFrequencyInMSec));

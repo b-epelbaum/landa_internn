@@ -1,4 +1,6 @@
 {
+    "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
     "C2CDistanceBetweenDots_um": 3048,
     "C2CDistanceBetweenSets_um": 159300,
     "C2CDistanceFromTriangle2FirstSet_um": 9600,
@@ -6,6 +8,21 @@
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
+        {
+            "ColorName": "Black",
+            "Max": {
+                "ColorName": "",
+                "H": 255,
+                "S": 92,
+                "V": 140
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 0,
+                "S": 0,
+                "V": 0
+            }
+        },
         {
             "ColorName": "Cyan",
             "Max": {
@@ -22,6 +39,21 @@
             }
         },
         {
+            "ColorName": "Magenta",
+            "Max": {
+                "ColorName": "",
+                "H": 179,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 135,
+                "S": 90,
+                "V": 70
+            }
+        },
+        {
             "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
@@ -35,57 +67,25 @@
                 "S": 90,
                 "V": 170
             }
-        },
-        {
-            "ColorName": "Magenta",
-            "Max": {
-                "ColorName": "",
-                "H": 179,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 135,
-                "S": 90,
-                "V": 170
-            }
-        },
-        {
-            "ColorName": "Black",
-            "Max": {
-                "ColorName": "",
-                "H": 255,
-                "S": 90,
-                "V": 140
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 0,
-                "V": 0
-            }
         }
     ],
+    "CycleImage": true,
     "EnableAlgorithmProcessing": true,
     "EnableAnyDataSaving": true,
-    "EnableCSVSaving": false,
+    "EnableCSVSaving": true,
     "EnableImageSaving": true,
     "EnableProcessing": true,
-    "FGS_CycleImage": true,
-    "FGS_FrameFrequencyInMSec": 500,
-    "FGS_SourceFilePath": "",
-    "FGS_SourceFolderPath": "c:\\temp\\wave",
-    "GenerateOverlays": false,
+    "FrameFrequencyInMSec": 500,
+    "FrameProviderName": "Offline Frame Provider",
+    "GenerateOverlays": true,
     "I2SMarginX_mm": 2.5,
     "I2SMarginY_mm": 2.5,
     "I2SOffsetFromPaperEdgeX_mm": 3.19,
     "I2SOffsetFromPaperEdgeY_mm": 10.5,
     "I2SROIHeight_mm": 8.5,
     "I2SROIWidth_mm": 8.5,
+    "ImageMaxCount": -1,
     "JobID": 0,
-    "Off_ImageMaxCount": 1000,
-    "Off_SourceFolderPath": "c:\\temp\\wave",
     "OffsetBetweenTriangles_mm": 990,
     "OffsetFromLeftEdge_mm": 9.6,
     "PanelCount": 11,
@@ -124,7 +124,7 @@
     "SaveOverlayRightC2C": false,
     "SaveOverlayRightEdge": false,
     "SaveOverlayRightI2S": false,
-    "SaveOverlayWave": false,
+    "SaveOverlayWave": true,
     "SaveSourceImages": true,
     "SaveSourceLeftC2C": false,
     "SaveSourceLeftI2S": false,
@@ -132,10 +132,12 @@
     "SaveSourceRightC2C": false,
     "SaveSourceRightI2S": false,
     "SaveSourceRightStrip": false,
-    "SaveSourceWave": false,
-    "SaveWaveCSV": false,
+    "SaveSourceWave": true,
+    "SaveWaveCSV": true,
     "ScanBitDepth": 24,
     "SheetID": 0,
+    "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\4_colors_wave_only_cycle\\Current0001.bmp",
+    "SourceFolderPath": "",
     "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
     "SubstrateImageMargin_mm": 2,

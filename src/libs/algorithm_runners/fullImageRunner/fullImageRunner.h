@@ -21,6 +21,9 @@ namespace LandaJune
 			const fullImageRunner & operator = (const fullImageRunner &) = delete;
 			fullImageRunner & operator = (fullImageRunner &&) = delete;
 
+			void init (BaseParametersPtr parameters, Core::ICore* coreObject, CoreEventCallback callback) override;
+			void cleanup() override;
+
 			// IAlgorithmRunner methods
 			std::unique_ptr<IAlgorithmRunner> clone() override;
 			QString getName() const override;
@@ -28,17 +31,15 @@ namespace LandaJune
 
 			std::string getFrameFolderName() const override;
 
-			void init(BaseParametersPtr parameters, Core::ICore* coreObject, FrameConsumerCallback callback) override;
-			void cleanup() override;
 			BaseParametersPtr getParameters() const override;
 
 		protected:
 
-			void processInternal() override;
+			CORE_ERROR processInternal() override;
 			void validateProcessParameters(BaseParametersPtr parameters) override;
 
 			// general sheet output processing
-			void processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput) override;
+			CORE_ERROR processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput) override;
 
 			// general strip output processing
 			void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput) override;

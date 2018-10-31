@@ -15,6 +15,9 @@ namespace LandaJune {
 	}
 }
 
+namespace cv {
+	class Mat;
+}
 
 namespace LandaJune
 {
@@ -84,6 +87,9 @@ namespace LandaJune
 			void onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
 			void onOfflineFileCount(int fileCount);
 
+			void onVerticalScrollBarValueChanged(int val);
+			void onHorizontalScrollBarValueChanged(int val);
+
 		signals :
 
 			void processingFinished();
@@ -128,6 +134,7 @@ namespace LandaJune
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
 
 			void updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
+			void updateFrameZone();
 
 			oneRunViewer * _onRunViewer;
 
@@ -151,7 +158,6 @@ namespace LandaJune
 			bool _bRunning = false;
 
 			QLabel *_imageBox = nullptr;
-			QScrollArea *_scrollArea = nullptr;
 			double _scaleFactor = 1.0;
 			QTimer * _updateStatsTimer = nullptr;
 
@@ -176,6 +182,9 @@ namespace LandaJune
 			double _lastFrameImageRatio = 0.0;
 			QSize _frameDisplayImageSize = {0,0};
 			QRect _frameBoxRect = {0,0,0,0};
+			QSize _frameZoneSize = {0, 0};
+			QPoint _frameZonePosition = {0, 0};
+			std::shared_ptr<cv::Mat> _originalFrame = nullptr;
 
 		protected:
 

@@ -36,17 +36,20 @@ namespace LandaJune
 			: _error (error)
 			, _errorString(std::move(strError))
 		{
-			if (!_errorStringMap )
-				initStringMap();
+			if (error != 0 )
+			{
+				if (_errorString.empty())
+				{
+					if (!_errorStringMap )
+						initStringMap();
+					
+					std::string defString;
 
-			std::string defString;
-
-			auto const iter = _errorStringMap->find(error); 
-			if ( iter != _errorStringMap->cend())
-				defString = iter->second;
-
-			if (!defString.empty())
-				_errorString = defString + "(" + _errorString + ")";
+					auto const iter = _errorStringMap->find(error); 
+					if ( iter != _errorStringMap->cend())
+						_errorString = iter->second;
+				}
+			}
 		}
 	
 		CORE_ERROR & operator = (const CORE_ERROR & other)
@@ -91,11 +94,25 @@ namespace LandaJune
 		{
 			_errorStringMap = STRING_MAP_PTR( new STRING_MAP );
 
+			ADD_ERR_DESC_TXT(ERR_FUNC_INVALID_ALGO_PTR, "Algorithm runner parameter is invalid");
+			ADD_ERR_DESC_TXT(ERR_FUNC_INVALID_CORE_OBJECT	, "Core object parameter is invalid");
+			ADD_ERR_DESC_TXT(ERR_FUNC_INVALID_CORE_CALLBACK	, "Core callback parameter is invalid");
+			ADD_ERR_DESC_TXT(ERR_FUNC_INVALID_PROVIDER_PTR	, "Provider object parameter is invalid");
+			ADD_ERR_DESC_TXT(ERR_ALGORITHM_EXCEPTION		, "Algorithm has thrown exception");
+			ADD_ERR_DESC_TXT(ERR_PROVIDER_EXCEPTION			, "Provider has thrown exception");
+			ADD_ERR_DESC_TXT(ERR_FUNC_INVALID_PARAM_PTR		, "Parameters object parameter is invalid");
+			ADD_ERR_DESC_TXT(ERR_PROVIDER_UNINITIALIZED		, "Frame provider has not been initialized");
+			ADD_ERR_DESC_TXT(ERR_RUNNER_UNINITIALIZED		, "Algorithm runner has not been initialized");
+			ADD_ERR_DESC_TXT(ERR_PROVIDER_FAILED_TO_INIT	, "Provider failed to ininitalize");
+			ADD_ERR_DESC_TXT(ERR_RUNNER_FAILED_TO_INIT		, "Runner failed to initialize");
+			ADD_ERR_DESC_TXT(ERR_PROVIDER_FUNC_INVALID_9	, "");
+			ADD_ERR_DESC_TXT(ERR_DATA_SAVE_FAILURE			, "Saving data failed");
+
 			ADD_ERR_DESC_TXT(ERR_PROVIDER_INVALID_SELECTED_PROVIDER, "Selected provider is invalid");
 			ADD_ERR_DESC_TXT(ERR_FRAMEGRABBER_LOAD_APPLET_FAILED, "Failed loading Silicon Software applet");
 			ADD_ERR_DESC_TXT(ERR_FRAMEGRABBER_LOAD_CONFIG_FAILED, "Failed loading Silicon Software configuration file");
 			ADD_ERR_DESC_TXT(ERR_FRAMEGRABBER_CANNOT_GET_PROPERTY, "Cannot get named property");
-			ADD_ERR_DESC_TXT(ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION, "Runtime exception has been caught");
+			ADD_ERR_DESC_TXT(ERR_ALGORITHM_EXCEPTION, "Algorithm function has thrown exception");
 			
 			ADD_ERR_DESC_AUTO(ERR_FRAMEGRABBER_MEMORY_ALLOCATION_FAILED);
 			
@@ -146,13 +163,33 @@ namespace LandaJune
 			ADD_ERR_DESC_AUTO(ALGO_PROCESS_EDGE_FAILED);						
 			ADD_ERR_DESC_AUTO(ALGO_PROCESS_I2S_FAILED);						
 			ADD_ERR_DESC_AUTO(ALGO_PROCESS_C2C_FAILED);						
-			ADD_ERR_DESC_AUTO(ALGO_PROCESS_WAVE_FAILED);						
+			ADD_ERR_DESC_AUTO(ALGO_PROCESS_WAVE_FAILED);
+
+			ADD_ERR_DESC_AUTO(UI_ROITOOL_INVALID_IMAGE);
+			ADD_ERR_DESC_AUTO(UI_ROITOOL_IMAGE_TOO_BIG);
 		}
 
 		
 
 		////////////////////////////////////////////////////////
 		///////////////////// ERRORS ///////////////////////////
+
+		// errors from 20 to 50 are critical 
+		static const int ERR_FUNC_INVALID_ALGO_PTR								= 20;
+		static const int ERR_FUNC_INVALID_CORE_OBJECT							= 21;
+		static const int ERR_FUNC_INVALID_CORE_CALLBACK							= 22;
+		static const int ERR_FUNC_INVALID_PROVIDER_PTR							= 23;
+		static const int ERR_ALGORITHM_EXCEPTION								= 25;
+		static const int ERR_PROVIDER_EXCEPTION									= 26;
+		static const int ERR_FUNC_INVALID_PARAM_PTR								= 27;
+		static const int ERR_PROVIDER_UNINITIALIZED								= 28;
+		static const int ERR_RUNNER_UNINITIALIZED								= 29;
+		static const int ERR_PROVIDER_FAILED_TO_INIT							= 30;
+		static const int ERR_RUNNER_FAILED_TO_INIT								= 31;
+		static const int ERR_PROVIDER_FUNC_INVALID_9							= 32;
+		static const int ERR_DATA_SAVE_FAILURE									= 33;
+
+		
 
 		static const int ERR_PROVIDER_INVALID_SELECTED_PROVIDER					= 102;
 		static const int ERR_FRAMEGRABBER_LOAD_APPLET_FAILED					= 103;
@@ -166,22 +203,24 @@ namespace LandaJune
 		static const int ERR_FGSIMULATOR_NO_FILE_FOUND							= 111;
 		static const int ERR_OFFLINEREADER_SOURCE_FOLDER_INVALID				= 112;
 		static const int ERR_OFFLINEREADER_SOURCE_FILE_INVALID					= 113;
-		static const int ERR_OFFLINEREADER_NO_MORE_FILES						= 114;
-		static const int ERR_SIMULATOR_HAVE_NO_IMAGES							= 115;
-		static const int ERR_SIMULATOR_REACHED_MAX_COUNT						= 116;
-		static const int ERR_PROVIDER_INVALID_PARAMETERS						= 117;
-		static const int ERR_PROVIDER_DLL_CANNOT_BE_LOADED						= 118;
-		static const int ERR_RUNNER_DLL_CANNOT_BE_LOADED						= 119;
+		static const int ERR_OFFLINEREADER_NO_FILES_TO_LOAD						= 114;
+		static const int ERR_OFFLINEREADER_NO_MORE_FILES						= 115;
+		static const int ERR_SIMULATOR_HAVE_NO_IMAGES							= 116;
+		static const int ERR_SIMULATOR_REACHED_MAX_COUNT						= 117;
+		static const int ERR_PROVIDER_INVALID_PARAMETERS						= 118;
+		static const int ERR_PROVIDER_DLL_CANNOT_BE_LOADED						= 119;
+		static const int ERR_RUNNER_DLL_CANNOT_BE_LOADED						= 120;
+		static const int ERR_RUNNER_ANALYSIS_FAILED								= 121;
+		static const int ERR_PROVIDER_CLEANUP_FAILED							= 122;
 
 		static const int ERR_CORE_NOT_INITIALIZED								= 200;
 		static const int ERR_CORE_NO_PROVIDER_SELECTED							= 201;
 		static const int ERR_CORE_NO_ALGORITHM_RUNNER_SELECTED					= 202;
-		static const int ERR_CORE_PROVIDER_IS_BUSY								= 203;
-		static const int ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION				= 204;
-		static const int ERR_CORE_PROVIDER_FAILED_TO_INIT						= 205;
-		static const int ERR_CORE_ALGO_RUNNER_THROWN_RUNTIME_EXCEPTION			= 206;
-		static const int ERR_CORE_CANNOT_CREATE_FOLDER							= 207;
-		static const int ERR_CORE_CANNOT_ENCODE_TO_BMP							= 208;
+		static const int ERR_CORE_PROVIDER_IS_BUSY								= 230;
+		static const int ERR_CORE_PROVIDER_THROWN_RUNTIME_EXCEPTION				= 231;
+		static const int ERR_CORE_PROVIDER_FAILED_TO_INIT						= 232;
+		static const int ERR_CORE_CANNOT_CREATE_FOLDER							= 251;
+		static const int ERR_CORE_CANNOT_ENCODE_TO_BMP							= 270;
 
 		static const int ERR_FRAME_INVALID_INIT_DATA							= 300;
 		static const int ERR_FRAME_INVALID_IMAGE_FORMAT							= 301;
@@ -196,28 +235,56 @@ namespace LandaJune
 		static const int ALGO_ROI_RECT_EXCEEDS_FRAME_RECT 						= 402;
 		static const int ALGO_INVALID_SOURCE_IMAGE								= 403;
 		static const int ALGO_EMPTY_ROI_NAME_TO_SAVE							= 404;
-		static const int ALGO_INIT_EDGE_FAILED									= 405;
-		static const int ALGO_INIT_I2S_FAILED									= 406;
-		static const int ALGO_INIT_C2C_FAILED									= 407;
-		static const int ALGO_INIT_WAVE_FAILED									= 408;
-		static const int ALGO_SHUTDOWN_EDGE_FAILED								= 409;
-		static const int ALGO_SHUTDOWN_I2S_FAILED								= 410;
-		static const int ALGO_SHUTDOWN_C2C_FAILED								= 411;
-		static const int ALGO_SHUTDOWN_WAVE_FAILED								= 412;
-		static const int ALGO_PROCESS_EDGE_FAILED								= 409;
-		static const int ALGO_PROCESS_I2S_FAILED								= 410;
-		static const int ALGO_PROCESS_C2C_FAILED								= 411;
-		static const int ALGO_PROCESS_WAVE_FAILED								= 412;
-	};
+		static const int ALGO_C2C_IMAGE_TEMPLATE_INVALID						= 406;
+		static const int ALGO_WAVE_IMAGE_TEMPLATE_INVALID						= 407;
+		static const int ALGO_INVALID_PARAMETER_TYPE_PASSED						= 408;
+		static const int ALGO_SETUP_SHEET_PARAMETERS_FAILED						= 409;
+		static const int ALGO_SETUP_STRIP_PARAMETERS_FAILED						= 410;
+		static const int ALGO_SETUP_EDGE_PARAMETERS_FAILED						= 411;
+		static const int ALGO_SETUP_WAVE_PARAMETERS_FAILED						= 412;
+		static const int ALGO_GENERATE_SHEET_REGIONS_FAILED						= 413;
+		static const int ALGO_GENERATE_STRIP_REGIONS_FAILED						= 414;
+		static const int ALGO_GENERATE_I2S_REGIONS_FAILED						= 415;
+		static const int ALGO_GENERATE_C2C_REGIONS_FAILED						= 416;
+		static const int ALGO_GENERATE_WAVE_REGIONS_FAILED						= 417;
+		static const int ALGO_COPY_REGIONS_FAILED								= 418;
+		static const int ALGO_PERFORM_COPY_FUNC_FAILED							= 419;
+		static const int ALGO_INIT_I2S_FAILED									= 430;
+		static const int ALGO_INIT_EDGE_FAILED									= 431;
+		static const int ALGO_INIT_C2C_FAILED									= 432;
+		static const int ALGO_INIT_WAVE_FAILED									= 433;
+		static const int ALGO_SHUTDOWN_EDGE_FAILED								= 440;
+		static const int ALGO_SHUTDOWN_I2S_FAILED								= 441;
+		static const int ALGO_SHUTDOWN_C2C_FAILED								= 442;
+		static const int ALGO_SHUTDOWN_WAVE_FAILED								= 443;
+		static const int ALGO_PROCESS_EDGE_FAILED								= 470;
+		static const int ALGO_PROCESS_I2S_FAILED								= 471;
+		static const int ALGO_PROCESS_C2C_FAILED								= 472;
+		static const int ALGO_PROCESS_WAVE_FAILED								= 473;
+		static const int ALGO_PROCESS_SHEET_FAILED								= 474;
+		static const int ALGO_PROCESS_STRIP_FAILED								= 475;
+		static const int ALGO_PROCESS_UNCAUGHT_EXCEPTION						= 476;
+		static const int ALGO_PROCESS_I2S_OUTPUT_FAILED							= 477;
+		static const int ALGO_PROCESS_C2C_OUTPUT_FAILED							= 478;
+		static const int ALGO_PROCESS_WAVE_OUTPUT_FAILED						= 479;
+		static const int ALGO_PROCESS_SHEET_OUTPUT_FAILED						= 480;
+		static const int ALGO_PROCESS_STRIP_OUTPUT_FAILED						= 481;
+		static const int ALGO_PROCESS_STRIP_OUTPUT_CSV_FAILED					= 482;
+		static const int ALGO_PROCESS_WAVE_OUTPUT_CSV_FAILED					= 483;
 
+		static const int UI_ROITOOL_INVALID_IMAGE								= 501;
+		static const int UI_ROITOOL_IMAGE_TOO_BIG								= 502;
+
+	};
 	#define RESULT_OK CORE_ERROR::JUNE_NO_ERROR
 	#define RESULT_NOT_IMPLEMENTED CORE_ERROR::JUNE_NO_ERROR
 
 	inline std::ostream& operator << (std::ostream& os, const CORE_ERROR& err)
 	{  
-		os << "Error : " << err._error << " => [" << err._errorString.c_str() << "]";
+		os << "Error : " << err._error;
 		return os;  
 	} 
+	
 	
 
 	enum OUT_STATUS

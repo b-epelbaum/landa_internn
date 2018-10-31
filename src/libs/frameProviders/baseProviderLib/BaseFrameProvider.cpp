@@ -29,11 +29,6 @@ IPropertyList BaseFrameProvider::getProviderProperties() const
 	return retVal;
 }
 
-bool BaseFrameProvider::setProviderProperties(const IPropertyList& vals)
-{
-	return !_busy;
-}
-
 QVariant BaseFrameProvider::getProviderProperty(const QString& strValName) const
 {
 	QVariant retVal;

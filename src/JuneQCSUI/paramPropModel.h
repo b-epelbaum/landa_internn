@@ -80,6 +80,8 @@ private:
 
 	QPoint createQPoint(ParamPropItem *item) const noexcept;
 	QRect createQRect(ParamPropItem *item) const noexcept;
+	QSizeF createQSizeF(ParamPropItem *item) const noexcept;
+	QVector<QSizeF> createVectorOfSizes(ParamPropItem *item) const noexcept;
 	QVector<LandaJune::Parameters::COLOR_TRIPLET> createColorTripletVector(ParamPropItem *item) const noexcept;
 	LandaJune::Parameters::COLOR_TRIPLET createColorTriplet(ParamPropItem *item) const noexcept;
 	LandaJune::Parameters::COLOR_TRIPLET_SINGLE createColorTripletSingle(ParamPropItem *item) const noexcept;
@@ -89,7 +91,9 @@ private:
 	// Setup custom type
 	void setupQPoint(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupQRectVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupQSizeVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupQRect(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
+	void setupQSize(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTripletSingle(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTriplet(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
 	void setupColorTripletVector(ParamPropItem *parent, const LandaJune::IPropertyTuple &prop) noexcept;
@@ -99,7 +103,7 @@ private:
 	ParamPropItem *_rootItem = nullptr;
 	ParamPropItem * _currentRoot = nullptr;
 
-	QIcon _iconInt, _iconFloat, _iconRect, _iconBoolean, _iconLiteral, _iconData, _iconColors, _iconColorArray;
+	QIcon _iconInt, _iconFloat, _iconRect, _iconSize, _iconBoolean, _iconLiteral, _iconData, _iconColors, _iconColorArray;
 
 	bool _readOnlyView = true;
 
