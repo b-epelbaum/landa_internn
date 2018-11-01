@@ -30,16 +30,15 @@ offlineRegTab::offlineRegTab(QWidget *parent)
 
 	connect(_leftImageBox, &roiImageBox::i2sPosChanged, this, &offlineRegTab::oni2sPosChanged);
 	connect(_leftImageBox, &roiImageBox::c2cPosChanged, this, &offlineRegTab::onc2cPosChanged);
+	
+	connect(_leftImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onROIScaleChanged);
+	connect(_rightImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onROIScaleChanged);
 
+	connect(_leftImageBox, &roiImageBox::scrollValuesChanged, this, &offlineRegTab::onROIScrollChanged);
+	connect(_rightImageBox, &roiImageBox::scrollValuesChanged, this, &offlineRegTab::onROIScrollChanged);
 
-	_leftImageBox->setFileMetaInfo("Load registration image file", ROITOOLS_KEY_LAST_REG_FILE);
-	_rightImageBox->setFileMetaInfo("Load registration image file", ROITOOLS_KEY_LAST_REG_FILE);
-
-	connect(_leftImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onLeftRightROIScaleChanged);
-	connect(_rightImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onLeftRightROIScaleChanged);
-
-	connect(_leftImageBox, &roiImageBox::scrollValuesChanged, this, &offlineRegTab::onLeftRightROIScrollChanged);
-	connect(_rightImageBox, &roiImageBox::scrollValuesChanged, this, &offlineRegTab::onLeftRightROIScrollChanged);
+	_leftImageBox->setFileMetaInfo("Load LEFT registration image file", ROITOOLS_KEY_LAST_REG_LEFT_FILE);
+	_rightImageBox->setFileMetaInfo("Load RIGHT registration image file", ROITOOLS_KEY_LAST_REG_RIGHT_FILE);
 }
 
 offlineRegTab::~offlineRegTab()
@@ -93,16 +92,16 @@ void offlineRegTab::recalculate()
 
 }
 
-void offlineRegTab::onLeftRightROIScaleChanged(float glScale, float imageScale)
+void offlineRegTab::onROIScaleChanged(double glScale, double imageScale)
 {
 	auto targetWidget = ( dynamic_cast<roiImageBox*>(sender()) == _leftImageBox ) ? _rightImageBox : _leftImageBox;
-	targetWidget->setScales(glScale, imageScale);
+	targetWidget->updateScaleFromExternal(glScale, imageScale);
 }
 
-void offlineRegTab::onLeftRightROIScrollChanged(int hScroll, int vScroll)
+void offlineRegTab::onROIScrollChanged(int hScroll, int vScroll)
 {
 	auto targetWidget = ( dynamic_cast<roiImageBox*>(sender()) == _leftImageBox ) ? _rightImageBox : _leftImageBox;
-	targetWidget->setScrolls(hScroll, vScroll);
+	targetWidget->updateScrollsFromExternal(hScroll, vScroll);
 }
 
 
@@ -134,8 +133,8 @@ void offlineRegTab::onc2cPosChanged(int idx, QPoint pt)
 {
 	// offset c2c coordinates from I2S rect
 
-	pt.setX(pt.x() - _params->I2RectLeft_px().x());
-	pt.setY(pt.y() - _params->I2RectLeft_px().y());
+	pt.setX(pt.x() - _params->I2SRectLeft_px().x());
+	pt.setY(pt.y() - _params->I2SRectLeft_px().y());
 	
 	// translate absolute i2s coordinate to mm
 
@@ -159,10 +158,12 @@ void offlineRegTab::onc2cPosChanged(int idx, QPoint pt)
 	
 void offlineRegTab::setupROIs() const
 {
-	const auto i2sROI = _params->I2RectLeft_px();
-	const auto c2cROIs = _params->C2CROIArrayLeft_px();
+	const auto i2sROILeft = _params->I2SRectLeft_px();
+	const auto i2sROIRight = _params->I2SRectRight_px();
+	const auto c2cROIsLeft = _params->C2CROIArrayLeft_px();
+	const auto c2cROIsRight = _params->C2CROIArrayRight_px();
 
-	_leftImageBox->setInitialROIs(i2sROI, c2cROIs, 
+	_leftImageBox->setInitialROIs(i2sROILeft, c2cROIsLeft, 
 		{
 			_params->I2SMarginX_px(),
 			_params->I2SMarginY_px()
@@ -170,13 +171,26 @@ void offlineRegTab::setupROIs() const
 		{
 			_params->C2CMarginX_px(),
 			_params->C2CMarginY_px()
-		}
+		},
+		_params->C2CCircleDiameter_px()
+	);
+
+	_rightImageBox->setInitialROIs(i2sROIRight, c2cROIsRight, 
+		{
+			_params->I2SMarginX_px(),
+			_params->I2SMarginY_px()
+		},
+		{
+			_params->C2CMarginX_px(),
+			_params->C2CMarginY_px()
+		},
+		_params->C2CCircleDiameter_px()
 	);
 }
 
 void offlineRegTab::updateROIs() const
 {
-	const auto i2sROI = _params->I2RectLeft_px();
+	const auto i2sROI = _params->I2SRectLeft_px();
 	const auto c2cROIs = _params->C2CROIArrayLeft_px();
 
 	_leftImageBox->updateROIs(i2sROI, c2cROIs);

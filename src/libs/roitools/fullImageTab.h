@@ -41,8 +41,8 @@ private:
 	roiImageBox *		_fullImageBox;
 	roiParamWidget *	_paramWidget;
 
-	float _Pixel2MM_X = 0.0;
-	float _Pixel2MM_Y = 0.0;
+	double _Pixel2MM_X = 0.0;
+	double _Pixel2MM_Y = 0.0;
 
 	LandaJune::ProcessParametersPtr _params;
 

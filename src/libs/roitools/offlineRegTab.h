@@ -21,8 +21,8 @@ private slots:
 
 	void onPropertyChanged (QString propName, QVariant newVal );
 
-	void onLeftRightROIScaleChanged( float glScale, float imageScale );
-	void onLeftRightROIScrollChanged( int hScroll, int vScroll );
+	void onROIScaleChanged( double glScale, double imageScale );
+	void onROIScrollChanged( int hScroll, int vScroll );
 
 	void oni2sPosChanged(QPoint pt);
 	void onc2cPosChanged(int idx, QPoint pt);

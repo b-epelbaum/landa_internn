@@ -197,9 +197,12 @@ CORE_ERROR Functions::frameGenerate(
 	}
 	else
 	{
-		// release frame to pool
-		framePool->release(std::move(frameRefObj));
-		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFailures, (tFinish - tStart) * 1.0e-6);
+		if (frameRefObj)
+		{
+			// release frame to pool
+			framePool->release(std::move(frameRefObj));
+			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesFailures, (tFinish - tStart) * 1.0e-6);
+		}
 	}
 	return retVal;
 }

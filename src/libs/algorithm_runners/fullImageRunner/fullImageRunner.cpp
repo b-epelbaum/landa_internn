@@ -107,7 +107,7 @@ void fullImageRunner::init(BaseParametersPtr parameters, Core::ICore* coreObject
 		const INIT_PARAMETER edgeInitParam ( toROIRect(_processParameters->LeftStripRect_px()) );
 		initEdge(edgeInitParam);
 
-		const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2RectLeft_px()) };
+		const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2SRectLeft_px()) };
 		initI2S(i2sInitParam);
 
 		if (!_processParameters->C2CROIArrayLeft_px().empty())

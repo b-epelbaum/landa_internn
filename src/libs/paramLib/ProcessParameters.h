@@ -140,14 +140,17 @@ namespace LandaJune
 			// calculated values
 
 			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
-			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(LeftEdgeApproxOffsetX_px,			int,	0)
+			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,				int,	0)
+			DECLARE_CALCULATED_PROPERTY(LeftEdgeApproxOffsetX_px,		int,	0)
 			
-			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,						QRect, {})
-			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,						QRect, {})
-			
-			DECLARE_CALCULATED_PROPERTY(I2RectLeft_px, QRect, {})
-			DECLARE_CALCULATED_PROPERTY(I2RectRight_px, QRect, {})
+			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,				QRect, {})
+			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,				QRect, {})
+
+			DECLARE_CALCULATED_PROPERTY(I2SCornerLeft_px,				QPoint, {})
+			DECLARE_CALCULATED_PROPERTY(I2SCornerRight_px,				QPoint, {})
+
+			DECLARE_CALCULATED_PROPERTY(I2SRectLeft_px,					QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2SRectRight_px,				QRect, {})
 
 			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,					int,	0)
 			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,					int,	0)
@@ -161,6 +164,7 @@ namespace LandaJune
 			
 			// C2C ROIs values
 			DECLARE_CALCULATED_PROPERTY(C2CROICount, int, 0 )
+			DECLARE_CALCULATED_PROPERTY(C2CCircleDiameter_px, int, 0 )
 			DECLARE_CALCULATED_PROPERTY(C2CROIArrayLeft_px, QVector<QRect>, {})
 			DECLARE_CALCULATED_PROPERTY(C2CROIArrayRight_px, QVector<QRect>, {})
 

@@ -9,9 +9,10 @@ namespace LandaJune
 	#define CLIENT_ROOT_KEY			"UIClient"
 	#define CLIENT_KEY_LAST_RECIPE	CLIENT_ROOT_KEY"/lastConfigFile"
 
-	#define ROITOOLS_ROOT_KEY				"ROITools"
-	#define ROITOOLS_KEY_LAST_REG_FILE		ROITOOLS_ROOT_KEY"/lastRegFilesFolder"
-	#define ROITOOLS_KEY_LAST_WAVE_FILE		ROITOOLS_ROOT_KEY"/lastWaveFilesFolder"
-	#define ROITOOLS_KEY_LAST_FULL_FILE		ROITOOLS_ROOT_KEY"/lastFullFilesFolder"
+	#define ROITOOLS_ROOT_KEY					"ROITools"
+	#define ROITOOLS_KEY_LAST_REG_LEFT_FILE		ROITOOLS_ROOT_KEY"/lastRegLFilesFolder"
+	#define ROITOOLS_KEY_LAST_REG_RIGHT_FILE	ROITOOLS_ROOT_KEY"/lastRegRFilesFolder"
+	#define ROITOOLS_KEY_LAST_WAVE_FILE			ROITOOLS_ROOT_KEY"/lastWaveFilesFolder"
+	#define ROITOOLS_KEY_LAST_FULL_FILE			ROITOOLS_ROOT_KEY"/lastFullFilesFolder"
 }
 

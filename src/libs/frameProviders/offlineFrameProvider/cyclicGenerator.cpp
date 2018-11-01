@@ -47,6 +47,12 @@ void cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObjec
 		_lastAcquiredImage = -1;
 		_sourceTemplateImage.release();
 
+		if (_SourceFilePath.isEmpty() )
+		{
+			CYCLIC_GENERATOR_SCOPED_ERROR << "Source file path is empty";
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Source file path is empty" );
+		}
+
 		const auto t1 = Utility::now_in_millisecond();
 		const auto pathName = _SourceFilePath;
 		CYCLIC_GENERATOR_SCOPED_LOG << "found source image : " << pathName << "; loading...";

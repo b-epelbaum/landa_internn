@@ -140,10 +140,12 @@ CORE_ERROR Functions::frameConsume(BaseParametersPtr parameters, AlgorithmRunner
 	}
 
 	// get handled frame index
-	// it coule be -1, in case of bad handling
+	// it could be -1, in case of bad handling
 
-	auto const frameIndex = frameRefObj->getIndex();
-	framesPool->release(std::move(frameRefObj));
+	auto const frameIndex = frameRefObj ? frameRefObj->getIndex() : -1;
+
+	if (frameRefObj)
+		framesPool->release(std::move(frameRefObj));
 
 	// update statistics
 	const auto& tFinish = Utility::now_in_microseconds();

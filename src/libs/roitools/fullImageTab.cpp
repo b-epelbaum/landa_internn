@@ -73,8 +73,8 @@ void fullImageTab::onc2cPosChanged(int idx, QPoint pt)
 {
 	// offset c2c coordinates from I2S rect
 
-	pt.setX(pt.x() - _params->I2RectLeft_px().x());
-	pt.setY(pt.y() - _params->I2RectLeft_px().y());
+	pt.setX(pt.x() - _params->I2SRectLeft_px().x());
+	pt.setY(pt.y() - _params->I2SRectLeft_px().y());
 	
 	// translate absolute i2s coordinate to mm
 
@@ -167,7 +167,7 @@ void fullImageTab::recalculate()
 
 void fullImageTab::setupROIs() const
 {
-	const auto i2sROI = _params->I2RectLeft_px();
+	const auto i2sROI = _params->I2SRectLeft_px();
 	const auto c2cROIs = _params->C2CROIArrayLeft_px();
 
 	_fullImageBox->setInitialROIs(i2sROI, c2cROIs, 
@@ -178,13 +178,14 @@ void fullImageTab::setupROIs() const
 		{
 			_params->C2CMarginX_px(),
 			_params->C2CMarginY_px()
-		}
+		},
+		_params->C2CCircleDiameter_px()
 	);
 }
 
 void fullImageTab::updateROIs() const
 {
-	const auto i2sROI = _params->I2RectLeft_px();
+	const auto i2sROI = _params->I2SRectLeft_px();
 	const auto c2cROIs = _params->C2CROIArrayLeft_px();
 
 	_fullImageBox->updateROIs(i2sROI, c2cROIs);

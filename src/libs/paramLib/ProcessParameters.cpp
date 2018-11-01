@@ -86,19 +86,24 @@ void ProcessParameters::_recalculate()
 	// get start point from paper edge
 	QPoint topLeftPage_px = { _LeftStripRect_px.left() + toPixelsX(_OffsetFromLeftEdge_mm), 0 };
 
+	_I2SCornerLeft_px = { 
+							topLeftPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
+							topLeftPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+						};
+
 	// calculate triangle corner position relatively to start point
-	_I2RectLeft_px =	{
-						topLeftPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-						topLeftPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm ),
-						toPixelsX(_I2SWidth_mm),
-						toPixelsY(_I2SHeight_mm),
+	_I2SRectLeft_px =	{
+							topLeftPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
+							topLeftPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm ),
+							toPixelsX(_I2SWidth_mm),
+							toPixelsY(_I2SHeight_mm),
 					};
 
 	// adjust C2C starting point with triangle corner coordinates :
-	const auto C2CStartPointLeft_px = _I2RectLeft_px.topLeft();
+	const auto C2CStartPointLeft_px = _I2SRectLeft_px.topLeft();
 
 	// and expand ROI to margins
-	_I2RectLeft_px.adjust(
+	_I2SRectLeft_px.adjust(
 				-1 * toPixelsX(_I2SROIMarginX_mm),
 				-1 * toPixelsY(_I2SROIMarginY_mm),
 				toPixelsY(_I2SROIMarginY_mm),
@@ -109,8 +114,13 @@ void ProcessParameters::_recalculate()
 	// get start point from paper edge
 	QPoint topRightPage_px = { _RightStripRect_px.left(), 0 };
 
+	_I2SCornerRight_px = { 
+							topRightPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
+							topRightPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+						};
+
 	// calculate triangle corner position relatively to start point
-	_I2RectRight_px =	{
+	_I2SRectRight_px =	{
 						topRightPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
 						topRightPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm ),
 						toPixelsX(_I2SWidth_mm),
@@ -118,10 +128,10 @@ void ProcessParameters::_recalculate()
 					};
 
 	// adjust C2C starting point with triangle corner coordinates :
-	const auto C2CStartPointRight_px = _I2RectRight_px.topLeft();
+	const auto C2CStartPointRight_px = _I2SRectRight_px.topLeft();
 
 	// and expand ROI to margins
-	_I2RectRight_px.adjust(
+	_I2SRectRight_px.adjust(
 				-1 * toPixelsX(_I2SROIMarginX_mm),
 				-1 * toPixelsY(_I2SROIMarginY_mm),
 				toPixelsY(_I2SROIMarginY_mm),
@@ -129,6 +139,7 @@ void ProcessParameters::_recalculate()
 			);
 
 
+	_C2CCircleDiameter_px = toPixelsX(_C2CCircleDiameter_mm);
 
 	////////////////////////////////////////////////////////////////////
 	// C2c ROIs
@@ -146,10 +157,10 @@ void ProcessParameters::_recalculate()
 		_C2CROIArrayLeft_px.push_back
 		(
 			{
-				firstColorCycleCenterLeft_px.x() - toPixelsX(_C2CDROIMarginX_mm),
-				firstColorCycleCenterLeft_px.y() - toPixelsY(_C2CDROIMarginY_mm),
-				toPixelsX(_C2CDistanceBetweenDotsX_mm + 2 * _C2CDROIMarginX_mm + _C2CCircleDiameter_mm),
-				toPixelsY((ceil(_ColorArray.size()/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CDROIMarginY_mm + _C2CCircleDiameter_mm)
+				firstColorCycleCenterLeft_px.x() - toPixelsX( _C2CCircleDiameter_mm / 2 +_C2CDROIMarginX_mm ),
+				firstColorCycleCenterLeft_px.y()  - toPixelsY(_C2CCircleDiameter_mm / 2 + _C2CDROIMarginY_mm),
+				toPixelsX(_C2CDistanceBetweenDotsX_mm + 2 * _C2CDROIMarginX_mm + _C2CCircleDiameter_mm ),
+				toPixelsY((ceil( ((float)_ColorArray.size())/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CDROIMarginY_mm + _C2CCircleDiameter_mm )
 			}
 		);
 	}

@@ -10,6 +10,7 @@
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/imgcodecs.hpp>
+#include "applog.h"
 
 
 #ifdef _DEBUG
@@ -40,238 +41,64 @@ roiRenderWidget::roiRenderWidget(QWidget *parent)
 	, _imageSize(1, 1)
 {
 	setMouseTracking(true);
-	parentWidget()->installEventFilter(this);
+	//parentWidget()->installEventFilter(this);
 }
 
 roiRenderWidget::~roiRenderWidget()
 {
-	cleanup();
-}
-
-void roiRenderWidget::cleanup()
-{
 	makeCurrent();
+	cleanup();
+
 	if (_vbo.bufferId())
 	{
 		_vbo.destroy();
 	}
 
+	if (_program)
+	{
+		delete _program;
+	}
+	doneCurrent();
+}
+
+void roiRenderWidget::cleanup()
+{
 	if (_texture)
 	{
 		delete _texture;
 	}
 	_texture = nullptr;
 
-	if (_program)
-	{
-		delete _program;
-	}
-	_program = nullptr;
-
-	doneCurrent();
-
 	if (_i2sCross != nullptr )
 		delete _i2sCross;
+
+	_i2sCross = nullptr;
 
 	if (!_c2cCrosses.isEmpty())
 		qDeleteAll(_c2cCrosses);
 
-}
+	_c2cCrosses.clear();
+	_allCrossesArray.clear();
 
-void roiRenderWidget::assignScrollBars(QScrollBar* horz, QScrollBar* vert)
-{
-	_horizontalScrollbar = horz; _verticalScrollbar = vert;
-}
-
-void roiRenderWidget::setInitialROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins )
-{
-	_i2sROIRect = is2sRc;
-	_c2cROIRects = c2cRects;
-
-	_i2sMarginX = i2sMargins.width();
-	_i2sMarginY = i2sMargins.height();
-
-	_c2cMarginX = c2cMargins.width();
-	_c2cMarginY = c2cMargins.height();
-
-	if(_hasImage )
-		update();
-}
-
-
-void roiRenderWidget::updateROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects)
-{
-	qDebug () << " ---- CALCULATED I2S RECT : " << is2sRc;
-
-	//_i2sROIRect = is2sRc;
-	//_c2cROIRects = c2cRects;
-	
-	//if(_hasImage )
-	//	update();
-}
-
-void roiRenderWidget::createCrossHairs()
-{		
-	if (_i2sCross != nullptr )
-		delete _i2sCross;
-
-	if (!_i2sROIRect.isEmpty())
-	{
-		_i2sCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_I2S, _i2sMarginX * 2, _i2sMarginY * 2, _i2sROIRect.topLeft());
-		connect (_i2sCross, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onI2SCrossMoved );
-	}
-
-	if (!_c2cCrosses.isEmpty())
-		qDeleteAll(_c2cCrosses);
-
-	if (_c2cROIRects.isEmpty())
-	{
-		return;
-	}
-
-	auto c2cCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2, _c2cMarginY*2, _c2cROIRects[0].topLeft());
-	c2cCross->setProperty("idx", 0);
-	_c2cCrosses.push_back(c2cCross);
-
-	for (auto i = 1; i < _c2cROIRects.size(); i++ )
-	{
-		auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2, _c2cMarginY*2, _c2cROIRects[i].topLeft());
-		c2c->setProperty("idx", i);
-		_c2cCrosses.push_back(c2c);
-	}
-
-	for ( auto const c2c : _c2cCrosses)
-	{
-		connect (c2c, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onC2CrossMoved );
-	}
-
-	_allCrossesArray << _i2sCross << _c2cCrosses;
-	updateLayers();
-}
-
-void roiRenderWidget::showCrossHairs(bool bShow)
-{
-	if (_i2sCross )
-		_i2sCross->showCross(bShow);
-
-	for ( auto const& cross : _c2cCrosses )
-	{
-		if ( cross )
-			cross->showCross(bShow);
-	}
-}
-
-void roiRenderWidget::setScales(float glScale, float imageScale)
-{
-	if(!_hasImage )
-		return;
-	
-	_imageScale = imageScale;
-	_glScale = glScale;
-	updateScroll();
-}
-
-void roiRenderWidget::setScrolls(int hScrollVal, int vScrollVal)
-{
-	if(!_hasImage )
-		return;
-
-	if ( hScrollVal != _horizontalScrollbar->value() )
-		_horizontalScrollbar->setValue(hScrollVal);
-	if ( vScrollVal != _verticalScrollbar->value() )
-		_verticalScrollbar->setValue(vScrollVal);
-	update();
-}
-
-void roiRenderWidget::showActualPixels ()
-{
-	if(!_hasImage )
-		return;
-
-	if ( _imageRatio < 1 ) // vertical image
-	{
-		_glScale = static_cast<double>(_imageSize.height()) /  static_cast<double>(height());
-	}
-	else
-	{
-		_glScale =  static_cast<double>(_imageSize.width()) /  static_cast<double>(width());
-	}
-
-	_imageScale = 1.0;
-	updateScroll();
-	update();
-	emit scaleChanged (_glScale, _imageScale);
-}
-	
-void roiRenderWidget::showFitOnScreen ()
-{
-	if(!_hasImage )
-		return;
-
-	if ( _imageRatio < 1 ) // vertical image
-	{
-		_imageScale = static_cast<double>(height()) /  static_cast<double>(_imageSize.height());
-	}
-	else
-	{
-		_imageScale =  static_cast<double>(width()) /  static_cast<double>(_imageSize.width());
-	}
 
 	_glScale = 1.0;
-	updateScroll();
-	update();
-	emit scaleChanged (_glScale, _imageScale);
-}
-	
-void roiRenderWidget::setZoom ( int zoom  )
-{
-	if(!_hasImage )
-		return;
-}
+	_imageScaleRatio = 1.0;
+	_actualPixelsScaleRatio = 1.0;
 
-void roiRenderWidget::zoomIn()
-{
-	if(!_hasImage )
-		return;
+	_offsetX = 0.0;
+	_offsetY = 0.0;
 
-	if (double_equals(_imageScale, MAX_SCALE ) )
-		return;
+	_imageSize = {};
+	_imageRatio = 1.0;
+	_hasImage = false;
 
-	const auto newScale = _imageScale * ZOOM_STEP;
-	if (newScale >= MAX_SCALE )
-	{
-		_imageScale = MAX_SCALE;
-		return;
-	}
-	
-	_imageScale = newScale;
-	qDebug() << " **** SCALE : " << _imageScale;
-	_glScale =  _glScale * ZOOM_STEP;
-	
-	emit scaleChanged(_glScale, _imageScale);
-	updateScroll();
-}
-	
-void roiRenderWidget::zoomOut()
-{
-	if(!_hasImage )
-		return;
+	_drawnImageLeft = 0;
+	_drawnImageWidth = 0;
+	_drawnImageTop = 0;
+	_drawnImageHeight = 0;
 
-	if (double_equals(_imageScale, MIN_SCALE ) )
-		return;
-
-	const auto newScale = _imageScale / ZOOM_STEP;
-	if (newScale <= MIN_SCALE )
-	{
-		_imageScale = MIN_SCALE;
-		return;
-	}
-	
-	_imageScale = newScale;
-	qDebug() << " **** SCALE : " << _imageScale;
-	_glScale =  _glScale / ZOOM_STEP;
-	emit scaleChanged(_glScale, _imageScale);
-	updateScroll();
+	_origin = {};
+	_initialWidgetSize = {};
 }
 
 
@@ -297,9 +124,7 @@ CORE_ERROR roiRenderWidget::setImage(const QString& file)
 	
 	_texture = new QOpenGLTexture(img);
 	_imageSize = img.size();
-	
 
-	_imageScale = 1.0;
 	_imageRatio = static_cast<double>(_imageSize.width()) / static_cast<double>(_imageSize.height());
 
 	if ( _imageRatio < 1 ) // vertical image
@@ -310,57 +135,264 @@ CORE_ERROR roiRenderWidget::setImage(const QString& file)
 	{
 		_glScale =  static_cast<double>(_imageSize.width()) /  static_cast<double>(width());
 	}
+	_imageScaleRatio = _glScale;
+	_actualPixelsScaleRatio = _glScale;
+
+	qDebug() << " **** INITIAL SCALE : " << _glScale;
 
 	_hasImage = true;
-	_startWidgetSize = size();
 	setCursor(Qt::CrossCursor);
 
 	doneCurrent();
+	createCrossHairs();
 	repaint();
 
-	createCrossHairs();
-
-	emit scaleChanged(_glScale, _imageScale);
-	return true;
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+	return RESULT_OK;
 }
 
-QPoint roiRenderWidget::fromWidget2OriginalImagePt(const QPoint & pt) 
+
+void roiRenderWidget::createCrossHairs()
+{		
+	delete _i2sCross;
+
+	if (!_i2sROIRect.isEmpty())
+	{
+		_i2sCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_I2S, _i2sMarginX * 2, _i2sMarginY * 2, _c2cCircleDiameter, _i2sROIRect.topLeft(), _glScale);
+		connect (_i2sCross, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onI2SCrossMoved );
+	}
+	
+	if (!_c2cCrosses.isEmpty())
+		qDeleteAll(_c2cCrosses);
+
+	if (_c2cROIRects.isEmpty())
+	{
+		return;
+	}
+
+	auto c2cCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[0].topLeft(), _glScale);
+	c2cCross->setProperty("idx", 0);
+	_c2cCrosses.push_back(c2cCross);
+
+
+	for (auto i = 1; i < _c2cROIRects.size(); i++ )
+	{
+		auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[i].topLeft(), _glScale);
+		c2c->setProperty("idx", i);
+		_c2cCrosses.push_back(c2c);
+	}
+
+	for ( auto const c2c : _c2cCrosses)
+	{
+		connect (c2c, &moveableLayerWidget::crossMoved, this, &roiRenderWidget::onC2CrossMoved );
+	}
+
+	_allCrossesArray << _i2sCross << _c2cCrosses;
+
+	for ( auto elem : _allCrossesArray)
+	{
+		connect (elem, &moveableLayerWidget::crossMoving, this, &roiRenderWidget::onCrossMoving );
+		connect (elem, &moveableLayerWidget::movingOver, this, &roiRenderWidget::onCrossMovingOver );
+	}
+	updateInternalLayers();
+}
+
+void roiRenderWidget::assignScrollBars(QScrollBar* horz, QScrollBar* vert)
+{
+	_horizontalScrollbar = horz; _verticalScrollbar = vert;
+}
+
+void roiRenderWidget::setInitialROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins, int c2cCircleDiameter )
+{
+	_i2sROIRect = is2sRc;
+	_c2cROIRects = c2cRects;
+
+	_i2sMarginX = i2sMargins.width();
+	_i2sMarginY = i2sMargins.height();
+
+	_c2cMarginX = c2cMargins.width();
+	_c2cMarginY = c2cMargins.height();
+
+	_c2cCircleDiameter = c2cCircleDiameter;
+
+	if(_hasImage )
+		update();
+}
+
+
+void roiRenderWidget::updateROIs(const QRect& is2sRc, const QVector<QRect>& c2cRects)
+{
+	//qDebug () << " ---- CALCULATED I2S RECT : " << is2sRc;
+
+	//_i2sROIRect = is2sRc;
+	//_c2cROIRects = c2cRects;
+	
+	//if(_hasImage )
+	//	update();
+}
+
+void roiRenderWidget::redrawAll()
+{
+	updateInternalLayers();
+	update();
+}
+
+void roiRenderWidget::showCrossHairs(bool bShow)
+{
+	if (_i2sCross )
+		_i2sCross->showCross(bShow);
+
+	for ( auto const& cross : _c2cCrosses )
+	{
+		if ( cross )
+			cross->showCross(bShow);
+	}
+}
+
+void roiRenderWidget::updateScaleFromExternal(double glScale, double imageScale)
 {
 	if(!_hasImage )
-		return pt;
+		return;
 
-	QSize widgetSize = size();
+	_glScale = glScale;
+	updateInternalScrolls();
+
+	/*
+	PRINT_WARNING << "Target Vscroll data : \r\n" 
+	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	<< "\tvalue : " << _verticalScrollbar->value();
+	*/
+}
+
+void roiRenderWidget::showActualPixels ()
+{
+	if(!_hasImage )
+		return;
+
+	if ( _imageRatio < 1 ) // vertical image
+	{
+		_glScale = static_cast<double>(_imageSize.height()) /  static_cast<double>(height());
+	}
+	else
+	{
+		_glScale =  static_cast<double>(_imageSize.width()) /  static_cast<double>(width());
+	}
+	updateInternalScrolls();
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+}
+	
+void roiRenderWidget::showFitOnScreen ()
+{
+	if(!_hasImage )
+		return;
+
+	_glScale = 1.0;
+	updateInternalScrolls();
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+}
+	
+void roiRenderWidget::setZoom ( int zoom  )
+{
+	if(!_hasImage )
+		return;
+
+	_glScale = _imageScaleRatio * (float)zoom / 100;
+	updateInternalScrolls();
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+}
+
+void roiRenderWidget::zoomIn()
+{
+	if(!_hasImage )
+		return;
+
+	if (double_equals(_glScale/_imageScaleRatio, 5) )
+		return;
+
+
+	_glScale =  _glScale * ZOOM_STEP;
+	if ( _glScale / _imageScaleRatio > 5.0)
+	{
+		_glScale = _imageScaleRatio * 5.0;
+	}
+
+	qDebug() << " **** SCALE : " << _glScale;
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+	updateInternalScrolls();
+
+	PRINT_WARNING << "Source Vscroll data : \r\n" 
+	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	<< "\tvalue : " << _verticalScrollbar->value();
+}
+	
+void roiRenderWidget::zoomOut()
+{
+	if(!_hasImage )
+		return;
+
+	if (double_equals(_glScale/_imageScaleRatio, 0.1) )
+		return;
+
+	_glScale =  _glScale / ZOOM_STEP;
+	if ( _glScale / _imageScaleRatio < 0.1)
+	{
+		_glScale = _imageScaleRatio * 0.1;
+	}
+
+	qDebug() << " **** SCALE : " << _glScale;
+	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
+	updateInternalScrolls();
+
+	PRINT_WARNING << "Source Vscroll data : \r\n" 
+	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	<< "\tvalue : " << _verticalScrollbar->value();
+}
+
+
+QPoint roiRenderWidget::fromWidget2OriginalImagePt(const QPointF & pt) 
+{
+	if(!_hasImage )
+		return pt.toPoint();
+
+	QSizeF widgetSize = size();
 	GLfloat xn = 2 * pt.x() / GLfloat(widgetSize.width()) - 1;
 	GLfloat yn = 2 * (widgetSize.height() - pt.y()) / GLfloat(widgetSize.height()) - 1;
 	QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QVector4D r = m * QVector4D(xn, yn, 0, 1);
-	const auto x = int((r.x() + 1) * _imageSize.width() / 2);
-	const auto y = int((1 - r.y()) * _imageSize.height() / 2);
-	QPoint result(x, y);
+	const auto x = (r.x() + 1) * (float)_imageSize.width() / 2;
+	const auto y = (1 - r.y()) *  (float)_imageSize.height() / 2;
+	
+	QPoint result(lround(x), lround(y));
 	return std::move(result);
 }
 
-QSize roiRenderWidget::fromWidget2OriginalImageSize(const QSize & sz) 
+QSizeF roiRenderWidget::fromWidget2OriginalImageSize(const QSize & sz) 
 {
 	if(!_hasImage )
 		return sz;
 
-	QSize widgetSize = size();
+	QSizeF widgetSize = size();
 	GLfloat xn = 2 * sz.width() / GLfloat(widgetSize.width()) - 1;
 	GLfloat yn = 2 * (widgetSize.height() - sz.height()) / GLfloat(widgetSize.height()) - 1;
 	QMatrix4x4 m = getModelViewProjMatrix().inverted();
 	QVector4D r0 = m * QVector4D(-1, 1, 0, 1);
 	QVector4D r1 = m * QVector4D(xn, yn, 0, 1);
-	int x0 = int((r0.x() + 1) * _imageSize.width() / 2);
-	int y0 = int((1 - r0.y()) * _imageSize.height() / 2);
-	int x1 = int((r1.x() + 1) * _imageSize.width() / 2);
-	int y1 = int((1 - r1.y()) * _imageSize.height() / 2);
-	QSize result(x1 - x0, y1 - y0);
+	float x0 = (r0.x() + 1) * (float)_imageSize.width() / 2;
+	float y0 = (1 - r0.y()) * (float)_imageSize.height() / 2;
+	float x1 = (r1.x() + 1) * (float)_imageSize.width() / 2;
+	float y1 = (1 - r1.y()) * (float)_imageSize.height() / 2;
+	QSizeF result(x1 - x0, y1 - y0);
 	return std::move(result);
 }
 
 // backward
-QPoint roiRenderWidget::fromOrigImage2WidgetPt(const QPoint & pt)
+QPointF roiRenderWidget::fromOrigImage2WidgetPt(const QPoint & pt)
 {
 	if(!_hasImage )
 		return pt;
@@ -370,18 +402,34 @@ QPoint roiRenderWidget::fromOrigImage2WidgetPt(const QPoint & pt)
 	GLfloat ry = 1 - 2 * pt.y() / GLfloat(_imageSize.height());
 	QMatrix4x4 m = getModelViewProjMatrix();
 	QVector4D rn = m * QVector4D(rx, ry, 0, 1);
-	int xw = (1 + rn.x()) * widgetSize.width() / 2;
-	int yw = widgetSize.height() - (1 + rn.y()) * widgetSize.height() / 2;
+	float xw = (1 + rn.x()) * widgetSize.width() / 2;
+	float yw = widgetSize.height() - (1 + rn.y()) * widgetSize.height() / 2;
 
-	QPoint result(xw, yw);
+	QPointF result(xw, yw);
 	return std::move(result);
+}
+
+void roiRenderWidget::onCrossMovingOver(QPoint pt)
+{
+	emit cursorPos(fromWidget2OriginalImagePt(mapFromGlobal(pt)), QSize{});
+}
+
+void roiRenderWidget::onCrossMoving(QPoint centerPos)
+{
+	auto targetWidget = dynamic_cast<moveableLayerWidget*>(sender());
+
+	auto newCenterPos = fromWidget2OriginalImagePt(centerPos);
+	emit cursorPos(newCenterPos, QSize{});
 }
 
 void roiRenderWidget::onI2SCrossMoved(QPoint topLeft, QPoint centerPos )
 {
 	auto targetWidget = dynamic_cast<moveableLayerWidget*>(sender());
 
-	auto newI2SPos = fromWidget2OriginalImagePt(centerPos);
+	// transpose from widget coordinates to original image coordinates 
+	const auto newI2SCenter = fromWidget2OriginalImagePt(centerPos);
+	qDebug () << " ---- LOCAL I2S CENTER PT : " << newI2SCenter;
+	
 	const auto newLeftToPos = fromWidget2OriginalImagePt(topLeft);
 
 	targetWidget->setTopLeftOnOriginalImage(newLeftToPos);
@@ -389,7 +437,7 @@ void roiRenderWidget::onI2SCrossMoved(QPoint topLeft, QPoint centerPos )
 	_i2sROIRect = QRect(newLeftToPos.x(), newLeftToPos.y(), _i2sROIRect.width(), _i2sROIRect.height());
 
 	qDebug () << " ---- LOCAL I2S RECT : " << _i2sROIRect;
-	emit i2sPosChanged(newI2SPos);
+	emit i2sPosChanged(newI2SCenter);
 	update();
 }
 
@@ -407,6 +455,7 @@ void roiRenderWidget::onC2CrossMoved( QPoint topLeft, QPoint centerPos )
 	_c2cROIRects[idx] = QRect(newLeftToPos.x(), newLeftToPos.y(), _c2cROIRects[idx].width(), _c2cROIRects[idx].height());
 
 	qDebug () << " ---- NEW C2C RECT [idx=" << idx << "]: " << _c2cROIRects[idx] ;
+	
 	emit c2cPosChanged(idx, newC2CPos);
 	update();
 }
@@ -534,7 +583,10 @@ void roiRenderWidget::paintROIs(QMatrix4x4& modelData )
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelData.data());
 
-	glLineWidth(4.0);
+	auto imageScale = _glScale / _imageScaleRatio;
+//	if ( imageScale > 1 && imageScale < 2 )
+	
+	glLineWidth(imageScale * 2);
 	glColor3d(1, 0, 0);
 
 	auto drawLambda = [this](const QRect& rc)
@@ -599,44 +651,55 @@ QMatrix4x4 roiRenderWidget::getModelViewProjMatrix(void)
 }
 
 
-void roiRenderWidget::updateLayers()
+void roiRenderWidget::updateInternalLayers()
 {
 	if(!_hasImage )
 		return;
-	
+
 	std::for_each(std::begin(_allCrossesArray), std::end(_allCrossesArray), 
 			[this](auto w)
 			{
 				if (w)
-					w->mapOnActualImage(_imageScale, fromOrigImage2WidgetPt(w->topLeftOnOriginalImage()));
+					w->mapOnActualImage(_glScale, fromOrigImage2WidgetPt(w->topLeftOnOriginalImage()));
 			}
 	);
 }
 
 void roiRenderWidget::resizeGL(int w, int h)
 {
-	glViewport(0, 0, w, h);
+	if ( !_hasImage)
+	{
+		_initialWidgetSize = {w,h};
+		glViewport(0, 0, w, h );
+	}
+	else
+	{
+		glViewport(0, 0, _initialWidgetSize.width(), _initialWidgetSize.height());
+//		auto newScale = static_cast<float>(w) / static_cast<float>(_initialWidgetSize.width()) * _glScale;
+//		_glScale = newScale;
+//		qDebug() << " **** SCALE : " << _glScale;
+
+	}
+//	updateScroll();
 }
 
-void roiRenderWidget::updateHScroll( int hVal)
+/*
+void roiRenderWidget::updateScrollFromExternal( int hScrollVal, int vScrollVal )
 {
 	if(!_hasImage )
 		return;
-
-	update();
 	updateLayers();
+
+	PRINT_WARNING << "Source Vscroll data : \r\n" 
+		<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum() 
+		<< "\tpage step : " << _verticalScrollbar->pageStep() 
+		<< "\tsingle step : " << _verticalScrollbar->singleStep()
+		<< "\tvalue : " << _verticalScrollbar->;
+
 }
+*/
 
-void roiRenderWidget::updateVScroll( int vVal)
-{
-	if(!_hasImage )
-		return;
-
-	update();
-	updateLayers();
-}
-
-void roiRenderWidget::updateScroll() 
+void roiRenderWidget::updateInternalScrolls() 
 {
 	if(!_hasImage )
 	{
@@ -701,7 +764,7 @@ void roiRenderWidget::updateScroll()
 		}
 	}
 	update();
-	updateLayers();
+	updateInternalLayers();
 }
 
 void roiRenderWidget::mouseMoveEvent(QMouseEvent* event)
@@ -715,10 +778,11 @@ void roiRenderWidget::mouseMoveEvent(QMouseEvent* event)
 	if (_rubberBand && _rubberBand->isVisible())
 	{
 		_rubberBand->setGeometry(QRect(_origin, event->pos()).normalized());
-		sentSize = _rubberBand->geometry().size();
-		sentSize = sentSize / _imageScale;
+		sentSize = fromWidget2OriginalImageSize(_rubberBand->geometry().size()).toSize();
+		//sentSize = sentSize / _imageScale;
 		pos = fromWidget2OriginalImagePt(_rubberBand->geometry().topLeft()) ;
 	}
+	
 	emit cursorPos(pos, sentSize);
 	//emit cursorPos(event->pos() / _imageScale, sentSize / _imageScale);
 }
@@ -746,6 +810,7 @@ void roiRenderWidget::mouseReleaseEvent(QMouseEvent *event)
 
 bool roiRenderWidget::eventFilter(QObject* obj, QEvent* event)
 {
+	/*
 	if(!_hasImage )
 		return QObject::eventFilter(obj, event);
 
@@ -755,16 +820,17 @@ bool roiRenderWidget::eventFilter(QObject* obj, QEvent* event)
 		qDebug() << " **** SIZE : " << newSize;
 		if (_imageRatio < 1 ) // vertical
 		{
-			_imageScale = _imageScale * static_cast<float>(newSize.height()) / static_cast<float>(_startWidgetSize.height());
+			_imageScale = _imageScale * static_cast<double>(newSize.height()) / static_cast<double>(_startWidgetSize.height());
 		}
 		else
 		{
-			_imageScale = _imageScale * static_cast<float>(newSize.width()) / static_cast<float>(_startWidgetSize.width());
+			_imageScale = _imageScale * static_cast<double>(newSize.width()) / static_cast<double>(_startWidgetSize.width());
 		}
 		_startWidgetSize = newSize;
-		emit scaleChanged(_glScale, _imageScale);
+		emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
 		updateScroll();
 	}
+	*/
 	return QObject::eventFilter(obj, event);
 }
 

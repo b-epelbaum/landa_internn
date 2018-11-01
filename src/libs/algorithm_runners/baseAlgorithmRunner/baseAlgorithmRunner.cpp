@@ -276,8 +276,8 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 			: _processParameters->RightStripRect_px();
 
 		const auto& approxRect = (input->_side == LEFT)
-			? toROIRect(_processParameters->I2RectLeft_px())
-			: toROIRect(_processParameters->I2RectRight_px());
+			? toROIRect(_processParameters->I2SRectLeft_px())
+			: toROIRect(_processParameters->I2SRectRight_px());
 
 
 		// add strip region
@@ -335,8 +335,8 @@ void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_RE
 		const auto& approxRect = (input->_side == WAVE) 
 							? toROIRect(_processParameters->WaveTriangleROIRect())
 							: ((input->_side == LEFT) 
-									? toROIRect(_processParameters->I2RectLeft_px())
-									: toROIRect(_processParameters->I2RectRight_px()));
+									? toROIRect(_processParameters->I2SRectLeft_px())
+									: toROIRect(_processParameters->I2SRectRight_px()));
 
 		input->_approxTriangeROI = approxRect;
 		regionList.push_back(std::move(ImageRegion::createRegion(_frame->image().get()
