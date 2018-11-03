@@ -84,17 +84,16 @@ void ProcessParameters::_recalculate()
 	
 	// left triangle
 	// get start point from paper edge
-	QPoint topLeftPage_px = { _LeftStripRect_px.left() + toPixelsX(_OffsetFromLeftEdge_mm), 0 };
-
+	
 	_I2SCornerLeft_px = { 
-							topLeftPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-							topLeftPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+							_LeftStripRect_px.left() + toPixelsX(_OffsetFromLeftEdge_mm + _I2SOffsetFromPaperEdgeX_mm ),
+							toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
 						};
 
 	// calculate triangle corner position relatively to start point
 	_I2SRectLeft_px =	{
-							topLeftPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-							topLeftPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm ),
+							_I2SCornerLeft_px.x(),
+							_I2SCornerLeft_px.y(),
 							toPixelsX(_I2SWidth_mm),
 							toPixelsY(_I2SHeight_mm),
 					};
@@ -112,17 +111,16 @@ void ProcessParameters::_recalculate()
 
 	// right triangle
 	// get start point from paper edge
-	QPoint topRightPage_px = { _RightStripRect_px.left(), 0 };
 
 	_I2SCornerRight_px = { 
-							topRightPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-							topRightPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+							_RightStripRect_px.left() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
+							toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
 						};
 
 	// calculate triangle corner position relatively to start point
 	_I2SRectRight_px =	{
-						topRightPage_px.x() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-						topRightPage_px.y() + toPixelsX(_I2SOffsetFromPaperEdgeY_mm ),
+						_I2SCornerRight_px.x(),
+						_I2SCornerRight_px.y(),
 						toPixelsX(_I2SWidth_mm),
 						toPixelsY(_I2SHeight_mm),
 					};
@@ -157,10 +155,10 @@ void ProcessParameters::_recalculate()
 		_C2CROIArrayLeft_px.push_back
 		(
 			{
-				firstColorCycleCenterLeft_px.x() - toPixelsX( _C2CCircleDiameter_mm / 2 +_C2CDROIMarginX_mm ),
-				firstColorCycleCenterLeft_px.y()  - toPixelsY(_C2CCircleDiameter_mm / 2 + _C2CDROIMarginY_mm),
-				toPixelsX(_C2CDistanceBetweenDotsX_mm + 2 * _C2CDROIMarginX_mm + _C2CCircleDiameter_mm ),
-				toPixelsY((ceil( ((float)_ColorArray.size())/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CDROIMarginY_mm + _C2CCircleDiameter_mm )
+				firstColorCycleCenterLeft_px.x() - toPixelsX( _C2CCircleDiameter_mm / 2 +_C2CROIMarginX_mm ),
+				firstColorCycleCenterLeft_px.y()  - toPixelsY(_C2CCircleDiameter_mm / 2 + _C2CROIMarginY_mm),
+				toPixelsX(_C2CDistanceBetweenDotsX_mm + 2 * _C2CROIMarginX_mm + _C2CCircleDiameter_mm ),
+				toPixelsY((ceil( ((float)_ColorArray.size())/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CROIMarginY_mm + _C2CCircleDiameter_mm )
 			}
 		);
 	}
@@ -178,37 +176,63 @@ void ProcessParameters::_recalculate()
 	_I2SMarginX_px =  toPixelsX(_I2SROIMarginX_mm);
 	_I2SMarginY_px =  toPixelsY(_I2SROIMarginY_mm);
 
-	_C2CMarginX_px =  toPixelsX(_C2CDROIMarginX_mm);
-	_C2CMarginY_px =  toPixelsY(_C2CDROIMarginY_mm);
+	_C2CMarginX_px =  toPixelsX(_C2CROIMarginX_mm);
+	_C2CMarginY_px =  toPixelsY(_C2CROIMarginY_mm);
 		
 	/////////////////////////////////////////////////
 	
-	//wave
+	// wave calculations
 	// wave I2S
-	setWaveTriangleROIRect(
+
+	_WaveTriangleMarginX_px = toPixelsX(_WaveTriangleMarginX_mm);
+	_WaveTriangleMarginY_px = toPixelsY(_WaveTriangleMarginY_mm);
+
+	_WaveTriangleCorner_px = { 
+								toPixelsX(_WaveTriangleCornerX_mm),
+								toPixelsY(_WaveTriangleCornerY_mm)
+								};
+
+	// calculate Triangle rectangle without margins
+	_WaveTriangleROI_px = 
 		{
-			toPixelsX(_WaveTriangleApproximateX_um / 1000 - _I2SROIMarginX_mm),
-			toPixelsY(_WaveTriangleApproximateY_um / 1000 - _I2SROIMarginY_mm ),
-			toPixelsX(_I2SWidth_mm),
-			toPixelsY(_I2SHeight_mm )
-		}
-	);
+			_WaveTriangleCorner_px.x(),
+			_WaveTriangleCorner_px.y(),
+			toPixelsX(_WaveTriangleWidth_mm),
+			toPixelsY(_WaveTriangleHeight_mm )
+		};
 
-	const int32_t waveROILeft = toPixelsX(_OffsetFromLeftEdge_mm + _WaveImageMarginX_um / 1000 - _I2SROIMarginX_mm);
-	const int32_t waveROIRight = toPixelsX(_OffsetFromLeftEdge_mm + _SubstrateWidth_mm - _I2SROIMarginX_mm);
+	const int waveROIFirstLineTop = // corner point of triangle
+									_WaveTriangleROI_px.y()
+									// add offset from corner top to centr of the first line
+								  + toPixelsY(_WaveOffsetFromCornerToFirstLineCenter_mm)
+									// subtract a circle radius and margin
+								  - toPixelsY(_WaveFirstLineCircleMarginY_mm);
+								
+	const int32_t waveROILeft = toPixelsX(_ScanStartToPaperEdgeOffset_mm + _WaveSideMarginsX_mm );
+	const int32_t waveROIRight = toPixelsX(_ScanStartToPaperEdgeOffset_mm + _SubstrateWidth_mm - _WaveSideMarginsX_mm);
+	const int32_t waveRegHeight = toPixelsY( _WaveDistanceBetweenCircleCentersY_mm * ( _ColorArray.size() - 1 ) + _WaveCircleDiameter_mm + 2 * _WaveFirstLineCircleMarginY_mm );
 
-	const int32_t waveRegHeight = toPixelsY((_WaveDistanceBetweenDotsY_um * ( _ColorArray.size() - 1 ) ) / 1000 + (2 * _I2SROIMarginY_mm));
+	// expand Wave triangle to ROI margins
+		_WaveTriangleROI_px = {
+								_WaveTriangleROI_px.x() - _WaveTriangleMarginX_px,
+								_WaveTriangleROI_px.y() - _WaveTriangleMarginY_px,
+								toPixelsX(_WaveTriangleWidth_mm + 2 * _WaveTriangleMarginX_mm ),
+								toPixelsY(_WaveTriangleHeight_mm + 2 * _WaveTriangleMarginY_mm )
+						};
+
+	// build wave ROI
+	_WaveROI_px =
+	{
+		waveROILeft,
+		waveROIFirstLineTop,
+		0,
+		waveRegHeight
+	};
+
+	_WaveROI_px.setRight(waveROIRight);
 	
-	setWaveROI (QRect(
-		waveROILeft
-		, _WaveTriangleROIRect.top() + toPixelsY(_WaveDistanceBetweenTriangleAndFirstRow_um / 1000 )
-		, waveROIRight - waveROILeft
-		, waveRegHeight
-	)
-	);
-
 	// wave dots count
-	_WaveNumberOfColorDotsPerLine = (_SubstrateWidth_mm- 2 * _WaveImageMarginX_um / 1000) / (_WaveDistanceBetweenDotsX_um / 1000 );
+	_WaveNumberOfColorDotsPerLine = lround(((float)_WaveROI_px.width() - (float)toPixelsX(2*(float)_WaveSideMarginsX_mm + (float)_WaveCircleDiameter_mm) ) / (float)toPixelsX(_WaveDistanceBetweenCircleCentersX_mm));
 
 	emit updateCalculated();
 }

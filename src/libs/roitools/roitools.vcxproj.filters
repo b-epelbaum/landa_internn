@@ -38,12 +38,15 @@
     <Filter Include="Source Files\imageTabs">
       <UniqueIdentifier>{4f9289ce-8345-45f5-bbec-2047d1542824}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\renderWidgets">
+      <UniqueIdentifier>{0e67d2f3-9995-4e92-b4b5-185821a5d9dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\renderWidgets">
+      <UniqueIdentifier>{73ae14a2-9676-4736-87b3-d52e27c45dc5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="roitools.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="imagescrollarea.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="roiRectWidget.cpp">
@@ -70,11 +73,20 @@
     <ClCompile Include="fullImageTab.cpp">
       <Filter>Source Files\imageTabs</Filter>
     </ClCompile>
-    <ClCompile Include="roiRenderWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="roiImageBox.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="roiRenderWidgetStrip.cpp">
+      <Filter>Source Files\renderWidgets</Filter>
+    </ClCompile>
+    <ClCompile Include="roiRenderWidgetFull.cpp">
+      <Filter>Source Files\renderWidgets</Filter>
+    </ClCompile>
+    <ClCompile Include="roiRenderWidgetBase.cpp">
+      <Filter>Source Files\renderWidgets</Filter>
+    </ClCompile>
+    <ClCompile Include="roiRenderWidgetWave.cpp">
+      <Filter>Source Files\renderWidgets</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -91,9 +103,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="imagescrollarea.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="roiRectWidget.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -118,11 +127,20 @@
     <QtMoc Include="waveTab.h">
       <Filter>Header Files\imageTabs</Filter>
     </QtMoc>
-    <QtMoc Include="roiRenderWidget.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
     <QtMoc Include="roiImageBox.h">
       <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetBase.h">
+      <Filter>Header Files\renderWidgets</Filter>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetFull.h">
+      <Filter>Header Files\renderWidgets</Filter>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetStrip.h">
+      <Filter>Header Files\renderWidgets</Filter>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetWave.h">
+      <Filter>Header Files\renderWidgets</Filter>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>

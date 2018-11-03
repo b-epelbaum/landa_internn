@@ -1,4 +1,5 @@
 #include "roiToolManWnd.h"
+#include <QAction>
 
 
 roiToolMainWnd::roiToolMainWnd(LandaJune::ProcessParametersPtr params, QWidget *parent ) 
@@ -9,55 +10,46 @@ roiToolMainWnd::roiToolMainWnd(LandaJune::ProcessParametersPtr params, QWidget *
 	_parameters = params;
 	_paramWidget = ui.paramWidget;
 
-	offlineRegAct = new QAction(QIcon(":/roiTools/Resources/strips.png"), tr("&Offline Registration Tool"), this);
-	waveAct = new QAction(QIcon(":/roiTools/Resources/wave.png"), tr("&Wave tool"), this);
-	fullImageActAct = new QAction(QIcon(":/roiTools/Resources/full.png"), tr("&Full Image Tool"), this);
-	
-	offlineRegAct->setCheckable(true);
-	waveAct->setCheckable(true);
-	fullImageActAct->setCheckable(true);
-
-	connect(offlineRegAct, &QAction::triggered, this, &roiToolMainWnd::switchTool);
-	connect(waveAct, &QAction::triggered, this, &roiToolMainWnd::switchTool);
-	connect(fullImageActAct, &QAction::triggered, this, &roiToolMainWnd::switchTool);
-
-	auto toolGroup = new QActionGroup(this);
-	toolGroup->setExclusive(true);
-
-    toolGroup->addAction(offlineRegAct);
-    toolGroup->addAction(waveAct);
-    toolGroup->addAction(fullImageActAct);
-
-	QList<QAction*> acList;
-	acList << offlineRegAct << waveAct << fullImageActAct;
-	ui.mainToolBar->addActions(acList);
-
-	offlineRegAct->setChecked(true);
+	connect(ui.fullImageToolButt,	&QPushButton::clicked, this, &roiToolMainWnd::openFullImageTool);
+	connect(ui.waveToolButt,		&QPushButton::clicked, this, &roiToolMainWnd::openWaveTool);
+	connect(ui.stripsToolButt,		&QPushButton::clicked, this, &roiToolMainWnd::openStripsTool);
 
 	_offlineTab = ui.offlineTool;
 	_waveTab = ui.waveTool;
 	_fullImageTab = ui.fullImageTool;
 
-	_offlineTab->setParameters(_paramWidget, _parameters);
+	ui.toolStacks->setCurrentIndex(0);
+	ui.dock->hide();
+	_dockAction =  ui.dock->toggleViewAction();
 }
 
-void roiToolMainWnd::switchTool()
+void roiToolMainWnd::openFullImageTool()
 {
-	auto action = static_cast<QAction*>(sender());
+	_dockAction->toggle();
+	ui.dock->show();
+	ui.toolStacks->setCurrentIndex(1);
+	_fullImageTab->setParameters(_paramWidget, _parameters);
+}
 
-	if ( action == offlineRegAct)
-	{
-		ui.imageStackWidget->setCurrentIndex(0);
-		_offlineTab->setParameters(_paramWidget, _parameters);
-	}
-	else if ( action == waveAct)
-	{
-		ui.imageStackWidget->setCurrentIndex(1);
-		_waveTab->setParameters(_paramWidget, _parameters);
-	}
-	else if ( action == fullImageActAct)
-	{
-		ui.imageStackWidget->setCurrentIndex(2);
-		_fullImageTab->setParameters(_paramWidget, _parameters);
-	}
+void roiToolMainWnd::openWaveTool()
+{
+	_dockAction->toggle();
+	ui.dock->show();
+	ui.toolStacks->setCurrentIndex(2);
+	_waveTab->setParameters(_paramWidget, _parameters);
+}
+
+void roiToolMainWnd::openStripsTool()
+{
+	_dockAction->toggle();
+	ui.dock->show();
+	ui.toolStacks->setCurrentIndex(3);
+	_offlineTab->setParameters(_paramWidget, _parameters);
+	connect(_offlineTab, &offlineRegTab::editDone, this, &roiToolMainWnd::onRegOfflineDone);
+}
+
+void roiToolMainWnd::onRegOfflineDone(bool bApply)
+{
+	*_parameters = *_offlineTab->getEditedParameters();
+	close();
 }

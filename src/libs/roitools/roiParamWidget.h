@@ -4,6 +4,7 @@
 #include "unitSwitchLabel.h"
 #include "ui_roiParamWidget.h"
 #include <QDoubleSpinBox>
+#include <QComboBox>
 #include "ProcessParameters.h"
 
 
@@ -15,6 +16,7 @@ public:
 	roiParamWidget(QWidget *parent = Q_NULLPTR);
 	~roiParamWidget();
 
+	void enableControls( bool bEnable );
 	void clear() const;
 
 	void setProcessParameters (LandaJune::ProcessParametersPtr params) { _params = params; }
@@ -48,9 +50,15 @@ signals:
 	void unitsChanged (unitSwitchLabel::LABEL_UNITS oldUnits, unitSwitchLabel::LABEL_UNITS newUnits );
 	void propertyChanged( QString propertyName, QVariant newVal );
 
+	void done( bool bApply);
+
 private slots:
 
+	void onChangeUnits();
 	void onDoubleSpinnerValChanged( double newValue);
+
+	void onApply();
+	void onCancel();
 
 private:
 

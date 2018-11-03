@@ -59,8 +59,8 @@ namespace LandaJune
 
 		signals:
 
-				void updateCalculated();
-				void loaded();
+			void updateCalculated();
+			void loaded();
 
 		protected :
 

@@ -16,27 +16,40 @@ public:
 	~offlineRegTab();
 
 	void setParameters (roiParamWidget* paramWidget, LandaJune::ProcessParametersPtr params );
+	LandaJune::ProcessParametersPtr getEditedParameters () const { return std::move(_params); }
 
 private slots:
 
+	void onImageLoaded ( QString strPath, LandaJune::CORE_ERROR );
 	void onPropertyChanged (QString propName, QVariant newVal );
 
 	void onROIScaleChanged( double glScale, double imageScale );
 	void onROIScrollChanged( int hScroll, int vScroll );
 
-	void oni2sPosChanged(QPoint pt);
-	void onc2cPosChanged(int idx, QPoint pt);
+	void onROIChanged( const QVector<QPoint> ptArray );
+	void onColorCountChanged ( const QString& );
+
+signals :
+
+	void editDone( bool bApply );
 
 private:
 
 	void buildControls();
-	void recalculate ();
 
-	void setupROIs() const;
-	void updateROIs() const;
+	void setupInitialROIs();
+
+	void updateLeftROIs();
+	void updateRightROIs();
+
+	void setupLeftROIs();
+	void setupRightROIs();
 
 	double toMMX(int val_pxx) const;
 	double toMMY(int val_pxy) const;
+
+	void recalculateOffsets(const QVector<QPoint>& pts, bool bLeft );
+	void recalculateI2SOffset(const QPoint& pt, bool bLeft  );
 
 	Ui::offlineRegTab ui;
 
@@ -49,6 +62,5 @@ private:
 
 	QComboBox * _colorCounterCombo = nullptr;
 	
-	LandaJune::ProcessParametersUniquePtr _params;
-
+	LandaJune::ProcessParametersPtr _params;
 };

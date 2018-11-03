@@ -18,7 +18,6 @@ using namespace Parameters;
 double offlineRegTab::toMMX(const int val_pxx ) const { return val_pxx * _Pixel2MM_X;}
 double offlineRegTab::toMMY(const int val_pxy ) const { return val_pxy * _Pixel2MM_Y;}
 
-class QSettings;
 
 offlineRegTab::offlineRegTab(QWidget *parent)
 	: QWidget(parent)
@@ -28,9 +27,15 @@ offlineRegTab::offlineRegTab(QWidget *parent)
 	_leftImageBox = ui.leftROIWidget;
 	_rightImageBox = ui.rightROIWidget;
 
-	connect(_leftImageBox, &roiImageBox::i2sPosChanged, this, &offlineRegTab::oni2sPosChanged);
-	connect(_leftImageBox, &roiImageBox::c2cPosChanged, this, &offlineRegTab::onc2cPosChanged);
-	
+	_leftImageBox->createWidget(roiImageBox::RENDER_STRIP);
+	_rightImageBox->createWidget(roiImageBox::RENDER_STRIP);
+
+	connect(_leftImageBox, &roiImageBox::imageLoaded, this, &offlineRegTab::onImageLoaded);
+	connect(_rightImageBox, &roiImageBox::imageLoaded, this, &offlineRegTab::onImageLoaded);
+
+	connect(_leftImageBox, &roiImageBox::roiChanged_strip, this, &offlineRegTab::onROIChanged);
+	connect(_rightImageBox, &roiImageBox::roiChanged_strip, this, &offlineRegTab::onROIChanged);
+
 	connect(_leftImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onROIScaleChanged);
 	connect(_rightImageBox, &roiImageBox::scaleChanged, this, &offlineRegTab::onROIScaleChanged);
 
@@ -39,6 +44,9 @@ offlineRegTab::offlineRegTab(QWidget *parent)
 
 	_leftImageBox->setFileMetaInfo("Load LEFT registration image file", ROITOOLS_KEY_LAST_REG_LEFT_FILE);
 	_rightImageBox->setFileMetaInfo("Load RIGHT registration image file", ROITOOLS_KEY_LAST_REG_RIGHT_FILE);
+
+	_leftImageBox->setAlias("LEFT REG");
+	_rightImageBox->setAlias("RIGHT REG");
 }
 
 offlineRegTab::~offlineRegTab()
@@ -50,46 +58,65 @@ void offlineRegTab::setParameters(roiParamWidget* paramWidget, ProcessParameters
 	_paramWidget = paramWidget;
 	_params.reset ( new ProcessParameters(*params));
 	buildControls();
+	setupInitialROIs ();
 }
+
+void offlineRegTab::onImageLoaded(QString strPath, LandaJune::CORE_ERROR err )
+{
+	if (err == RESULT_OK )
+	{
+		_paramWidget->enableControls(true);
+	}
+	else
+	{
+		_paramWidget->enableControls(_leftImageBox->hasImage() || _rightImageBox->hasImage() );
+	}
+}
+
 
 void offlineRegTab::onPropertyChanged(QString propName, QVariant newVal)
 {
-	recalculate();
+	_params->setParamProperty(propName, newVal);
+	_params->updateValues();
+	updateLeftROIs();
+	updateRightROIs();
 }
 
 
 void offlineRegTab::buildControls()
 {
 	_paramWidget->clear();
+	_paramWidget->setProcessParameters(_params);
 
 	/*
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Triangle offset X", "I2SOffsetFromPaperEdgeX_mm", unitSwitchLabel::MM );
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Triangle offset Y", "I2SOffsetFromPaperEdgeX_mm", unitSwitchLabel::MM );
-	_paramWidget->addSpacer(20,15);
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Triangle ROI margin X", "I2SMarginX_mm", unitSwitchLabel::MM );
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Triangle ROI margin Y", "I2SMarginY_mm", unitSwitchLabel::MM );
-	_paramWidget->addSpacer(20,15);
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Color ROI margin X", "ColorROIMarginX_mm", unitSwitchLabel::MM );
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Color ROI margin Y", "ColorROIMarginY_mm", unitSwitchLabel::MM );
-	_paramWidget->addSpacer(20,15);
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Color Center Distance X", "ColorCenterDistanceX_mm", unitSwitchLabel::MM );
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Color Center Distance Y", "ColorCenterDistanceX_mm", unitSwitchLabel::MM );
-	_paramWidget->addSpacer(20,15);
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Pixel2MM ratio X", "Pixel2MM_X");
-	_paramWidget->addDoubleSpinBox(0, DBL_MAX, 1.0, 0.0, "Pixel2MM ratio Y", "Pixel2MM_Y");
-	_paramWidget->addSpacer(20,15);
-	*/
 	_colorCounterCombo = _paramWidget->addComboBox("Number of colors");
 	_colorCounterCombo->addItem("4");
 	_colorCounterCombo->addItem("7");
 
+	connect(_colorCounterCombo, QComboBox::currentTextChanged, this, &offlineRegTab::onColorCountChanged);
+
+	_colorCounterCombo->setCurrentText(QString::number(_params->ColorArray().size()));
+
+	*/
+	_paramWidget->addControl( "I2SROIMarginX_mm", "Triangle ROI margin X", true);
+	_paramWidget->addControl( "I2SROIMarginY_mm", "Triangle ROI margin Y", true);
+	_paramWidget->addSpacer(20,15);
+	_paramWidget->addControl( "C2CROIMarginX_mm", "C2C ROI margin X", true);
+	_paramWidget->addControl( "C2CROIMarginY_mm", "C2C ROI margin Y", true);
+	_paramWidget->addFinalSpacer();
+
 	connect(_paramWidget, &roiParamWidget::propertyChanged, this, &offlineRegTab::onPropertyChanged);
-	setupROIs();
+	connect(_paramWidget, &roiParamWidget::done, this, &offlineRegTab::editDone);
 }
 
-void offlineRegTab::recalculate()
+void offlineRegTab::onColorCountChanged ( const QString&  newVal )
 {
-
+	auto const iVal = newVal.toInt();
+	// TODO : validation
+	if (iVal != 0)
+	{
+		
+	}
 }
 
 void offlineRegTab::onROIScaleChanged(double glScale, double imageScale)
@@ -104,94 +131,146 @@ void offlineRegTab::onROIScrollChanged(int hScroll, int vScroll)
 	targetWidget->updateScrollsFromExternal(hScroll, vScroll);
 }
 
-
-void offlineRegTab::oni2sPosChanged(QPoint pt)
+void offlineRegTab::onROIChanged(const QVector<QPoint> ptArray)
 {
-	// translate absolute i2s coordinate to mm
+	if ( ptArray.empty() || ptArray.size() != _params->C2CROIArrayLeft_px().size() + 1 )
+		return;
 
-	_Pixel2MM_X = _params->Pixel2MM_X();
-	_Pixel2MM_Y = _params->Pixel2MM_Y();
+	const auto targetWidget = ( dynamic_cast<roiImageBox*>(sender()) == _leftImageBox ) ? _rightImageBox : _leftImageBox;
+	
+	recalculateOffsets(ptArray, ( dynamic_cast<roiImageBox*>(sender()) == _leftImageBox )  );
+
+	if (targetWidget == _rightImageBox)
+	{
+		updateRightROIs();
+	}
+	else
+	{
+		updateLeftROIs();
+	}
+}
+
+void offlineRegTab::updateLeftROIs()
+{
+	const auto i2sROILeft = _params->I2SRectLeft_px();
+	const auto c2cROIsLeft = _params->C2CROIArrayLeft_px();
+
+		_leftImageBox->updateROIs_Strip(i2sROILeft, c2cROIsLeft, 
+		{
+			_params->I2SMarginX_px(),
+			_params->I2SMarginY_px()
+		},
+		{
+			_params->C2CMarginX_px(),
+			_params->C2CMarginY_px()
+		},
+		_params->C2CCircleDiameter_px()
+	);
+}
+
+void offlineRegTab::updateRightROIs()
+{
+	const auto i2sROIRight = _params->I2SRectRight_px();
+	const auto c2cROIsRight = _params->C2CROIArrayRight_px();
+
+
+	_rightImageBox->updateROIs_Strip(i2sROIRight, c2cROIsRight, 
+	{
+		_params->I2SMarginX_px(),
+		_params->I2SMarginY_px()
+	},
+	{
+		_params->C2CMarginX_px(),
+		_params->C2CMarginY_px()
+	},
+	_params->C2CCircleDiameter_px()
+	);
+
+}
+
+void offlineRegTab::setupLeftROIs()
+{
+	const auto i2sROILeft = _params->I2SRectLeft_px();
+	const auto c2cROIsLeft = _params->C2CROIArrayLeft_px();
+
+		_leftImageBox->setInitialROIs_Strip(i2sROILeft, c2cROIsLeft, 
+		{
+			_params->I2SMarginX_px(),
+			_params->I2SMarginY_px()
+		},
+		{
+			_params->C2CMarginX_px(),
+			_params->C2CMarginY_px()
+		},
+		_params->C2CCircleDiameter_px()
+	);
+}
+
+void offlineRegTab::setupRightROIs()
+{
+	const auto i2sROIRight = _params->I2SRectRight_px();
+	const auto c2cROIsRight = _params->C2CROIArrayRight_px();
+
+
+	_rightImageBox->setInitialROIs_Strip(i2sROIRight, c2cROIsRight, 
+	{
+		_params->I2SMarginX_px(),
+		_params->I2SMarginY_px()
+	},
+	{
+		_params->C2CMarginX_px(),
+		_params->C2CMarginY_px()
+	},
+	_params->C2CCircleDiameter_px()
+	);
+}
+
+void offlineRegTab::setupInitialROIs() 
+{
+	setupLeftROIs();
+	setupRightROIs();
+}
+
+void offlineRegTab::recalculateI2SOffset(const QPoint& pt, bool bLeft   )
+{
+	auto const offsetFromLeftEdge_px = bLeft ? _params->OffsetFromLeftEdge_mm() : 0;
+	auto const scanStartToPaperEdge_px = bLeft ? _params->ScanStartToPaperEdgeOffset_mm() : 0;
+
 	QPointF mmPoint = { toMMX(pt.x()), toMMY(pt.y()) };
+	const auto overallOffset = scanStartToPaperEdge_px + offsetFromLeftEdge_px;
+	mmPoint.setX(mmPoint.x() - overallOffset);
 
-	// and offset it for paper edge origin
-	const auto offsetScanToPaperEdge = _params->property("ScanStartToPaperEdgeOffset_mm").toFloat();
-	mmPoint.setX(mmPoint.x() - offsetScanToPaperEdge);
-
-	// update parameters :
-	const auto oldI2SOffsetX = _params->I2SOffsetFromPaperEdgeX_mm();
-	const auto oldI2SOffsetY = _params->I2SOffsetFromPaperEdgeY_mm();
+	//const auto oldI2SOffsetX = _params->I2SOffsetFromPaperEdgeX_mm();
+	//const auto oldI2SOffsetY = _params->I2SOffsetFromPaperEdgeY_mm();
+	//const auto newI2SOffsetX = mmPoint.x();
+	//const auto newI2SOffsetY = mmPoint.y();
+	//OFFREGTAB_SCOPED_LOG << "OLD I2S offset : [" << oldI2SOffsetX << "," << oldI2SOffsetY << "]";
+	//OFFREGTAB_SCOPED_LOG << "NEW I2S offset : [" << newI2SOffsetX << "," << newI2SOffsetY << "]";
 
 	_params->setI2SOffsetFromPaperEdgeX_mm(mmPoint.x());
 	_params->setI2SOffsetFromPaperEdgeY_mm(mmPoint.y());
-
-	qDebug() << " I2S origin changed. [ " << oldI2SOffsetX << " , " << oldI2SOffsetY << " ] ==> [ " << mmPoint.x() << " , " << mmPoint.y()  << " ]";
-
-	recalculate();
 }
 
-void offlineRegTab::onc2cPosChanged(int idx, QPoint pt)
+void offlineRegTab::recalculateOffsets(const QVector<QPoint>& pts, bool bLeft)
 {
-	// offset c2c coordinates from I2S rect
-
-	pt.setX(pt.x() - _params->I2SRectLeft_px().x());
-	pt.setY(pt.y() - _params->I2SRectLeft_px().y());
-	
-	// translate absolute i2s coordinate to mm
-
 	_Pixel2MM_X = _params->Pixel2MM_X();
 	_Pixel2MM_Y = _params->Pixel2MM_Y();
 
-	QPointF newPt = QPointF{ toMMX(pt.x()), toMMY(pt.y()) };
+	recalculateI2SOffset(pts[0], bLeft);
+
+	auto const newI2SCornerPt = pts[0];
+
+	// calculate C2C offsets
 	
-	// update parameters :
-	auto sizes = _params->C2COffsetsArray();
+	QVector<QSizeF> c2cOffsets_mm;
+	for ( int i = 1; i < pts.size(); i++)
+	{
+		c2cOffsets_mm << QSizeF (
+								toMMX(pts[i].x() - newI2SCornerPt.x()),
+								toMMY(pts[i].y() - newI2SCornerPt.y())
+							);
+	}
 	
-	const auto oldC2COSize = sizes[idx];
-	sizes[idx] = QSizeF(newPt.x(), newPt.y());
-
-	_params->setC2COffsetsArray(sizes);
-	
-	qDebug() << " C2C # " << idx  << " origin changed. [ " << oldC2COSize << " ] ==> [ " << _params->C2COffsetsArray()[idx]  << " ]";
-
-	recalculate();
-}	
-	
-void offlineRegTab::setupROIs() const
-{
-	const auto i2sROILeft = _params->I2SRectLeft_px();
-	const auto i2sROIRight = _params->I2SRectRight_px();
-	const auto c2cROIsLeft = _params->C2CROIArrayLeft_px();
-	const auto c2cROIsRight = _params->C2CROIArrayRight_px();
-
-	_leftImageBox->setInitialROIs(i2sROILeft, c2cROIsLeft, 
-		{
-			_params->I2SMarginX_px(),
-			_params->I2SMarginY_px()
-		},
-		{
-			_params->C2CMarginX_px(),
-			_params->C2CMarginY_px()
-		},
-		_params->C2CCircleDiameter_px()
-	);
-
-	_rightImageBox->setInitialROIs(i2sROIRight, c2cROIsRight, 
-		{
-			_params->I2SMarginX_px(),
-			_params->I2SMarginY_px()
-		},
-		{
-			_params->C2CMarginX_px(),
-			_params->C2CMarginY_px()
-		},
-		_params->C2CCircleDiameter_px()
-	);
-}
-
-void offlineRegTab::updateROIs() const
-{
-	const auto i2sROI = _params->I2SRectLeft_px();
-	const auto c2cROIs = _params->C2CROIArrayLeft_px();
-
-	_leftImageBox->updateROIs(i2sROI, c2cROIs);
+	_params->setC2COffsetsArray(c2cOffsets_mm);
+	_params->updateValues();
 }

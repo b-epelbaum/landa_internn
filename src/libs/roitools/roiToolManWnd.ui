@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1383</width>
-    <height>882</height>
+    <width>1359</width>
+    <height>1039</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -28,24 +28,109 @@
      <number>2</number>
     </property>
     <item>
-     <widget class="QStackedWidget" name="imageStackWidget">
-      <widget class="offlineRegTab" name="offlineTool"/>
-      <widget class="waveTab" name="waveTool"/>
+     <widget class="QStackedWidget" name="toolStacks">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="startPage">
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QWidget" name="widget" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>400</height>
+           </size>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout">
+           <item>
+            <widget class="QPushButton" name="fullImageToolButt">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Full Image ROI Tool</string>
+             </property>
+             <property name="icon">
+              <iconset resource="roitools.qrc">
+               <normaloff>:/roiTools/Resources/full.png</normaloff>:/roiTools/Resources/full.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="waveToolButt">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Wave Image ROI Tool</string>
+             </property>
+             <property name="icon">
+              <iconset resource="roitools.qrc">
+               <normaloff>:/roiTools/Resources/wave.png</normaloff>:/roiTools/Resources/wave.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="stripsToolButt">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="text">
+              <string>Striips ROI Tool</string>
+             </property>
+             <property name="icon">
+              <iconset resource="roitools.qrc">
+               <normaloff>:/roiTools/Resources/strips.png</normaloff>:/roiTools/Resources/strips.png</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>24</width>
+               <height>24</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
       <widget class="fullImageTab" name="fullImageTool"/>
+      <widget class="waveTab" name="waveTool"/>
+      <widget class="offlineRegTab" name="offlineTool"/>
      </widget>
     </item>
    </layout>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidget_4">
+  <widget class="QDockWidget" name="dock">
    <property name="minimumSize">
     <size>
      <width>250</width>
@@ -63,7 +148,7 @@
      <normaloff>:/roiTools/Resources/setting.png</normaloff>:/roiTools/Resources/setting.png</iconset>
    </property>
    <property name="features">
-    <set>QDockWidget::DockWidgetFloatable|QDockWidget::DockWidgetMovable</set>
+    <set>QDockWidget::AllDockWidgetFeatures</set>
    </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>

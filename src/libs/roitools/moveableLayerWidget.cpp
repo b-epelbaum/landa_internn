@@ -20,10 +20,7 @@ moveableLayerWidget::moveableLayerWidget(QWidget* parent, CROSS_TYPE crossType, 
 	//setAttribute(Qt::WA_NoSystemBackground);
 			
 	move(startPt);
-
-	if ( crossType == CROSS_I2S )
-		PRINT_INFO6 << " ----------   WIDGET I2S corner point : " << getCenterPoint(startPt);
-	
+		
 	_topLeftOnOriginalImage = startPt;
 	_originalSize = geometry().size();
 

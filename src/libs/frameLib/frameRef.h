@@ -7,6 +7,7 @@
 
 #define NAMED_PROPERTY_SOURCE_PATH "srcPath"
 #define NAMED_PROPERTY_PROVIDER_NAME "providerName"
+#define NAMED_PROPERTY_FRAME_PARITY "parity"
 
 namespace LandaJune {
 	namespace Parameters {

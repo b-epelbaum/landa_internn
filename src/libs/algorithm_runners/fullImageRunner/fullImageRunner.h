@@ -55,6 +55,11 @@ namespace LandaJune
 			virtual void processStripOutputCSV(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput);
 			virtual void processWaveOutputsCSV(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs );
 
+			bool shouldProcessLeftStrip() const override;
+			bool shouldProcessRightStrip() const override;
+
+			bool isLeftStripInOfflineMode() const;
+
 		};
 	}
 }

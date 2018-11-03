@@ -1,6 +1,7 @@
 #include "roiParamWidget.h"
 #include <QToolTip>
 #include <QComboBox>
+#include <QAction>
 
 roiParamWidget::roiParamWidget(QWidget *parent)
 	: QWidget(parent)
@@ -8,16 +9,28 @@ roiParamWidget::roiParamWidget(QWidget *parent)
 	ui.setupUi(this);
 	_controlBox = ui.controlBox;
 
-	connect (ui.unitsCombo, qOverload<int>(&QComboBox::currentIndexChanged), this
-			, [this](int iIndex)
-			{
-				switchUnits(static_cast<unitSwitchLabel::LABEL_UNITS>(iIndex) );
-			}
-	);
+	//QAction * mmAction = new QAction(QIcon(":/roiTools/Resources/mm.png"), tr("Measurement units : mm"), this);
+	ui.mmButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::MM);
+	connect(ui.mmButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
+
+	ui.pxButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::PX);
+	connect(ui.pxButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
+
+	ui.uButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::UM);
+	connect(ui.uButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
+
+
+	connect ( ui.applyButt, &QPushButton::clicked, this, &roiParamWidget::onApply );
+	connect ( ui.cancelButt, &QPushButton::clicked, this, &roiParamWidget::onCancel );
 }
 
 roiParamWidget::~roiParamWidget()
 {
+}
+
+void roiParamWidget::enableControls(bool bEnable)
+{
+	setEnabled(bEnable);
 }
 
 void roiParamWidget::clear() const
@@ -112,9 +125,25 @@ void roiParamWidget::addWidget(QWidget * widget) const
 	auto className = widget->metaObject()->className();
 }
 
+void roiParamWidget::onChangeUnits()
+{
+	const auto butt = dynamic_cast<QToolButton*>(sender());
+	auto units = static_cast<unitSwitchLabel::LABEL_UNITS>(butt->property("units").toInt());
+}
+
 void roiParamWidget::onDoubleSpinnerValChanged(double newValue)
 {
 	emit propertyChanged(sender()->property("ownerProperty").toString(), newValue );
+}
+
+void roiParamWidget::onApply()
+{
+	emit done(true);
+}
+
+void roiParamWidget::onCancel()
+{
+	emit done(false);
 }
 
 void roiParamWidget::translateUnits(QDoubleSpinBox* spinBox, unitSwitchLabel::LABEL_UNITS oldUnits,

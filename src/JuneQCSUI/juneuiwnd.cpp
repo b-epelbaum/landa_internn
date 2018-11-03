@@ -439,6 +439,7 @@ void JuneUIWnd::showROITools()
 {
 	roitools _roiTools;
 	_roiTools.showROITools(ICore::get()->getProcessParameters(), this);
+	CLIENT_SCOPED_LOG << "aSADAA";
 }
 
 void JuneUIWnd::createActions()
@@ -794,7 +795,7 @@ void JuneUIWnd::onUpdateCalculatedParams()
 	saveExpandedState(nodes, ui.processParamViewCalculated );
 	QModelIndex idx = ui.processParamViewCalculated->selectionModel()->currentIndex();
 
-	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
+ 	_processParamModelCalculated->setupModelData(ICore::get()->getProcessParameters()->getReadOnlyPropertyList(), true);
 
 	restoreExpandedState(nodes, ui.processParamViewCalculated);
 	updateFrameProviderParamsView(ui.frameSourceCombo->currentIndex());

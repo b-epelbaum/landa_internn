@@ -1,6 +1,5 @@
 #include "roiImageBox.h"
 
-#include <QAction>
 #include "commonTabs.h"
 #include <QMenuBar>
 
@@ -12,21 +11,13 @@ roiImageBox::roiImageBox(QWidget *parent)
 	QAction *opeFileAction = ui.browseFileEdit->addAction(QIcon(":/roiTools/Resources/file_open.png"), QLineEdit::TrailingPosition);
 	connect(opeFileAction, &QAction::triggered, this, &roiImageBox::onOpenFile);
 
-	_renderWidget = ui.openGLWidget;
 	_horizontalBar = ui.horizontalScrollBar;
 	_verticalBar = ui.verticalScrollBar;
 	_zoomButt = ui.zoomButt;
 
-	connect(_renderWidget, &roiRenderWidget::i2sPosChanged, this, &roiImageBox::i2sPosChanged);
-	connect(_renderWidget, &roiRenderWidget::c2cPosChanged, this, &roiImageBox::c2cPosChanged);
-
-	connect(_renderWidget, &roiRenderWidget::cursorPos, this, &roiImageBox::onImageCursorPos);
-	connect(_renderWidget, &roiRenderWidget::scaleChanged, this, &roiImageBox::onScaleChanged);
-	
 	connect(_horizontalBar, &QScrollBar::valueChanged, this, &roiImageBox::onHorizonalScrollbarValueChanged);
 	connect(_verticalBar, &QScrollBar::valueChanged, this, &roiImageBox::onVerticalScrollbarValueChanged);
 
-	_renderWidget->assignScrollBars(_horizontalBar, _verticalBar);
 	ui.imageCoordsLabel->setText ("");
 
 	QMenu *menu = new QMenu();
@@ -58,6 +49,43 @@ roiImageBox::roiImageBox(QWidget *parent)
 
 roiImageBox::~roiImageBox()
 {
+
+}
+
+void roiImageBox::createWidget(RENDER_WIDGET_TYPE rType)
+{
+	_renderWidgetType = rType;
+	createRenderWidget();
+}
+
+void roiImageBox::createRenderWidget()
+{
+	// replace to 
+	if (_renderWidgetType == RENDER_STRIP )
+	{
+		_renderWidget = new roiRenderWidgetStrip(this);
+		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_strip);
+	}
+	else if (_renderWidgetType == RENDER_FULL )
+	{
+		_renderWidget = new roiRenderWidgetFull(this);
+		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_full);
+	}
+	else if (_renderWidgetType == RENDER_WAVE )
+	{
+		_renderWidget = new roiRenderWidgetWave(this);
+		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_wave);
+	}
+
+	if (_renderWidget != nullptr )
+	{
+		auto oldWidget = ui.pageGL->layout()->replaceWidget(ui.openGLWidget, _renderWidget );
+		if ( oldWidget )
+			delete oldWidget;
+		connect(_renderWidget, &roiRenderWidgetBase::cursorPos, this, &roiImageBox::onImageCursorPos);
+		connect(_renderWidget, &roiRenderWidgetBase::scaleChanged, this, &roiImageBox::onScaleChanged);
+		_renderWidget->assignScrollBars(_horizontalBar, _verticalBar);
+	}
 }
 
 
@@ -79,18 +107,22 @@ void roiImageBox::onVerticalScrollbarValueChanged(int vVal)
 	emit scrollValuesChanged (-1, vVal);
 }
 
-LandaJune::CORE_ERROR roiImageBox::setImage(const QString& strFilePath)
+void roiImageBox::setImage(const QString& strFilePath)
 {
-	auto err = _renderWidget->setImage(strFilePath);
+	const auto err = _renderWidget->setImage(strFilePath);
+	
 	_zoomButt->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
 	_horizontalBar->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
 	_verticalBar->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.dimsWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.zoomWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.cursorInfoWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
 
 	if (err == LandaJune::CORE_ERROR::RESULT_OK)
 	{
 		displayMetaData();
 	}
-	return err;
+	emit imageLoaded(strFilePath, err);
 }
 
 void roiImageBox::displayMetaData()
@@ -118,6 +150,7 @@ void roiImageBox::setZoom(int zoomPercentage)
 		_renderWidget->setZoom( zoomPercentage);
 	}
 }
+
 
 void roiImageBox::updateScaleFromExternal(double glScale, double imageScale)
 {

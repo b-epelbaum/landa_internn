@@ -2,8 +2,6 @@
     "AlgorithmRunner": "Full Image Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
     "C2CCircleDiameter_mm": 1.542,
-    "C2CDROIMarginX_mm": 2.5,
-    "C2CDROIMarginY_mm": 2.5,
     "C2CDistanceBetweenDotsX_mm": 3.048,
     "C2CDistanceBetweenDotsY_mm": 3.048,
     "C2COffsetsArray": [
@@ -28,6 +26,8 @@
             "dy": 645.12
         }
     ],
+    "C2CROIMarginX_mm": 2.5,
+    "C2CROIMarginY_mm": 2.5,
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
@@ -167,11 +167,16 @@
     "SourceFolderPath": "",
     "SubstrateHeight_mm": 700,
     "SubstrateWidth_mm": 1000,
-    "WaveCircleDiameter_um": 1016,
-    "WaveDistanceBetweenDotsX_um": 2709.3,
-    "WaveDistanceBetweenDotsY_um": 3048,
-    "WaveDistanceBetweenTriangleAndFirstRow_um": 9687,
-    "WaveImageMarginX_um": 2000,
-    "WaveTriangleApproximateX_um": 510230,
-    "WaveTriangleApproximateY_um": 4223
+    "WaveCircleDiameter_mm": 1.016,
+    "WaveDistanceBetweenCircleCentersX_mm": 2.709,
+    "WaveDistanceBetweenCircleCentersY_mm": 3.048,
+    "WaveFirstLineCircleMarginY_mm": 2.5,
+    "WaveOffsetFromCornerToFirstLineCenter_mm": 9.687,
+    "WaveSideMarginsX_mm": 2,
+    "WaveTriangleCornerX_mm": 510.23,
+    "WaveTriangleCornerY_mm": 4.223,
+    "WaveTriangleHeight_mm": 8.5,
+    "WaveTriangleMarginX_mm": 2.5,
+    "WaveTriangleMarginY_mm": 2.5,
+    "WaveTriangleWidth_mm": 8.5
 }

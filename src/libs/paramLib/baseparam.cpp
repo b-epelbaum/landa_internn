@@ -64,6 +64,8 @@ BaseParameters& BaseParameters::operator=(const BaseParameters& other)
 		const auto name = metaproperty.name();
 		setProperty(name, other.property(name));
 	}
+	recalculate();
+	emit loaded ();
 	return *this;
 }
 

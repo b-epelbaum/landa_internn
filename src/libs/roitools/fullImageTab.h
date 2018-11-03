@@ -19,10 +19,14 @@ public:
 
 private slots:
 
+	void onImageLoaded ( QString strPath, LandaJune::CORE_ERROR );
 	void onPropertyChanged (QString propName, QVariant newVal );
+	void onROIChanged( const QVector<QPoint> ptArray );
 
-	void oni2sPosChanged(QPoint pt);
-	void onc2cPosChanged(int idx, QPoint pt);
+signals :
+
+	void editDone( bool bApply );
+
 
 private:
 
@@ -31,10 +35,11 @@ private:
 
 
 	void buildControls();
-	void recalculate ();
+	void setupInitialROIs();
+	void updateROIs();
 
-	void setupROIs() const;
-	void updateROIs() const;
+	void recalculateOffsets (const QVector<QPoint>& pts);
+	void recalculateI2SOffset(const QPoint& pt);
 
 	Ui::fullImageTab ui;
 
