@@ -9,17 +9,6 @@ roiParamWidget::roiParamWidget(QWidget *parent)
 	ui.setupUi(this);
 	_controlBox = ui.controlBox;
 
-	//QAction * mmAction = new QAction(QIcon(":/roiTools/Resources/mm.png"), tr("Measurement units : mm"), this);
-	ui.mmButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::MM);
-	connect(ui.mmButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
-
-	ui.pxButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::PX);
-	connect(ui.pxButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
-
-	ui.uButt->setProperty("units", (int)unitSwitchLabel::LABEL_UNITS::UM);
-	connect(ui.uButt, &QToolButton::clicked, this, &roiParamWidget::onChangeUnits);
-
-
 	connect ( ui.applyButt, &QPushButton::clicked, this, &roiParamWidget::onApply );
 	connect ( ui.cancelButt, &QPushButton::clicked, this, &roiParamWidget::onCancel );
 }
@@ -103,9 +92,7 @@ QDoubleSpinBox * roiParamWidget::addDoubleSpinBox(double currentValue, QString l
 
 QComboBox* roiParamWidget::addComboBox(QString labelText)
 {
-	QComboBox * targetWidget = nullptr;
-
-	targetWidget = new QComboBox(this);
+	QComboBox * targetWidget = new QComboBox(this);
 	targetWidget->setMinimumHeight(_controlHeight);
 	targetWidget->setMaximumHeight(_controlHeight);
 
@@ -118,17 +105,26 @@ QComboBox* roiParamWidget::addComboBox(QString labelText)
 	return targetWidget;
 }
 
+QCheckBox* roiParamWidget::addCheckBox(QString labelText)
+{
+	QCheckBox * targetWidget = new QCheckBox(this);
+	targetWidget->setMinimumHeight(_controlHeight);
+	targetWidget->setMaximumHeight(_controlHeight);
+
+	if ( !labelText.isEmpty())
+	{
+		targetWidget->setText(labelText);
+	}
+	
+	addWidget(targetWidget);
+	return targetWidget;
+}
+
 void roiParamWidget::addWidget(QWidget * widget) const
 {
 	widget->setParent(_controlBox);
 	_controlBox->layout()->addWidget(widget);
 	auto className = widget->metaObject()->className();
-}
-
-void roiParamWidget::onChangeUnits()
-{
-	const auto butt = dynamic_cast<QToolButton*>(sender());
-	auto units = static_cast<unitSwitchLabel::LABEL_UNITS>(butt->property("units").toInt());
 }
 
 void roiParamWidget::onDoubleSpinnerValChanged(double newValue)
@@ -144,15 +140,4 @@ void roiParamWidget::onApply()
 void roiParamWidget::onCancel()
 {
 	emit done(false);
-}
-
-void roiParamWidget::translateUnits(QDoubleSpinBox* spinBox, unitSwitchLabel::LABEL_UNITS oldUnits,
-	unitSwitchLabel::LABEL_UNITS newUnits)
-{
-
-}
-
-void roiParamWidget::switchUnits(unitSwitchLabel::LABEL_UNITS units)
-{
-	_currentUnits = units;
 }

@@ -1,12 +1,13 @@
 #pragma once
 
 #include <QWidget>
-#include "unitSwitchLabel.h"
-#include "ui_roiParamWidget.h"
 #include <QDoubleSpinBox>
 #include <QComboBox>
-#include "ProcessParameters.h"
+#include <QCheckBox>
 
+#include "unitSwitchLabel.h"
+#include "ui_roiParamWidget.h"
+#include "ProcessParameters.h"
 
 class roiParamWidget : public QWidget
 {
@@ -29,6 +30,7 @@ public:
 	QWidget * addControl( QString strParamName, QString labelText, bool bSwitchableLabel );
 	QDoubleSpinBox * addDoubleSpinBox(double currentValue, QString labelText, QString propertyName, bool bSwitchableLabel);
 	QComboBox * addComboBox(QString labelText);
+	QCheckBox * addCheckBox(QString labelText);
 
 	void addSpacer( int w, int h) const
 	{
@@ -42,34 +44,24 @@ public:
 
 	void addWidget(QWidget * widget) const;
 
-	unitSwitchLabel::LABEL_UNITS currentUnits () const { return _currentUnits; }
-	void switchUnits (unitSwitchLabel::LABEL_UNITS units);
-
 signals:
 
-	void unitsChanged (unitSwitchLabel::LABEL_UNITS oldUnits, unitSwitchLabel::LABEL_UNITS newUnits );
 	void propertyChanged( QString propertyName, QVariant newVal );
-
 	void done( bool bApply);
 
 private slots:
 
-	void onChangeUnits();
 	void onDoubleSpinnerValChanged( double newValue);
-
 	void onApply();
 	void onCancel();
 
 private:
-
-	void translateUnits(QDoubleSpinBox* spinBox, unitSwitchLabel::LABEL_UNITS oldUnits, unitSwitchLabel::LABEL_UNITS newUnits );
 
 	Ui::roiParamWidget ui;
 	QList<unitSwitchLabel*> _switchLabelList;
 	Qt::Alignment _textAlignH = Qt::AlignHCenter;
 	int _controlHeight = 30;
 
-	unitSwitchLabel::LABEL_UNITS _currentUnits = unitSwitchLabel::MM;
 	QWidget * _controlBox = nullptr;
 	QMap<QString, QDoubleSpinBox*> _spinBoxMap;
 

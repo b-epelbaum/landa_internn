@@ -13,8 +13,17 @@ moveableLayerWidget::moveableLayerWidget(QWidget* parent, CROSS_TYPE crossType, 
 	, _circleDiameter(circleDiameter)
 {
 	setMouseTracking(true);
-	setCursor(Qt::OpenHandCursor);
-	setGeometry(100, 100, width, height);
+
+	if (crossType == CROSS_EDGE )
+	{
+		setCursor(Qt::SplitHCursor);
+		setGeometry(0, 0, width, height);
+	}
+	else
+	{
+		setCursor(Qt::OpenHandCursor);
+		setGeometry(100, 100, width, height);
+	}
 
 	//setAttribute(Qt::WA_TranslucentBackground);
 	//setAttribute(Qt::WA_NoSystemBackground);
@@ -63,16 +72,7 @@ void moveableLayerWidget::paintI2SCross(QPainter& painter)
 	const auto topOffset =  (_originalSize.height() / 4 ) * _scaleRatio;
 
 	int penWidth = _scaleRatio * 2;
-	/*
-	if ( _scaleRatio > 1.5 && _scaleRatio < 3 )
-	{
-		penWidth = 2;
-	}
-	else if  ( _scaleRatio > 3 )
-	{
-		penWidth = _scaleRatio * 2;
-	}
-	*/
+	
 	//painter.fillRect(rect(), QColor(0,0,255, 120));
 	QPen pen ((QBrush
 			(QColor(255,50,0,255))
@@ -112,12 +112,12 @@ void moveableLayerWidget::paintI2SCross(QPainter& painter)
 
 void moveableLayerWidget::paintC2CCross(QPainter& painter)
 {
-	const auto leftOffset = (static_cast<double>(_originalSize.width()) / 4 ) * _scaleRatio;
-	const auto topOffset =  (static_cast<double>(_originalSize.height()) / 4 ) * _scaleRatio;
+	const auto leftOffset = static_cast<float>(_originalSize.width()) / 4 * _scaleRatio;
+	const auto topOffset =  static_cast<float>(_originalSize.height()) / 4 * _scaleRatio;
 
-	const int penWidth = _scaleRatio * 2;
+	const auto penWidth = _scaleRatio * 2;
 
-	QPen pen ((QBrush
+	const QPen pen ((QBrush
 			(QColor(255,0,0,255))
 		)
 		, penWidth
@@ -126,18 +126,49 @@ void moveableLayerWidget::paintC2CCross(QPainter& painter)
 	painter.setPen (pen);
 
 	painter.drawLine(
-			QPoint(leftOffset, rect().height() / 2), 
-			QPoint(rect().right() - leftOffset, rect().height() / 2)
+			QPointF(leftOffset, static_cast<float>(rect().height()) / 2), 
+			QPointF(static_cast<float>(rect().right()) - leftOffset, static_cast<float>(rect().height()) / 2)
 	);
 
 	painter.drawLine(
-				QPoint(rect().width() / 2, topOffset), 
-				QPoint(rect().width() / 2, rect().bottom() - topOffset)
+				QPointF(static_cast<float>(rect().width()) / 2, static_cast<float>(topOffset)), 
+				QPointF(static_cast<float>(rect().width()) / 2, static_cast<float>(rect().bottom()) - static_cast<float>(topOffset))
 	);
 
 	//painter.fillRect(rect(), QColor(0,0,255,128));
-	painter.drawEllipse( { static_cast<double>(rect().width()) / 2, static_cast<double>(rect().height()) / 2 }, _circleDiameter / 2 * _scaleRatio, _circleDiameter / 2 * _scaleRatio );
+	painter.drawEllipse( 
+						{ 
+							static_cast<float>(rect().width()) / 2
+						  , static_cast<float>(rect().height()) / 2 
+						}, 
+						static_cast<float>(_circleDiameter) / 2 * _scaleRatio, 
+						static_cast<float>(_circleDiameter) / 2 * _scaleRatio );
 }
+
+void moveableLayerWidget::paintEdgeCross(QPainter& painter)
+{
+	const auto leftOffset = static_cast<float>(_originalSize.width()) / static_cast<float>(2) * _scaleRatio;
+	const auto imHeight =  _originalSize.height() * _scaleRatio;
+
+	const auto penWidth = _scaleRatio * 2;
+	
+	//painter.fillRect(rect(), QColor(0,0,255, 120));
+	const QPen pen ((QBrush
+			(QColor(180,50,0,255))
+		)
+		, penWidth
+	);
+
+	painter.setPen (pen);
+	painter.drawLine(
+			QPointF( leftOffset - penWidth / 2, 0 ), 
+			QPointF( leftOffset - penWidth / 2, imHeight )
+	);
+		
+	//painter.fillRect(rect(), QColor(0,0,255,128));
+
+}
+
 
 void moveableLayerWidget::paintEvent(QPaintEvent* event)
 {
@@ -149,6 +180,10 @@ void moveableLayerWidget::paintEvent(QPaintEvent* event)
 	if (_crossType == CROSS_I2S )
 	{
 		paintI2SCross(painter);
+	}
+	else if (_crossType == CROSS_EDGE )
+	{
+		paintEdgeCross(painter);
 	}
 	else
 	{
@@ -162,7 +197,16 @@ void moveableLayerWidget::mouseMoveEvent(QMouseEvent *event)
 	if (event->buttons() & Qt::LeftButton && _dragPosition.x() != -1 )
 	{
 		_lastDropPosition = event->globalPos() - _dragPosition;
+		if (_crossType == CROSS_EDGE )
+		{
+			_lastDropPosition.setY(0);
+		}
+		else if (_crossType == CROSS_SPOT_OTHER && !_canChangeX )
+		{
+			_lastDropPosition.setX(_staticROIXValue);
+		}
 		move(_lastDropPosition);
+		qDebug () << " ---- MOVE POSITION : " << _lastDropPosition;
 		event->accept();
 		emit crossMoving(getCenterPoint(geometry().topLeft()));
 	}
@@ -176,9 +220,13 @@ void moveableLayerWidget::mousePressEvent(QMouseEvent *event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
+		_staticROIXValue = frameGeometry().topLeft().x();
 		_dragPosition = event->globalPos() - frameGeometry().topLeft();
 	}
-	setCursor(Qt::BlankCursor);
+	if (_crossType != CROSS_EDGE )
+	{
+		setCursor(Qt::BlankCursor);
+	}
 	event->accept();
 }
 
@@ -188,7 +236,13 @@ void moveableLayerWidget::mouseReleaseEvent(QMouseEvent *event)
 	{
 		_dragPosition = QPoint(-1, -1);
 		event->accept();
-		setCursor(Qt::OpenHandCursor);
+
+		if (_crossType == CROSS_EDGE )
+		{
+			setCursor(Qt::SplitHCursor);
+		}
+		else
+			setCursor(Qt::OpenHandCursor);
 
 		_topLeftOnActualImage = geometry().topLeft();
 		

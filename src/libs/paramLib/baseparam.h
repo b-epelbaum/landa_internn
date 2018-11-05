@@ -48,6 +48,10 @@ namespace LandaJune
 			virtual bool setParamProperty(const QString& strValName, const QVariant& val);
 
 			virtual void updateValues() { recalculate(); }
+			bool isDirty() const
+			{
+				return _bDirty;
+			}
 
 			virtual bool load (QString fileName, QString& error);
 			virtual QJsonObject toJson();
@@ -72,6 +76,7 @@ namespace LandaJune
 			using OBJ_PROP_LIST = QVector<OBJ_PROP_PAIR>;
 
 			QString _configFilePath;
+			bool _bDirty = false;
 
 		};
 		

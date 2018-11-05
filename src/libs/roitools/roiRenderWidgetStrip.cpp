@@ -24,7 +24,15 @@ void roiRenderWidgetStrip::cleanup()
 	_c2cCrosses.clear();
 }
 
-void roiRenderWidgetStrip::setROIs(bool bIsInitialROI, const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins, int c2cCircleDiameter )
+void roiRenderWidgetStrip::setROIs(
+			  bool bIsInitialROI
+			, const QRect& is2sRc
+			, const QVector<QRect>& c2cRects
+			, int edgeX
+			, QSize i2sMargins
+			, QSize c2cMargins
+			, int c2cCircleDiameter
+			, bool bInteractive  )
 {
 	_i2sROIRect = is2sRc;
 	_c2cROIRects = c2cRects;
@@ -37,6 +45,10 @@ void roiRenderWidgetStrip::setROIs(bool bIsInitialROI, const QRect& is2sRc, cons
 
 	_c2cCircleDiameter = c2cCircleDiameter;
 
+	_edgeX = edgeX;
+
+	_bInteractive = bInteractive;
+
 	if(_hasImage )
 	{
 		if (!bIsInitialROI)
@@ -47,9 +59,17 @@ void roiRenderWidgetStrip::setROIs(bool bIsInitialROI, const QRect& is2sRc, cons
 
 void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 {		
+	if (!_bInteractive)
+		return;
+
 	if (_i2sCross != nullptr )
 		delete _i2sCross;
 	_i2sCross = nullptr;
+
+	if (_edgeLine != nullptr )
+		delete _edgeLine;
+	_edgeLine = nullptr;
+
 	if (!_c2cCrosses.isEmpty())
 		qDeleteAll(_c2cCrosses);
 	_c2cCrosses.clear();
@@ -65,6 +85,17 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 				, _c2cCircleDiameter
 				, _i2sROIRect.topLeft(), creationScale);
 	}
+
+	if ( _edgeX != 0 )
+	{
+		_edgeLine = new moveableLayerWidget(
+					  this
+					, moveableLayerWidget::CROSS_EDGE
+					, 4
+					, _imageSize.height()
+					, _c2cCircleDiameter
+					, QPoint(_edgeX, 0),  creationScale);
+	}
 	
 	if (!_c2cROIRects.isEmpty())
 	{
@@ -75,13 +106,15 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 
 		for (auto i = 1; i < _c2cROIRects.size(); i++ )
 		{
-			auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[i].topLeft(), creationScale);
+			auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_OTHER, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[i].topLeft(), creationScale);
 			c2c->setProperty("idx", i);
 			_c2cCrosses.push_back(c2c);
 		}
 	}
 
 	_allCrossesArray << _i2sCross << _c2cCrosses;
+	if (_edgeLine)
+		_allCrossesArray << _edgeLine;
 
 	for ( auto elem : _allCrossesArray)
 	{
@@ -95,24 +128,55 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 void roiRenderWidgetStrip::handleROIControlPointMoved(moveableLayerWidget* sender, QPoint topLeft, QPoint centerPos)
 {
 	// transform current TopLeft pt to original image position
-	const auto newLeftToPos = fromWidget2OriginalImagePt(topLeft);
-	sender->setTopLeftOnOriginalImage(newLeftToPos);
+	const auto newLeftTopPos = fromWidget2OriginalImagePt(topLeft);
+	sender->setTopLeftOnOriginalImage(newLeftTopPos);
+	auto const i2sPt = fromWidget2OriginalImagePt(_i2sCross ? _i2sCross->getCenterPoint (_i2sCross->mapToParent (_i2sCross->rect().topLeft())) : QPoint());
 
 	// update rectangle for draw
 	if (sender == _i2sCross )
-		_i2sROIRect = QRect(newLeftToPos.x(), newLeftToPos.y(), _i2sROIRect.width(), _i2sROIRect.height());
+	{
+		reportI2S(i2sPt, newLeftTopPos);
+	}
+	else if (sender == _edgeLine )
+	{
+		// no rects
+		reportEdgeChange(i2sPt);
+	}
 	else
 	{
+		reportC2Cs(sender, i2sPt, newLeftTopPos);
+	}
+	update();
+}
+
+void roiRenderWidgetStrip::reportEdgeChange(const QPoint& i2sPoint)
+{
+	// no rects
+	auto const edgeX = _edgeLine ? _edgeLine->getCenterPoint (_edgeLine->mapToParent (_edgeLine->rect().topLeft())).x() : 0;
+	emit roiChanged_edge(i2sPoint, fromWidget2OriginalImagePt(QPoint(edgeX,0)).x());
+}
+
+void roiRenderWidgetStrip::reportI2S(const QPoint& i2sPoint, const QPoint& newLeftTop)
+{
+	_i2sROIRect = QRect(newLeftTop.x(), newLeftTop.y(), _i2sROIRect.width(), _i2sROIRect.height());
+	emit roiChanged_i2s(i2sPoint);
+}
+	
+void roiRenderWidgetStrip::reportC2Cs(moveableLayerWidget* sender, const QPoint& i2sPoint, const QPoint& newLeftTopPos)
+{
+	if (sender)
+	{
 		const auto idx = sender->property("idx").toInt();
-		_c2cROIRects[idx] = QRect(newLeftToPos.x(), newLeftToPos.y(), _c2cROIRects[idx].width(), _c2cROIRects[idx].height());
+		_c2cROIRects[idx] = QRect(newLeftTopPos.x(), newLeftTopPos.y(), _c2cROIRects[idx].width(), _c2cROIRects[idx].height());
 	}
 
-	// gather all ROI control points
-	const auto roiPts = gatherROICenterPoints();
-
-	// send them up
-	emit roiChanged(roiPts);
-	update();
+	QVector<QPoint> c2cpts;
+	for ( auto cr : _c2cCrosses)
+	{
+		const auto calcTL = cr->mapToParent (cr->rect().topLeft());
+		c2cpts <<  fromWidget2OriginalImagePt(cr->getCenterPoint (calcTL));
+	}
+	emit roiChanged_c2c(i2sPoint, c2cpts);
 }
 
 void roiRenderWidgetStrip::paintROIRects(std::function<void(const QRect&)> func)
@@ -121,5 +185,37 @@ void roiRenderWidgetStrip::paintROIRects(std::function<void(const QRect&)> func)
 	for (auto const& rc : _c2cROIRects) 
 	{
 		func(rc);
+	}
+}
+
+void roiRenderWidgetStrip::updateC2CForLineUp( bool bLineUp )
+{
+	// get left for the first C2C ROI
+	if (_c2cCrosses.isEmpty())
+		return;
+
+	if (bLineUp)
+	{
+		const auto firstPT = _c2cCrosses[0]->geometry().topLeft();
+		const auto firstPTMapped = fromWidget2OriginalImagePt(firstPT);
+
+		for ( int i = 1; i < _c2cCrosses.size(); i++ )
+		{
+			auto const currentPt = fromWidget2OriginalImagePt(_c2cCrosses[i]->geometry().topLeft());
+			_c2cCrosses[i]->setTopLeftOnOriginalImage(QPoint(firstPTMapped.x(), _c2cCrosses[i]->topLeftOnOriginalImage().y()));
+			_c2cCrosses[i]->move(firstPT.x(), _c2cCrosses[i]->geometry().topLeft().y());
+			_c2cCrosses[i]->enableXChange(false);
+			_c2cROIRects[i] = QRect(firstPTMapped.x(), currentPt.y(), _c2cROIRects[i].width(), _c2cROIRects[i].height());
+		}
+
+		auto const i2sPt = fromWidget2OriginalImagePt(_i2sCross ? _i2sCross->getCenterPoint (_i2sCross->mapToParent (_i2sCross->rect().topLeft())) : QPoint());
+		reportC2Cs (nullptr, i2sPt, QPoint());
+	}
+	else
+	{
+		for ( int i = 0; i < _c2cCrosses.size(); i++ )
+		{
+			_c2cCrosses[i]->enableXChange(true);
+		}
 	}
 }

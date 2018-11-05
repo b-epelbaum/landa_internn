@@ -1,6 +1,7 @@
 <RCC>
   <qresource prefix="/roiTools">
     <file>Resources/measure.png</file>
+    <file>Resources/size.png</file>
     <file>Resources/mm.png</file>
     <file>Resources/px.png</file>
     <file>Resources/microns.png</file>

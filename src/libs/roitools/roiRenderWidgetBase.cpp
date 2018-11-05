@@ -167,20 +167,27 @@ void roiRenderWidgetBase::initializeGL()
 
 void roiRenderWidgetBase::resizeGL(int w, int h)
 {
-	if ( !_hasImage)
+	if ( !_hasImage )
+		return;
+
+	glViewport(0, 0, w, h );
+	auto newScale = 1.0;
+	if ( _imageRatio < 1 ) // vertical image
 	{
-		_initialWidgetSize = {w,h};
-		glViewport(0, 0, w, h );
+		 newScale = static_cast<double>(_imageSize.height()) /  h;
 	}
 	else
 	{
-		glViewport(0, 0, _initialWidgetSize.width(), _initialWidgetSize.height());
-//		auto newScale = static_cast<float>(w) / static_cast<float>(_initialWidgetSize.width()) * _glScale;
-//		_glScale = newScale;
-//		qDebug() << " **** SCALE : " << _glScale;
-
+		newScale =  static_cast<double>(_imageSize.width()) /  w;
 	}
-//	updateScroll();
+
+	auto a = _glScale / _imageScaleRatio;
+	_glScale = newScale * a;
+
+	//RENDERWIDGET_SCOPED_LOG << " **** SCALE : " << _glScale;
+
+	updateInternalScrolls();
+	updateInternalLayers();
 }
 
 
@@ -226,6 +233,14 @@ void roiRenderWidgetBase::paintGL()
 	*/
 }
 
+void roiRenderWidgetBase::mouseDoubleClickEvent(QMouseEvent* event)
+{
+	if(!_hasImage )
+		return;
+
+	emit doubleClick(event->pos());
+}
+
 ////////////////////////////////////////////////////////////
 
 CORE_ERROR roiRenderWidgetBase::setImage(const QString& file)
@@ -264,13 +279,14 @@ CORE_ERROR roiRenderWidgetBase::setImage(const QString& file)
 	_imageScaleRatio = _glScale;
 	_actualPixelsScaleRatio = _glScale;
 
-	qDebug() << " **** INITIAL SCALE : " << _glScale;
+	//RENDERWIDGET_SCOPED_LOG << " **** INITIAL SCALE : " << _glScale;
 
 	_hasImage = true;
 	setCursor(Qt::CrossCursor);
 
 	doneCurrent();
 	createCrossHairs(_glScale);
+	updateInternalScrolls();
 	repaint();
 
 	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
@@ -295,15 +311,9 @@ void roiRenderWidgetBase::updateScaleFromExternal(double glScale, double imageSc
 		return;
 
 	_glScale = glScale;
-
+	
+	//RENDERWIDGET_SCOPED_LOG << " **** SCALE FROM EXTERNAL : " << glScale;
 	updateInternalScrolls();
-	
-	PRINT_WARNING << "Target Vscroll data : \r\n" 
-	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
-	<< "\tpage step : " << _verticalScrollbar->pageStep() 
-	<< "\tsingle step : " << _verticalScrollbar->singleStep()
-	<< "\tvalue : " << _verticalScrollbar->value();
-	
 }
 
 void roiRenderWidgetBase::showActualPixels ()
@@ -358,16 +368,16 @@ void roiRenderWidgetBase::zoomIn()
 		_glScale = _imageScaleRatio * 5.0;
 	}
 
-	qDebug() << " **** SCALE : " << _glScale;
+	//RENDERWIDGET_SCOPED_LOG << " **** SCALE : " << _glScale;
 	updateInternalScrolls();
 
 	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
 	
-	PRINT_WARNING << "Source Vscroll data : \r\n" 
-	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
-	<< "\tpage step : " << _verticalScrollbar->pageStep() 
-	<< "\tsingle step : " << _verticalScrollbar->singleStep()
-	<< "\tvalue : " << _verticalScrollbar->value();
+	//RENDERWIDGET_SCOPED_LOG << "Source Vscroll data : \r\n" 
+	//<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	//<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	//<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	//<< "\tvalue : " << _verticalScrollbar->value();
 	
 }
 	
@@ -385,16 +395,16 @@ void roiRenderWidgetBase::zoomOut()
 		_glScale = _imageScaleRatio * 0.1;
 	}
 
-	qDebug() << " **** SCALE : " << _glScale;
+	//RENDERWIDGET_SCOPED_LOG << " **** SCALE : " << _glScale;
 	updateInternalScrolls();
 
 	emit scaleChanged(_glScale, _glScale / _imageScaleRatio );
 
-	PRINT_WARNING << "Source Vscroll data : \r\n" 
-	<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
-	<< "\tpage step : " << _verticalScrollbar->pageStep() 
-	<< "\tsingle step : " << _verticalScrollbar->singleStep()
-	<< "\tvalue : " << _verticalScrollbar->value();
+	//RENDERWIDGET_SCOPED_LOG << "Source Vscroll data : \r\n" 
+	//<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	//<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	//<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	//<< "\tvalue : " << _verticalScrollbar->value();
 }
 
 
@@ -512,7 +522,6 @@ void roiRenderWidgetBase::GLpaintROIs(QMatrix4x4& modelData )
 	paintROIRects(drawLambda);
 }
 
-
 QMatrix4x4 roiRenderWidgetBase::getModelViewProjMatrix(void) 
 {
 	QSize widgetSize = size();
@@ -550,7 +559,6 @@ QMatrix4x4 roiRenderWidgetBase::getModelViewProjMatrix(void)
 	m.scale(ratioX, ratioY, 1.0f);
 	return std::move(m);
 }
-
 
 void roiRenderWidgetBase::updateInternalLayers()
 {
@@ -593,7 +601,7 @@ void roiRenderWidgetBase::updateInternalScrolls()
 
 	if (_verticalScrollbar) 
 	{
-		const auto total = _imageSize.width();
+		const auto total = _imageSize.height();
 		if (ratioY > 1.0f) 
 		{
 			const auto page = int(total / _glScale);
@@ -613,7 +621,7 @@ void roiRenderWidgetBase::updateInternalScrolls()
 
 	if (_horizontalScrollbar) 
 	{
-		const auto total = _imageSize.height();
+		const auto total = _imageSize.width();
 		if (ratioX > 1.0f) 
 		{
 			const auto page = int(total / ratioX);
@@ -630,6 +638,14 @@ void roiRenderWidgetBase::updateInternalScrolls()
 			_horizontalScrollbar->setEnabled(false);
 		}
 	}
+
+	//RENDERWIDGET_SCOPED_LOG << "NEW Vscroll data : \r\n" 
+	//<< "\trange : " << _verticalScrollbar->minimum() << " ==> " << _verticalScrollbar->maximum()
+	//<< "\tpage step : " << _verticalScrollbar->pageStep() 
+	//<< "\tsingle step : " << _verticalScrollbar->singleStep()
+	//<< "\tvalue : " << _verticalScrollbar->value();
+
+
 	update();
 	updateInternalLayers();
 }

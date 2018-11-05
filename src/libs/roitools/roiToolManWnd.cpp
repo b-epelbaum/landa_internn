@@ -46,10 +46,26 @@ void roiToolMainWnd::openStripsTool()
 	ui.toolStacks->setCurrentIndex(3);
 	_offlineTab->setParameters(_paramWidget, _parameters);
 	connect(_offlineTab, &offlineRegTab::editDone, this, &roiToolMainWnd::onRegOfflineDone);
+	connect(_offlineTab, &offlineRegTab::wantFullScreen, this, &roiToolMainWnd::onWantsFullScreen);
 }
 
 void roiToolMainWnd::onRegOfflineDone(bool bApply)
 {
 	*_parameters = *_offlineTab->getEditedParameters();
 	close();
+}
+
+void roiToolMainWnd::onWantsFullScreen(bool bWantsFullScreen )
+{
+	if ( bWantsFullScreen )
+	{
+		showMaximized();
+	}
+	else
+	{
+		showNormal();
+	}
+	ui.dock->setFloating(bWantsFullScreen);
+	
+	//showFullScreen();
 }

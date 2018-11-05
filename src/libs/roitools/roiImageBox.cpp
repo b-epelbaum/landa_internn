@@ -45,11 +45,40 @@ roiImageBox::roiImageBox(QWidget *parent)
 	_zoomButt->setEnabled(false);
 	_horizontalBar->setEnabled(false);
 	_verticalBar->setEnabled(false);
+
+	connect(ui.mmButt, &QToolButton::clicked, this, &roiImageBox::onChangeUnits);
+	connect(ui.pxButt, &QToolButton::clicked, this, &roiImageBox::onChangeUnits);
 }
 
 roiImageBox::~roiImageBox()
 {
 
+}
+
+void roiImageBox::updateUnits ( int oldUnits, int newUnits )
+{
+	auto _oldUnits = static_cast<unitSwitchLabel::LABEL_UNITS>(oldUnits);
+	_currentUnits = static_cast<unitSwitchLabel::LABEL_UNITS>(newUnits);
+
+	ui.mmButt->setChecked(_currentUnits == unitSwitchLabel::MM);
+	ui.pxButt->setChecked(_currentUnits == unitSwitchLabel::PX);
+	updateCursorPositionText (QPoint(), QSize());
+}
+
+void roiImageBox::onChangeUnits()
+{
+	const auto butt = dynamic_cast<QToolButton*>(sender());
+	auto const oldUnits = _currentUnits;
+	if (butt == ui.mmButt)
+	{
+		_currentUnits = unitSwitchLabel::MM;
+	}
+	else
+	{
+		_currentUnits = unitSwitchLabel::PX;
+	}
+	updateCursorPositionText (QPoint(), QSize());
+	emit unitsChanged ( static_cast<int>(oldUnits), static_cast<int>(_currentUnits) );
 }
 
 void roiImageBox::createWidget(RENDER_WIDGET_TYPE rType)
@@ -58,23 +87,39 @@ void roiImageBox::createWidget(RENDER_WIDGET_TYPE rType)
 	createRenderWidget();
 }
 
+void roiImageBox::setpx2mmRatio(double hRatio, double vRatio)
+{
+	_hRatio = hRatio;
+	_vRatio = vRatio;
+}
+
+void roiImageBox::setC2CRoisLinedUp ( bool bVal )
+{
+	if (_renderWidgetType == RENDER_STRIP )
+	{
+		static_cast<roiRenderWidgetStrip*>(_renderWidget)->setC2CRoisLinedUp(bVal);
+	}
+}
+
 void roiImageBox::createRenderWidget()
 {
 	// replace to 
 	if (_renderWidgetType == RENDER_STRIP )
 	{
 		_renderWidget = new roiRenderWidgetStrip(this);
-		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_strip);
+		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_edge, this, &roiImageBox::roiChanged_strip_edge);
+		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_i2s, this, &roiImageBox::roiChanged_strip_i2s);
+		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_c2c, this, &roiImageBox::roiChanged_strip_c2c);
 	}
 	else if (_renderWidgetType == RENDER_FULL )
 	{
 		_renderWidget = new roiRenderWidgetFull(this);
-		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_full);
+		//connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_full);
 	}
 	else if (_renderWidgetType == RENDER_WAVE )
 	{
 		_renderWidget = new roiRenderWidgetWave(this);
-		connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_wave);
+		//connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_wave);
 	}
 
 	if (_renderWidget != nullptr )
@@ -84,10 +129,17 @@ void roiImageBox::createRenderWidget()
 			delete oldWidget;
 		connect(_renderWidget, &roiRenderWidgetBase::cursorPos, this, &roiImageBox::onImageCursorPos);
 		connect(_renderWidget, &roiRenderWidgetBase::scaleChanged, this, &roiImageBox::onScaleChanged);
+		connect(_renderWidget, &roiRenderWidgetBase::doubleClick, this, &roiImageBox::onDoubleClick);
 		_renderWidget->assignScrollBars(_horizontalBar, _verticalBar);
 	}
 }
 
+
+void roiImageBox::onDoubleClick (QPoint pos)
+{
+	ui.metaWidget->setVisible(!ui.metaWidget->isVisible());
+	emit doubleClick (pos);
+}
 
 void roiImageBox::onHorizonalScrollbarValueChanged(int hVal) 
 {
@@ -216,15 +268,50 @@ void roiImageBox::onZoomAction()
 	setZoom(zoomPercentge);
 }
 
+void roiImageBox::updateCursorPositionText(QPoint pt, QSize size)
+{
+	if (!_renderWidget->hasImage())
+		return;
+
+	if ( pt.isNull() )
+		pt = _lastPostionPt;
+	else
+		_lastPostionPt = pt;
+
+	QString strText;
+	if ( _currentUnits == unitSwitchLabel::MM )
+		strText = QString("X = %1, Y = %2").arg(_lastPostionPt.x() * _hRatio, 0, 'f', 3).arg(_lastPostionPt.y() * _vRatio, 0, 'f', 3 );
+	else
+	{
+		strText = QString("X = %1, Y = %2").arg(_lastPostionPt.x()).arg(_lastPostionPt.y());
+	}
+
+	if (!size.isEmpty() )
+	{
+		if ( _currentUnits == unitSwitchLabel::MM )
+		{
+			strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]")
+						.arg(pt.x() * _hRatio)
+						.arg(pt.y() * _vRatio)
+						.arg((pt.x() + size.width())* _hRatio)
+						.arg((pt.y() + size.height()) * _vRatio)
+						.arg(size.width()* _hRatio)
+						.arg(size.height() * _vRatio);
+		}
+		else
+		{
+			strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]").arg(pt.x()).arg(pt.y()).arg(pt.x() + size.width()).arg(pt.y()+ size.height()).arg(size.width()).arg(size.height());;
+		}
+	}
+	ui.imageCoordsLabel->setText(strText);
+}
+
 void roiImageBox::onImageCursorPos(QPoint pt, QSize size)
 {
 	if (!_renderWidget->hasImage())
 		return;
 
-	QString strText = QString("X = %1, Y = %2").arg(pt.x()).arg(pt.y());
-	if (!size.isEmpty() )
-		strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]").arg(pt.x()).arg(pt.y()).arg(pt.x() + size.width()).arg(pt.y()+ size.height()).arg(size.width()).arg(size.height());;
-	ui.imageCoordsLabel->setText(strText);
+	updateCursorPositionText(pt, size);
 }
 
 void roiImageBox::onScaleChanged(double newGLScale, double newImageScale)

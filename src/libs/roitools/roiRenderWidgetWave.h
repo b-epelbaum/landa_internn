@@ -23,6 +23,10 @@ protected:
 	void handleROIControlPointMoved( moveableLayerWidget* sender, QPoint topLeft, QPoint centerPos ) override;
 	void paintROIRects( std::function<void(const QRect&)> func ) override;
 
+signals:
+
+	void roiChanged( const QVector<QPoint>& c2cPts );
+
 private:
 
 	QRect _waveTriangleROIRc, _waveROIRc;

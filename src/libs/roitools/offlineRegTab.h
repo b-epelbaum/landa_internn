@@ -3,6 +3,7 @@
 #include <QWidget>
 #include "ui_offlineRegTab.h"
 #include "common/type_usings.h"
+#include "baseparam.h"
 
 class roiWidget;
 class roiParamWidget;
@@ -26,17 +27,26 @@ private slots:
 	void onROIScaleChanged( double glScale, double imageScale );
 	void onROIScrollChanged( int hScroll, int vScroll );
 
-	void onROIChanged( const QVector<QPoint> ptArray );
+	void onEdgeChanged( const QPoint i2spt, const int edgeX );
+	void onI2SROIChanged( const QPoint i2spt );
+	void onC2CROIsChanged( const QPoint i2spt, const QVector<QPoint>& c2cPts );
+
 	void onColorCountChanged ( const QString& );
+
+	void onUnitsChanged ( int oldUnits, int newUnits );
+
+	void onDoubleClick( QPoint pos );
+	void onEditDone( bool bApply );
 
 signals :
 
 	void editDone( bool bApply );
+	void wantFullScreen ( bool bFullScreen );
 
 private:
 
 	void buildControls();
-
+	void setFullScreen ( bool bSet );
 	void setupInitialROIs();
 
 	void updateLeftROIs();
@@ -48,8 +58,9 @@ private:
 	double toMMX(int val_pxx) const;
 	double toMMY(int val_pxy) const;
 
-	void recalculateOffsets(const QVector<QPoint>& pts, bool bLeft );
-	void recalculateI2SOffset(const QPoint& pt, bool bLeft  );
+	void recalculateC2COffsets(const QPoint& i2spt, const QVector<QPoint>& c2cPts );
+	void recalculateI2SOffset(const QPoint& pt ) const;
+	void recalculateEdgeOffset(const QPoint i2spt, int offset ) const;
 
 	Ui::offlineRegTab ui;
 
@@ -63,4 +74,7 @@ private:
 	QComboBox * _colorCounterCombo = nullptr;
 	
 	LandaJune::ProcessParametersPtr _params;
+	bool _bFullScreen = false;
+
+	QVector<LandaJune::Parameters::COLOR_TRIPLET> _originalColorTriplets;
 };

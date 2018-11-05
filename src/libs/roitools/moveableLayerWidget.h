@@ -8,12 +8,14 @@ class moveableLayerWidget : public QWidget
 
 public:
 
-	enum CROSS_TYPE {CROSS_I2S, CROSS_SPOT_FIRST, CROSS_SPOT_OTHER};
+	enum CROSS_TYPE {CROSS_I2S, CROSS_SPOT_FIRST, CROSS_SPOT_OTHER, CROSS_EDGE };
 	moveableLayerWidget(QWidget* parent, CROSS_TYPE crossType, int width, int height, int circleDiameter, QPoint startPt, float initScale );
 	~moveableLayerWidget();
+	
 	void showCross(bool bShow);
 
 	QSize originalSize() const { return _originalSize; }
+	void enableXChange( bool bEnable ) { _canChangeX = bEnable; }
 
 	void setTopLeftOnOriginalImage (QPoint pt) {_topLeftOnOriginalImage = pt; }
 	QPoint topLeftOnOriginalImage() const { return _topLeftOnOriginalImage; }
@@ -47,6 +49,7 @@ protected:
 
 	void paintI2SCross(QPainter& painter);
 	void paintC2CCross(QPainter& painter);
+	void paintEdgeCross(QPainter& painter);
 
 	void paintEvent(QPaintEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
@@ -62,11 +65,14 @@ protected:
 	QSize	_originalSize = {0,0};
 	QSize	_scaledSize = {0,0};
 
-	int _circleDiameter = 0;
+	int		_circleDiameter = 0;
 
 	QPoint	_topLeftOnOriginalImage = {0,0};
 	QPoint	_topLeftOnActualImage = {0,0};
 
+	int _staticROIXValue = 0;
+
 	QPointF _topLeftOnActualImageInFloat;
-	float _scaleRatio = 1.0;
+	float	_scaleRatio = 1.0;
+	bool _canChangeX = true;
 };

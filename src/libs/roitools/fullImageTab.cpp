@@ -127,7 +127,7 @@ void fullImageTab::onROIChanged(const QVector<QPoint> ptArray)
 
 void fullImageTab::recalculateI2SOffset(const QPoint& pt )
 {
-	auto const offsetFromLeftEdge_px = _params->OffsetFromLeftEdge_mm();
+	auto const offsetFromLeftEdge_px = _params->LeftOffsetFromPaperEdgeX_mm();
 	auto const scanStartToPaperEdge_px = _params->ScanStartToPaperEdgeOffset_mm();
 
 	QPointF mmPoint = { toMMX(pt.x()), toMMY(pt.y()) };

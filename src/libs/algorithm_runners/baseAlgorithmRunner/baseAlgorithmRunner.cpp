@@ -191,7 +191,7 @@ void baseAlgorithmRunner::setupEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT_PTR 
 	try
 	{
 		setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
-		input->_approxDistanceFromEdgeX = _processParameters->LeftEdgeApproxOffsetX_px();
+		input->_approxDistanceFromEdgeX = _processParameters->LeftOffsetFromPaperEdgeX_px();
 		input->_triangeApproximateY = _processParameters->EdgeTriangleApproximateY_px();
 		input->_side = side;
 	}

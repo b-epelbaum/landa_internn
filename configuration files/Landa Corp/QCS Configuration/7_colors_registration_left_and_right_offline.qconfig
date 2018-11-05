@@ -6,7 +6,7 @@
     "C2CDistanceBetweenDotsY_mm": 3.048,
     "C2COffsetsArray": [
         {
-            "dx": 0.08466683,
+            "dx": 0.33866732,
             "dy": 9.0932709
         },
         {
@@ -14,11 +14,11 @@
             "dy": 169.22144132
         },
         {
-            "dx": -0.67733464,
+            "dx": -0.76200147,
             "dy": 329.34961174
         },
         {
-            "dx": -0.76200147,
+            "dx": -0.8466682999999999,
             "dy": 489.39117957999997
         },
         {
@@ -147,17 +147,17 @@
     "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
     "I2SHeight_mm": 4.64,
-    "I2SOffsetFromPaperEdgeX_mm": 3.56401274,
+    "I2SOffsetFromPaperEdgeX_mm": 4.40267516,
     "I2SOffsetFromPaperEdgeY_mm": 7.27461672,
     "I2SROIMarginX_mm": 2.5,
     "I2SROIMarginY_mm": 2.5,
     "I2SWidth_mm": 3.13,
     "ImageMaxCount": -1,
     "JobID": 0,
+    "LeftOffsetFromPaperEdgeX_mm": 2.20133758,
     "LeftStripWidth_mm": 11.93,
     "OfflineRegStripOnly": true,
     "OfflineTreatEvenFilesAsRight": true,
-    "OffsetFromLeftEdge_mm": 3.04,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -178,7 +178,7 @@
         "S": 0,
         "V": 0
     },
-    "RightStripROIsOffsetY_mm": 0,
+    "RightStripROIsOffsetY_mm": 2.5,
     "RootOutputFolder": "C:\\temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,

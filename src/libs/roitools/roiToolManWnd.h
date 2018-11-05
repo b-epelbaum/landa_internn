@@ -16,6 +16,7 @@ private slots :
 	void openStripsTool();
 
 	void onRegOfflineDone(bool bApply);
+	void onWantsFullScreen ( bool bFullScreen );
 
 private:
 	Ui::roiToolMainWindow ui{};

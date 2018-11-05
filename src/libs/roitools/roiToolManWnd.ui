@@ -30,7 +30,7 @@
     <item>
      <widget class="QStackedWidget" name="toolStacks">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="startPage">
        <layout class="QHBoxLayout" name="horizontalLayout">

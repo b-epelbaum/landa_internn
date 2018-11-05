@@ -644,6 +644,8 @@ void JuneUIWnd::onAboutToQuit()
 	{
 		stop();
 	}
+	
+	(void)checkDirtyParameters ();
 
 	CLIENT_SCOPED_LOG << "---------------------------------------------------------";
 	CLIENT_SCOPED_LOG << "				Finished Landa June QCS Client";
@@ -834,8 +836,36 @@ void JuneUIWnd::onSaveConfig()
     jsonFile.write(doc.toJson(QJsonDocument::Indented));
 }
 
+bool JuneUIWnd::checkDirtyParameters()
+{
+	if ( ICore::get()->getProcessParameters()->isDirty() )
+	{
+		CLIENT_SCOPED_WARNING << "Previous parameters set has been changed and not saved !";
+		auto const retVal = QMessageBox::question( 
+					this, 
+					"Process Parameters", 
+					"Current parameters set has not been saved. Save now ?", 
+					QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, 
+					QMessageBox::Yes 
+				);
+		if ( retVal == QMessageBox::Yes )
+		{
+			onSaveConfig ();
+			return true;
+		}
+		if (retVal == QMessageBox::Cancel)
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
 void JuneUIWnd::onLoadConfig()
 {
+	if ( !checkDirtyParameters ())
+		return;
+
 	CLIENT_SCOPED_LOG << "Loading configuration file...";
 	QSettings settings(REG_COMPANY_NAME, REG_ROOT_KEY);
 	auto lastConfigFile = settings.value(CLIENT_KEY_LAST_RECIPE).toString();

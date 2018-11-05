@@ -12,8 +12,8 @@
 
 class roiRectWidget;
 
-class QScrollBar;
-QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram);
+QT_FORWARD_DECLARE_CLASS(QScrollBar)
+QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 
 
@@ -48,8 +48,7 @@ signals:
 
 	void cursorPos(QPoint pt, QSize rectSize);
 	void scaleChanged( double newGLScale, double newImageScale );
-
-	void roiChanged( const QVector<QPoint>& c2cPts );
+	void doubleClick( QPoint pos );
 
 public slots:
 
@@ -63,6 +62,8 @@ protected:
 	void resizeGL(int w, int h) override;
 	void paintGL() override;
 
+	void mouseDoubleClickEvent(QMouseEvent* event) override;
+
 	virtual void cleanup();
 	virtual void createCrossHairs( float creationScale ) {}
 	virtual void paintROIRects( std::function<void(const QRect&)> func ) {}
@@ -72,7 +73,7 @@ protected:
 	QPoint		fromWidget2OriginalImagePt(const QPointF & pt);
 	QSizeF		fromWidget2OriginalImageSize(const QSize & sz);
 	QPointF		fromOrigImage2WidgetPt(const QPoint & pt);
-	QMatrix4x4 getModelViewProjMatrix(void);
+	QMatrix4x4	getModelViewProjMatrix(void);
 
 	virtual void updateInternalLayers();
 	virtual void updateInternalScrolls();
@@ -94,15 +95,15 @@ protected:
 	GLfloat _offsetX = 0.0;
 	GLfloat _offsetY = 0.0;
 
-	QOpenGLTexture* _texture;
-	QOpenGLShaderProgram *_program;
+	QOpenGLTexture* _texture = nullptr;
+	QOpenGLShaderProgram *_program = nullptr;
 	QOpenGLBuffer _vbo;
 
-	QSize _imageSize;
+	QSize _imageSize = {};
 	bool _hasImage = false;
 	
 	// rubberband values
-	QPoint _origin;
+	QPoint _origin = {};
 	QRubberBand * _rubberBand = nullptr;
 
 	QScrollBar *	_horizontalScrollbar = nullptr;

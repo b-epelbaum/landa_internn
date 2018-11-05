@@ -20,7 +20,7 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateWidth_mm,				double,					1000	)
 			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateHeight_mm,				double,					700		)
 			DECLARE_NORMAL_PARAM_PROPERTY(ScanStartToPaperEdgeOffset_mm,	double,					10.7	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OffsetFromLeftEdge_mm,			double,					2.94	)
+			DECLARE_NORMAL_PARAM_PROPERTY(LeftOffsetFromPaperEdgeX_mm,		double,					2.94	)
 			DECLARE_NORMAL_PARAM_PROPERTY(LeftStripWidth_mm,				double,					13.7	)
 			DECLARE_NORMAL_PARAM_PROPERTY(RightStripROIsOffsetY_mm,			double,					0.0	)
 			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_X,						double,					0.08466683	)
@@ -145,7 +145,7 @@ namespace LandaJune
 
 			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
 			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,				int,	0)
-			DECLARE_CALCULATED_PROPERTY(LeftEdgeApproxOffsetX_px,		int,	0)
+			DECLARE_CALCULATED_PROPERTY(LeftOffsetFromPaperEdgeX_px,		int,	0)
 			
 			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,				QRect, {})
 			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,				QRect, {})

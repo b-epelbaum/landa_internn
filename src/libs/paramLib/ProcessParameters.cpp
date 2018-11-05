@@ -77,7 +77,7 @@ void ProcessParameters::_recalculate()
 	/////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////
 	// left edge
-	_LeftEdgeApproxOffsetX_px = toPixelsX(_OffsetFromLeftEdge_mm);
+	_LeftOffsetFromPaperEdgeX_px = toPixelsX(_LeftOffsetFromPaperEdgeX_mm);
 
 	////////////////////////////////////////////////////////////////////
 	// i2st triangles
@@ -86,8 +86,8 @@ void ProcessParameters::_recalculate()
 	// get start point from paper edge
 	
 	_I2SCornerLeft_px = { 
-							_LeftStripRect_px.left() + toPixelsX(_OffsetFromLeftEdge_mm + _I2SOffsetFromPaperEdgeX_mm ),
-							toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+							_LeftStripRect_px.left() + toPixelsX(_LeftOffsetFromPaperEdgeX_mm + _I2SOffsetFromPaperEdgeX_mm ),
+							toPixelsY(_I2SOffsetFromPaperEdgeY_mm )
 						};
 
 	// calculate triangle corner position relatively to start point
@@ -105,7 +105,7 @@ void ProcessParameters::_recalculate()
 	_I2SRectLeft_px.adjust(
 				-1 * toPixelsX(_I2SROIMarginX_mm),
 				-1 * toPixelsY(_I2SROIMarginY_mm),
-				toPixelsY(_I2SROIMarginY_mm),
+				toPixelsX(_I2SROIMarginX_mm),
 				toPixelsY(_I2SROIMarginY_mm)
 			);
 
@@ -114,7 +114,7 @@ void ProcessParameters::_recalculate()
 
 	_I2SCornerRight_px = { 
 							_RightStripRect_px.left() + toPixelsX(_I2SOffsetFromPaperEdgeX_mm ),
-							toPixelsX(_I2SOffsetFromPaperEdgeY_mm )
+							toPixelsY(_I2SOffsetFromPaperEdgeY_mm + _RightStripROIsOffsetY_mm)
 						};
 
 	// calculate triangle corner position relatively to start point
@@ -132,7 +132,7 @@ void ProcessParameters::_recalculate()
 	_I2SRectRight_px.adjust(
 				-1 * toPixelsX(_I2SROIMarginX_mm),
 				-1 * toPixelsY(_I2SROIMarginY_mm),
-				toPixelsY(_I2SROIMarginY_mm),
+				toPixelsX(_I2SROIMarginX_mm),
 				toPixelsY(_I2SROIMarginY_mm)
 			);
 
@@ -158,13 +158,12 @@ void ProcessParameters::_recalculate()
 				firstColorCycleCenterLeft_px.x() - toPixelsX( _C2CCircleDiameter_mm / 2 +_C2CROIMarginX_mm ),
 				firstColorCycleCenterLeft_px.y()  - toPixelsY(_C2CCircleDiameter_mm / 2 + _C2CROIMarginY_mm),
 				toPixelsX(_C2CDistanceBetweenDotsX_mm + 2 * _C2CROIMarginX_mm + _C2CCircleDiameter_mm ),
-				toPixelsY((ceil( ((float)_ColorArray.size())/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CROIMarginY_mm + _C2CCircleDiameter_mm )
+				toPixelsY((ceil( static_cast<float>(_ColorArray.size())/2) -1) * _C2CDistanceBetweenDotsY_mm + 2 * _C2CROIMarginY_mm + _C2CCircleDiameter_mm )
 			}
 		);
 	}
 
 	auto leftRightOffset_px = C2CStartPointRight_px - C2CStartPointLeft_px;
-	leftRightOffset_px.setY(leftRightOffset_px.y() + toPixelsY(_RightStripROIsOffsetY_mm));
 
 	for ( const auto& leftC2CROI_px : _C2CROIArrayLeft_px )
 	{
@@ -232,7 +231,7 @@ void ProcessParameters::_recalculate()
 	_WaveROI_px.setRight(waveROIRight);
 	
 	// wave dots count
-	_WaveNumberOfColorDotsPerLine = lround(((float)_WaveROI_px.width() - (float)toPixelsX(2*(float)_WaveSideMarginsX_mm + (float)_WaveCircleDiameter_mm) ) / (float)toPixelsX(_WaveDistanceBetweenCircleCentersX_mm));
+	_WaveNumberOfColorDotsPerLine = lround((static_cast<float>(_WaveROI_px.width()) - static_cast<float>(toPixelsX(2 * static_cast<float>(_WaveSideMarginsX_mm) + (float)_WaveCircleDiameter_mm)) ) / (float)toPixelsX(_WaveDistanceBetweenCircleCentersX_mm));
 
 	emit updateCalculated();
 }
@@ -240,16 +239,16 @@ void ProcessParameters::_recalculate()
 void ProcessParameters::recalculateForFullImage()
 {
 	_LeftStripRect_px =  {	
-						toPixelsX(_ScanStartToPaperEdgeOffset_mm - _OffsetFromLeftEdge_mm), 
+						toPixelsX(_ScanStartToPaperEdgeOffset_mm - _LeftOffsetFromPaperEdgeX_mm), 
 						0, 
 						toPixelsX(_LeftStripWidth_mm), 
 						toPixelsY(_SubstrateHeight_mm) 
 					  };
 
 	_RightStripRect_px = {
-						toPixelsX(_ScanStartToPaperEdgeOffset_mm + _SubstrateWidth_mm -_OffsetFromLeftEdge_mm ),
+						toPixelsX(_ScanStartToPaperEdgeOffset_mm + _SubstrateWidth_mm -_LeftOffsetFromPaperEdgeX_mm ),
 						0,
-						toPixelsX(_LeftStripWidth_mm - _OffsetFromLeftEdge_mm ),
+						toPixelsX(_LeftStripWidth_mm - _LeftOffsetFromPaperEdgeX_mm ),
 						toPixelsY(_SubstrateHeight_mm) 
 					  };
 
@@ -268,7 +267,7 @@ void ProcessParameters::recalculateForOfflineLeftStrip()
 	_RightStripRect_px = {
 						0,
 						0,
-						toPixelsX(_LeftStripWidth_mm - _OffsetFromLeftEdge_mm ),
+						toPixelsX(_LeftStripWidth_mm - _LeftOffsetFromPaperEdgeX_mm ),
 						toPixelsY(_SubstrateHeight_mm) 
 					  };
 

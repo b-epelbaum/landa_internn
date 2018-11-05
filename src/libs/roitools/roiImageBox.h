@@ -8,6 +8,7 @@
 #include "roiRenderWidgetWave.h"
 
 #include "common/june_errors.h"
+#include "unitSwitchLabel.h"
 
 
 class roiImageBox : public QWidget
@@ -21,7 +22,10 @@ public:
 	~roiImageBox();
 
 	void createWidget (RENDER_WIDGET_TYPE rType);
+	void setpx2mmRatio(  double hRatio,double vRatio );
 	bool hasImage() const { return _renderWidget->hasImage(); }
+
+	void setC2CRoisLinedUp ( bool bVal );
 
 	void setFileMetaInfo (QString strPrompt, QString strFileSaveKey)
 	{
@@ -71,18 +75,33 @@ public:
 	}
 
 	// strip image functions
-	void setInitialROIs_Strip(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins, int c2cCircleDiameter ) const
+	void setInitialROIs_Strip(
+				  const QRect& is2sRc
+				, const QVector<QRect>& c2cRects
+				, int edgeX
+				, QSize i2sMargins
+				, QSize c2cMargins
+				, int c2cCircleDiameter
+				, bool bInteractive ) const
 	{
-		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setROIs( true, is2sRc, c2cRects, i2sMargins, c2cMargins, c2cCircleDiameter);
+		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setROIs( true, is2sRc, c2cRects, edgeX, i2sMargins, c2cMargins, c2cCircleDiameter, bInteractive);
 	}
 
-	void updateROIs_Strip(const QRect& is2sRc, const QVector<QRect>& c2cRects, QSize i2sMargins, QSize c2cMargins, int c2cCircleDiameter ) const
+	void updateROIs_Strip(
+				  const QRect& is2sRc
+				, const QVector<QRect>& c2cRects
+				, int edgeX
+				, QSize i2sMargins
+				, QSize c2cMargins
+				, int c2cCircleDiameter
+				, bool bInteractive) const
 	{
-		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setROIs( !_renderWidget->hasImage(), is2sRc, c2cRects, i2sMargins, c2cMargins, c2cCircleDiameter);
+		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setROIs( !_renderWidget->hasImage(), is2sRc, c2cRects, edgeX, i2sMargins, c2cMargins, c2cCircleDiameter, bInteractive);
 	}
 	
 	void updateScaleFromExternal( double glScale, double imageScale );
 	void updateScrollsFromExternal( int hScrollVal, int vScrollVal );
+	void updateUnits ( int oldUnits, int newUnits );
 
 protected:
 
@@ -91,13 +110,16 @@ protected:
 	void displayMetaData ();
 	void setZoom ( int zoomPercentage );
 
+	void updateCursorPositionText(QPoint pt, QSize size);
+
 signals :
 
 	void imageLoaded(QString filePath, LandaJune::CORE_ERROR error );
 
 	// strip image signals
-	void roiChanged_strip( const QVector<QPoint>& c2cPts );
-	void c2CrossMoved_strip( int idx, QPoint centerPointOnImage);
+	void roiChanged_strip_edge	( const QPoint i2spt,  const int edgeX );
+	void roiChanged_strip_i2s	( const QPoint i2spt );
+	void roiChanged_strip_c2c	( const QPoint i2spt, const QVector<QPoint>& c2cPts );
 
 	// full image signals
 	void roiChanged_full( const QVector<QPoint>& c2cPts );
@@ -108,6 +130,8 @@ signals :
 	// general signals
 	void scaleChanged(double glScale, double imageScale);
 	void scrollValuesChanged( int hScrollVal, int vScrollVal);
+	void unitsChanged ( int oldUnits, int newUnits);
+	void doubleClick ( QPoint pos );
 
 private slots:
 
@@ -119,6 +143,9 @@ private slots:
 	void onVerticalScrollbarValueChanged(int);
 
 	void onScaleChanged(double newGLScale, double newImageScale);
+	void onChangeUnits();
+
+	void onDoubleClick (QPoint pos);
 
 private:
 	Ui::roiImageFullBox ui;
@@ -133,4 +160,11 @@ private:
 
 	roiRenderWidgetBase * _renderWidget = nullptr;
 	QToolButton * _zoomButt = nullptr;
+
+	double _hRatio = 1.0;
+	double _vRatio = 1.0;
+	QPoint _lastPostionPt = {};
+	QSize _lastPostionSize = {};
+
+	unitSwitchLabel::LABEL_UNITS _currentUnits = unitSwitchLabel::MM;
 };
