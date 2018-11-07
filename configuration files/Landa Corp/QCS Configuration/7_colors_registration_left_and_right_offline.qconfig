@@ -6,8 +6,8 @@
     "C2CDistanceBetweenDotsY_mm": 3.048,
     "C2COffsetsArray": [
         {
-            "dx": 0.33866732,
-            "dy": 9.0932709
+            "dx": 0,
+            "dy": 9.00666832
         },
         {
             "dx": -0.25400049,
@@ -147,14 +147,14 @@
     "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
     "I2SHeight_mm": 4.64,
-    "I2SOffsetFromPaperEdgeX_mm": 4.40267516,
-    "I2SOffsetFromPaperEdgeY_mm": 7.27461672,
+    "I2SOffsetFromPaperEdgeX_mm": 5.0800098,
+    "I2SOffsetFromPaperEdgeY_mm": 7.3612193,
     "I2SROIMarginX_mm": 2.5,
     "I2SROIMarginY_mm": 2.5,
     "I2SWidth_mm": 3.13,
     "ImageMaxCount": -1,
     "JobID": 0,
-    "LeftOffsetFromPaperEdgeX_mm": 2.20133758,
+    "LeftOffsetFromPaperEdgeX_mm": 1.6086697699999999,
     "LeftStripWidth_mm": 11.93,
     "OfflineRegStripOnly": true,
     "OfflineTreatEvenFilesAsRight": true,

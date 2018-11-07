@@ -103,11 +103,11 @@ void offlineRegTab::buildControls()
 	_paramWidget->clear();
 	_paramWidget->setProcessParameters(_params);
 	
-	_colorCounterCombo = _paramWidget->addComboBox("Number of colors");
-	_colorCounterCombo->addItem("4");
-	_colorCounterCombo->addItem("7");
-	_colorCounterCombo->setCurrentText(QString::number(_params->ColorArray().size()));
-	connect(_colorCounterCombo, &QComboBox::currentTextChanged, this, &offlineRegTab::onColorCountChanged);
+	auto colorCombo = _paramWidget->addComboBox("Number of colors");
+	colorCombo->addItem("4");
+	colorCombo->addItem("7");
+	colorCombo->setCurrentText(QString::number(_params->ColorArray().size()));
+	connect(colorCombo, &QComboBox::currentTextChanged, this, &offlineRegTab::onColorCountChanged);
 	_paramWidget->addSpacer(20,15);
 	_paramWidget->addControl( "I2SROIMarginX_mm", "Triangle ROI margin X", true);
 	_paramWidget->addControl( "I2SROIMarginY_mm", "Triangle ROI margin Y", true);
@@ -190,6 +190,7 @@ void offlineRegTab::onEdgeChanged(const QPoint i2spt, const int edgeX)
 void offlineRegTab::onI2SROIChanged(const QPoint i2spt)
 {
 	recalculateI2SOffset(i2spt);
+	updateLeftROIs();
 	updateRightROIs();
 }
 
@@ -295,11 +296,11 @@ void offlineRegTab::recalculateEdgeOffset(const QPoint i2spt, int offset ) const
 
 void offlineRegTab::recalculateI2SOffset(const QPoint& pt) const
 {
-	auto const offsetFromLeftEdge_px = _params->LeftOffsetFromPaperEdgeX_mm();
-	auto const scanStartToPaperEdge_px = _params->ScanStartToPaperEdgeOffset_mm();
+	auto const offsetFromLeftEdge_mm = _params->LeftOffsetFromPaperEdgeX_mm();
+	auto const scanStartToPaperEdge_mm = _params->ScanStartToPaperEdgeOffset_mm();
 
 	QPointF mmPoint = { toMMX(pt.x()), toMMY(pt.y()) };
-	const auto overallOffset = scanStartToPaperEdge_px + offsetFromLeftEdge_px;
+	const auto overallOffset = scanStartToPaperEdge_mm + offsetFromLeftEdge_mm;
 	mmPoint.setX(mmPoint.x() - overallOffset);
 
 	//const auto oldI2SOffsetX = _params->I2SOffsetFromPaperEdgeX_mm();

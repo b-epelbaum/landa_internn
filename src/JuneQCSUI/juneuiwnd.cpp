@@ -834,6 +834,7 @@ void JuneUIWnd::onSaveConfig()
 
 	QJsonDocument doc(jObj);
     jsonFile.write(doc.toJson(QJsonDocument::Indented));
+	ICore::get()->getProcessParameters()->setDirty(false);
 }
 
 bool JuneUIWnd::checkDirtyParameters()

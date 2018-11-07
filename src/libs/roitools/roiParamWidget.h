@@ -20,17 +20,24 @@ public:
 	void enableControls( bool bEnable );
 	void clear() const;
 
-	void setProcessParameters (LandaJune::ProcessParametersPtr params) { _params = params; }
+	void setProcessParameters (LandaJune::ProcessParametersPtr params);
 	void setControlsHeight ( int controlHeight ) { _controlHeight = controlHeight; }
 	int getControlsHeight() const { return _controlHeight; }
 
 	void setControlsTextAlignment ( Qt::Alignment align ) { _textAlignH = align; }
 	Qt::Alignment getControlsTextAlignment () const { return _textAlignH; }
 
-	QWidget * addControl( QString strParamName, QString labelText, bool bSwitchableLabel );
+	QWidget * addControl( 
+				QString strParamName
+			  , QString labelText
+			  , bool bSwitchableLabel = true
+			  , bool bEditable = true
+			  , QString strToolTip = "" );
+
 	QDoubleSpinBox * addDoubleSpinBox(double currentValue, QString labelText, QString propertyName, bool bSwitchableLabel);
 	QComboBox * addComboBox(QString labelText);
 	QCheckBox * addCheckBox(QString labelText);
+	QLineEdit * addReadOnlyEdit( QVariant value, QString labelText, QString propertyName );
 
 	void addSpacer( int w, int h) const
 	{
@@ -51,11 +58,14 @@ signals:
 
 private slots:
 
+	void onParamsUpdated();
 	void onDoubleSpinnerValChanged( double newValue);
 	void onApply();
 	void onCancel();
 
 private:
+
+	QString getValueString (const QVariant& varVal) const;
 
 	Ui::roiParamWidget ui;
 	QList<unitSwitchLabel*> _switchLabelList;
@@ -64,6 +74,7 @@ private:
 
 	QWidget * _controlBox = nullptr;
 	QMap<QString, QDoubleSpinBox*> _spinBoxMap;
+	QMap<QString, QLineEdit*> _readonlyEditMap;
 
 	LandaJune::ProcessParametersPtr _params;
 };

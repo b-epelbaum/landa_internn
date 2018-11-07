@@ -83,7 +83,10 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 				, _i2sMarginX * 2
 				, _i2sMarginY * 2
 				, _c2cCircleDiameter
-				, _i2sROIRect.topLeft(), creationScale);
+				, _i2sROIRect.topLeft()
+				, I2S_COLOR
+				, SOLID_PEN
+				, creationScale);
 	}
 
 	if ( _edgeX != 0 )
@@ -94,20 +97,43 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 					, 4
 					, _imageSize.height()
 					, _c2cCircleDiameter
-					, QPoint(_edgeX, 0),  creationScale);
+					, QPoint(_edgeX, 0)
+					, PAGE_OFFSET_COLOR
+					, DOT_PEN
+					, creationScale);
 	}
 	
 	if (!_c2cROIRects.isEmpty())
 	{
-		auto c2cCross = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_FIRST, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[0].topLeft(), creationScale);
+		auto c2cCross = new moveableLayerWidget(
+					  this
+					, moveableLayerWidget::CROSS_SPOT_FIRST
+					, _c2cMarginX*2 + _c2cCircleDiameter
+					, _c2cMarginY*2 + _c2cCircleDiameter
+					, _c2cCircleDiameter
+					, _c2cROIRects[0].topLeft()
+					, C2C_COLOR
+					, SOLID_PEN
+					, creationScale);
+
 		c2cCross->setProperty("idx", 0);
 		_c2cCrosses.push_back(c2cCross);
 
 
 		for (auto i = 1; i < _c2cROIRects.size(); i++ )
 		{
-			auto c2c = new moveableLayerWidget(this , moveableLayerWidget::CROSS_SPOT_OTHER, _c2cMarginX*2 + _c2cCircleDiameter, _c2cMarginY*2 + _c2cCircleDiameter, _c2cCircleDiameter, _c2cROIRects[i].topLeft(), creationScale);
+			auto c2c = new moveableLayerWidget(
+						  this
+						, moveableLayerWidget::CROSS_SPOT_OTHER
+						, _c2cMarginX*2 + _c2cCircleDiameter
+						, _c2cMarginY*2 + _c2cCircleDiameter
+						, _c2cCircleDiameter
+						, _c2cROIRects[i].topLeft()
+						, C2C_COLOR
+						, SOLID_PEN
+						, creationScale);
 			c2c->setProperty("idx", i);
+			c2c->enableXChange(!_bC2CLinedUp);
 			_c2cCrosses.push_back(c2c);
 		}
 	}
@@ -118,9 +144,12 @@ void roiRenderWidgetStrip::createCrossHairs( float creationScale )
 
 	for ( auto elem : _allCrossesArray)
 	{
-		connect (elem, &moveableLayerWidget::crossMoving, this, &roiRenderWidgetBase::onCrossMoving );
-		connect (elem, &moveableLayerWidget::movingOver, this, &roiRenderWidgetBase::onCrossMovingOver );
-		connect (elem, &moveableLayerWidget::crossMoved, this, &roiRenderWidgetBase::onROIControlPointMoved );
+		if (elem )
+		{
+			connect (elem, &moveableLayerWidget::crossMoving, this, &roiRenderWidgetBase::onCrossMoving );
+			connect (elem, &moveableLayerWidget::movingOver, this, &roiRenderWidgetBase::onCrossMovingOver );
+			connect (elem, &moveableLayerWidget::crossMoved, this, &roiRenderWidgetBase::onROIControlPointMoved );
+		}
 	}
 	updateInternalLayers();
 }
@@ -179,12 +208,12 @@ void roiRenderWidgetStrip::reportC2Cs(moveableLayerWidget* sender, const QPoint&
 	emit roiChanged_c2c(i2sPoint, c2cpts);
 }
 
-void roiRenderWidgetStrip::paintROIRects(std::function<void(const QRect&)> func)
+void roiRenderWidgetStrip::paintROIRects( glDrawFunc func )
 {
-	func(_i2sROIRect);
+	func(_i2sROIRect, true, I2S_COLOR_FRAME, false, JGL_NO_COLOR);
 	for (auto const& rc : _c2cROIRects) 
 	{
-		func(rc);
+		func(rc, true, C2C_COLOR_FRAME, false, JGL_NO_COLOR);
 	}
 }
 

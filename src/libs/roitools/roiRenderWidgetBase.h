@@ -16,6 +16,34 @@ QT_FORWARD_DECLARE_CLASS(QScrollBar)
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 QT_FORWARD_DECLARE_CLASS(QOpenGLTexture)
 
+struct JGL_COLOR
+{
+	float _r = 0;
+	float _g = 0;
+	float _b = 0;
+	float _alpha = 0;
+};
+
+static const JGL_COLOR JGL_NO_COLOR  = {};
+
+static const QColor		I2S_COLOR =				{255,0,0,255};
+static const JGL_COLOR	I2S_COLOR_FRAME =		{1.0,	0.0,	0.0,	1.0};
+static const QColor		C2C_COLOR =				{169,	168,	0,		255};
+static const JGL_COLOR	C2C_COLOR_FRAME =		{0.55,	0.55,	0.0,	1.0};
+static const QColor		STRIP_MARGIN_COLOR =	{0,		0,		255,	255};
+static const JGL_COLOR	STRIP_COLOR_FILL =		{0.0,	0.0,	1.0,	0.2};
+static const QColor		PAGE_OFFSET_COLOR =		{255,	255,	0,		255};
+
+static const Qt::PenStyle SOLID_PEN =		Qt::SolidLine;
+static const Qt::PenStyle DOT_PEN =			Qt::DotLine;
+
+
+
+using glDrawFunc = std::function<void(const QRect& rc, 
+					bool bDrawRect,			
+					JGL_COLOR rectColor,
+					bool bFillBG,
+					JGL_COLOR)>;
 
 class roiRenderWidgetBase : public QOpenGLWidget, protected QOpenGLFunctions
 {
@@ -66,7 +94,7 @@ protected:
 
 	virtual void cleanup();
 	virtual void createCrossHairs( float creationScale ) {}
-	virtual void paintROIRects( std::function<void(const QRect&)> func ) {}
+	virtual void paintROIRects( glDrawFunc func ) {}
 	virtual void GLpaintROIs(QMatrix4x4& modelData );
 	virtual QVector<QPoint> gatherROICenterPoints();
 

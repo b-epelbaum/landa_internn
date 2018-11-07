@@ -53,6 +53,8 @@ namespace LandaJune
 				return _bDirty;
 			}
 
+			void setDirty( const bool bVal ) { _bDirty = bVal; }
+
 			virtual bool load (QString fileName, QString& error);
 			virtual QJsonObject toJson();
 			virtual bool fromJson(const QJsonObject& obj, bool bRootObject, QString& error );

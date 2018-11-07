@@ -93,11 +93,15 @@ void roiImageBox::setpx2mmRatio(double hRatio, double vRatio)
 	_vRatio = vRatio;
 }
 
-void roiImageBox::setC2CRoisLinedUp ( bool bVal )
+void roiImageBox::setC2CRoisLinedUp ( bool bVal ) const
 {
 	if (_renderWidgetType == RENDER_STRIP )
 	{
-		static_cast<roiRenderWidgetStrip*>(_renderWidget)->setC2CRoisLinedUp(bVal);
+		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setC2CRoisLinedUp(bVal);
+	}
+	else if (_renderWidgetType == RENDER_FULL )
+	{
+		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setC2CRoisLinedUp(bVal);
 	}
 }
 
@@ -107,19 +111,24 @@ void roiImageBox::createRenderWidget()
 	if (_renderWidgetType == RENDER_STRIP )
 	{
 		_renderWidget = new roiRenderWidgetStrip(this);
-		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_edge, this, &roiImageBox::roiChanged_strip_edge);
-		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_i2s, this, &roiImageBox::roiChanged_strip_i2s);
-		connect(static_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_c2c, this, &roiImageBox::roiChanged_strip_c2c);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_edge, this, &roiImageBox::roiChanged_strip_edge);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_i2s, this, &roiImageBox::roiChanged_strip_i2s);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_c2c, this, &roiImageBox::roiChanged_strip_c2c);
 	}
 	else if (_renderWidgetType == RENDER_FULL )
 	{
 		_renderWidget = new roiRenderWidgetFull(this);
-		//connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_full);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_leftStripEdge, this, &roiImageBox::roiChanged_full_leftStripEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_rightStripEdge, this, &roiImageBox::roiChanged_full_rightStripEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_pageStripEdge, this, &roiImageBox::roiChanged_full_pageEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_i2s, this, &roiImageBox::roiChanged_full_i2s);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_c2c, this, &roiImageBox::roiChanged_full_c2c);
 	}
 	else if (_renderWidgetType == RENDER_WAVE )
 	{
 		_renderWidget = new roiRenderWidgetWave(this);
-		//connect(_renderWidget, &roiRenderWidgetBase::roiChanged, this, &roiImageBox::roiChanged_wave);
+		connect(dynamic_cast<roiRenderWidgetWave*>(_renderWidget), &roiRenderWidgetWave::waveTriangleChanged, this,
+		        &roiImageBox::roiChanged_waveTriangle);
 	}
 
 	if (_renderWidget != nullptr )
@@ -204,7 +213,7 @@ void roiImageBox::setZoom(int zoomPercentage)
 }
 
 
-void roiImageBox::updateScaleFromExternal(double glScale, double imageScale)
+void roiImageBox::updateScaleFromExternal(double glScale, double imageScale) const
 {
 	if (!_renderWidget->hasImage())
 		return;
@@ -213,7 +222,7 @@ void roiImageBox::updateScaleFromExternal(double glScale, double imageScale)
 	_renderWidget->updateScaleFromExternal(glScale, imageScale);
 }
 
-void roiImageBox::updateScrollsFromExternal(int hScrollVal, int vScrollVal)
+void roiImageBox::updateScrollsFromExternal(int hScrollVal, int vScrollVal) const
 {
 	if (!_renderWidget->hasImage())
 		return;

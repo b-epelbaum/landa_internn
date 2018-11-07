@@ -6,11 +6,21 @@
 
 #define SPOT_RADIUS 9
 
-moveableLayerWidget::moveableLayerWidget(QWidget* parent, CROSS_TYPE crossType, int width, int height, int circleDiameter, QPoint startPt, float initScale)
+moveableLayerWidget::moveableLayerWidget(QWidget* parent
+			, CROSS_TYPE crossType
+			, int width
+			, int height
+			, int circleDiameter
+			, QPoint startPt
+			, QColor lineColor
+			, Qt::PenStyle penStyle
+			, float initScale)
 	: QWidget(parent)
-	, _crossType(crossType)
 	, _initialScale(initScale)
+	, _crossType(crossType)
 	, _circleDiameter(circleDiameter)
+	, _lineColor(lineColor)
+	, _penStyle(penStyle)
 {
 	setMouseTracking(true);
 
@@ -50,8 +60,7 @@ void moveableLayerWidget::showCross(bool bShow)
 }
 
 moveableLayerWidget::~moveableLayerWidget()
-{
-}
+= default;
 
 
 QPoint moveableLayerWidget::getCenterPoint() const
@@ -64,32 +73,30 @@ QPoint moveableLayerWidget::getCenterPoint(QPoint topLeft) const
 	return QPoint(topLeft.x() + rect().width() / 2, topLeft.y() + rect().height() / 2);
 }
 
-void moveableLayerWidget::paintI2SCross(QPainter& painter)
+void moveableLayerWidget::paintI2SCross(QPainter& painter) const
 {
 	//auto const ratio =  static_cast<double>(rect().width()) / static_cast<double>(_originalSize.width());
 
-	const auto leftOffset = (_originalSize.width() / 4 ) * _scaleRatio;
-	const auto topOffset =  (_originalSize.height() / 4 ) * _scaleRatio;
+	const auto leftOffset = (static_cast<float>(_originalSize.width()) / 4 ) * _scaleRatio;
+	const auto topOffset =  (static_cast<float>(_originalSize.height()) / 4 ) * _scaleRatio;
 
-	int penWidth = _scaleRatio * 2;
-	
-	//painter.fillRect(rect(), QColor(0,0,255, 120));
+	const auto penWidth = _scaleRatio * 2;
 	QPen pen ((QBrush
-			(QColor(255,50,0,255))
+			(_lineColor)
 		)
 		, penWidth
 	);
-
+	pen.setStyle(_penStyle);
 	painter.setPen (pen);
 
 	painter.drawLine(
-			QPoint(leftOffset, rect().height() / 2), 
-			QPoint(rect().right() - leftOffset, rect().height() / 2)
+			QPointF(static_cast<float>(leftOffset), static_cast<float>(rect().height()) / 2), 
+			QPointF(static_cast<float>(rect().right()) - leftOffset, static_cast<float>(rect().height()) / 2)
 	);
 
 	painter.drawLine(
-				QPoint(rect().width() / 2, topOffset), 
-				QPoint(rect().width() / 2, rect().bottom() - topOffset)
+				QPointF(static_cast<float>(rect().width()) / 2, static_cast<float>(topOffset)), 
+				QPointF(static_cast<float>(rect().width()) / 2, static_cast<float>(rect().bottom()) - topOffset)
 		);
 
 	pen.setStyle(Qt::DotLine);
@@ -98,30 +105,31 @@ void moveableLayerWidget::paintI2SCross(QPainter& painter)
 	//painter.fillRect(rect(), QColor(0,0,255,128));
 
 	painter.drawLine(
-			QPoint(0, rect().height() / 2), 
-			QPoint(leftOffset, rect().height() / 2)
+			QPointF(0, static_cast<float>(rect().height()) / 2), 
+			QPointF(static_cast<float>(leftOffset), static_cast<float>(rect().height()) / 2)
 	);
 
 
 	painter.drawLine(
-				QPoint(rect().width() / 2, 0), 
-				QPoint(rect().width() / 2, topOffset)
+				QPointF(static_cast<float>(rect().width()) / 2, 0), 
+				QPointF(static_cast<float>(rect().width()) / 2, static_cast<float>(topOffset))
 	);
 }
 
 
-void moveableLayerWidget::paintC2CCross(QPainter& painter)
+void moveableLayerWidget::paintC2CCross(QPainter& painter) const
 {
 	const auto leftOffset = static_cast<float>(_originalSize.width()) / 4 * _scaleRatio;
 	const auto topOffset =  static_cast<float>(_originalSize.height()) / 4 * _scaleRatio;
 
 	const auto penWidth = _scaleRatio * 2;
 
-	const QPen pen ((QBrush
-			(QColor(255,0,0,255))
+	QPen pen ((QBrush
+			(_lineColor)
 		)
 		, penWidth
 	);
+	pen.setStyle(_penStyle);
 
 	painter.setPen (pen);
 
@@ -145,7 +153,7 @@ void moveableLayerWidget::paintC2CCross(QPainter& painter)
 						static_cast<float>(_circleDiameter) / 2 * _scaleRatio );
 }
 
-void moveableLayerWidget::paintEdgeCross(QPainter& painter)
+void moveableLayerWidget::paintEdgeCross(QPainter& painter) const
 {
 	const auto leftOffset = static_cast<float>(_originalSize.width()) / static_cast<float>(2) * _scaleRatio;
 	const auto imHeight =  _originalSize.height() * _scaleRatio;
@@ -153,11 +161,12 @@ void moveableLayerWidget::paintEdgeCross(QPainter& painter)
 	const auto penWidth = _scaleRatio * 2;
 	
 	//painter.fillRect(rect(), QColor(0,0,255, 120));
-	const QPen pen ((QBrush
-			(QColor(180,50,0,255))
+	QPen pen ((QBrush
+			(_lineColor)
 		)
 		, penWidth
 	);
+	pen.setStyle(_penStyle);
 
 	painter.setPen (pen);
 	painter.drawLine(
@@ -206,7 +215,6 @@ void moveableLayerWidget::mouseMoveEvent(QMouseEvent *event)
 			_lastDropPosition.setX(_staticROIXValue);
 		}
 		move(_lastDropPosition);
-		qDebug () << " ---- MOVE POSITION : " << _lastDropPosition;
 		event->accept();
 		emit crossMoving(getCenterPoint(geometry().topLeft()));
 	}

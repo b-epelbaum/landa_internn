@@ -6,24 +6,24 @@
     "C2CDistanceBetweenDotsY_mm": 3.048,
     "C2COffsetsArray": [
         {
-            "dx": -0.28,
-            "dy": 9.76
+            "dx": -0.42333414999999996,
+            "dy": 9.0932709
         },
         {
-            "dx": -0.28,
-            "dy": 168.6
+            "dx": -0.16933366,
+            "dy": 168.70182584
         },
         {
-            "dx": -0.28,
-            "dy": 327.44
+            "dx": -0.16933366,
+            "dy": 327.53095756
         },
         {
-            "dx": -0.28,
-            "dy": 486.28
+            "dx": -0.16933366,
+            "dy": 486.36008928
         },
         {
-            "dx": -0.28,
-            "dy": 645.12
+            "dx": -0.16933366,
+            "dy": 645.189221
         }
     ],
     "C2CROIMarginX_mm": 2.5,
@@ -109,10 +109,10 @@
     "I2SWidth_mm": 2.9,
     "ImageMaxCount": 10,
     "JobID": 0,
+    "LeftOffsetFromPaperEdgeX_mm": 2.94,
     "LeftStripWidth_mm": 14.3,
     "OfflineRegStripOnly": false,
     "OfflineTreatEvenFilesAsRight": false,
-    "OffsetFromLeftEdge_mm": 1.5,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,

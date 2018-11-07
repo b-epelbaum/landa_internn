@@ -485,8 +485,11 @@ QVector<QPoint> roiRenderWidgetBase::gatherROICenterPoints()
 
 	for ( auto cr : _allCrossesArray)
 	{
-		const auto calcTL = cr->mapToParent (cr->rect().topLeft());
-		retVal <<  fromWidget2OriginalImagePt(cr->getCenterPoint (calcTL));
+		if (cr)
+		{
+			const auto calcTL = cr->mapToParent (cr->rect().topLeft());
+			retVal <<  fromWidget2OriginalImagePt(cr->getCenterPoint (calcTL));
+		}
 	}
 
 	return retVal;
@@ -498,28 +501,66 @@ void roiRenderWidgetBase::GLpaintROIs(QMatrix4x4& modelData )
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf(modelData.data());
 
-	auto imageScale = _glScale / _imageScaleRatio;
-//	if ( imageScale > 1 && imageScale < 2 )
-	
+	const auto imageScale = _glScale / _imageScaleRatio;
+	glPushAttrib(GL_LINE_BIT | GL_POLYGON_BIT);
 	glLineWidth(imageScale * 2);
-	glColor3d(1, 0, 0);
+	glPointSize(imageScale * 2);
 
-	const auto drawLambda = [this](const QRect& rc)
+	const auto drawLambda = [this](const QRect& rc, 
+					bool bDrawRect,			
+					JGL_COLOR rectColor,
+					bool bFillBG,
+					JGL_COLOR fillColor
+		)
 	{
 		GLfloat l = 2 * rc.left() / GLfloat(_imageSize.width()) - 1;
 		GLfloat t = 1 - 2 * rc.top() / GLfloat(_imageSize.height());
 		GLfloat r = 2 * rc.right() / GLfloat(_imageSize.width()) - 1;
 		GLfloat b = 1 - 2 * rc.bottom() / GLfloat(_imageSize.height());
 
-		glBegin(GL_LINE_LOOP);
-		glVertex3f(l, t, 0.1);
-		glVertex3f(r, t, 0.1);
-		glVertex3f(r, b, 0.1);
-		glVertex3f(l, b, 0.1);
-		glEnd();
+		if (bDrawRect)
+		{
+			glColor4d(rectColor._r,rectColor._g,rectColor._b,rectColor._alpha);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_POINT);
+			glBegin(GL_QUADS);
+			glVertex3f(l, t, 0.1);
+			glVertex3f(l, b, 0.1);
+			glVertex3f(r, b, 0.1);
+			glVertex3f(r, t, 0.1);
+			glEnd();
+
+			glColor4d(rectColor._r,rectColor._g,rectColor._b,rectColor._alpha);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glBegin(GL_QUADS);
+			glVertex3f(l, t, 0.1);
+			glVertex3f(l, b, 0.1);
+			glVertex3f(r, b, 0.1);
+			glVertex3f(r, t, 0.1);
+			glEnd();
+		}
+
+		if ( bFillBG )
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glColor4d(fillColor._r,fillColor._g,fillColor._b,fillColor._alpha);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glBegin(GL_QUADS);
+			glVertex3f(l, t, 0.0);
+			glVertex3f(l, b, 0.0);
+			glVertex3f(r, b, 0.0);
+			glVertex3f(r, t, 0.0);
+			glEnd();
+			glDisable(GL_BLEND);
+		}
 	};
 
 	paintROIRects(drawLambda);
+
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	glPopAttrib();
+	
 }
 
 QMatrix4x4 roiRenderWidgetBase::getModelViewProjMatrix(void) 

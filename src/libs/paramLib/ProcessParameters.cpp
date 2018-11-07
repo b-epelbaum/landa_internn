@@ -46,6 +46,7 @@ ProcessParameters::ProcessParameters(const QJsonObject& obj)
 void ProcessParameters::reset()
 {
 	*this = {};
+	_bDirty = false;
 }
 
 void ProcessParameters::_recalculate()
@@ -78,6 +79,7 @@ void ProcessParameters::_recalculate()
 	////////////////////////////////////////////////////////////////////
 	// left edge
 	_LeftOffsetFromPaperEdgeX_px = toPixelsX(_LeftOffsetFromPaperEdgeX_mm);
+	_ScanStartToPaperEdgeOffset_px = toPixelsX(_ScanStartToPaperEdgeOffset_mm);
 
 	////////////////////////////////////////////////////////////////////
 	// i2st triangles
@@ -246,7 +248,7 @@ void ProcessParameters::recalculateForFullImage()
 					  };
 
 	_RightStripRect_px = {
-						toPixelsX(_ScanStartToPaperEdgeOffset_mm + _SubstrateWidth_mm -_LeftOffsetFromPaperEdgeX_mm ),
+						toPixelsX(_ScanStartToPaperEdgeOffset_mm + _SubstrateWidth_mm - _LeftStripWidth_mm  + _LeftOffsetFromPaperEdgeX_mm ),
 						0,
 						toPixelsX(_LeftStripWidth_mm - _LeftOffsetFromPaperEdgeX_mm ),
 						toPixelsY(_SubstrateHeight_mm) 

@@ -11,12 +11,15 @@ public:
 
 private slots :
 
-	void openFullImageTool();
-	void openWaveTool();
-	void openStripsTool();
+	void openFullImageTool() const;
+	void openWaveTool() const;
+	void openStripsTool() const;
 
 	void onRegOfflineDone(bool bApply);
+	void onFullImageDone(bool bApply);
+	void onWaveDone(bool bApply);
 	void onWantsFullScreen ( bool bFullScreen );
+	
 
 private:
 	Ui::roiToolMainWindow ui{};

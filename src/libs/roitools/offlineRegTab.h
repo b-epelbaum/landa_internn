@@ -64,15 +64,13 @@ private:
 
 	Ui::offlineRegTab ui;
 
-	roiImageBox * _leftImageBox;
-	roiImageBox * _rightImageBox;
-	roiParamWidget * _paramWidget;
+	roiImageBox *		_leftImageBox;
+	roiImageBox *		_rightImageBox;
+	roiParamWidget *	_paramWidget;
 
 	double _Pixel2MM_X = 0.0;
 	double _Pixel2MM_Y = 0.0;
 
-	QComboBox * _colorCounterCombo = nullptr;
-	
 	LandaJune::ProcessParametersPtr _params;
 	bool _bFullScreen = false;
 

@@ -12,4 +12,9 @@
     <file>Resources/strips.png</file>
     <file>Resources/wave.png</file>
   </qresource>
+  <qresource prefix="tips">
+    <file>Resources/tips/left_offset.png</file>
+    <file>Resources/tips/scan_start.png</file>
+    <file>Resources/tips/strip_width.png</file>
+  </qresource>
 </RCC>

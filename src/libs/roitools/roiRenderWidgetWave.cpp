@@ -12,10 +12,15 @@ roiRenderWidgetWave::~roiRenderWidgetWave()
 void roiRenderWidgetWave::cleanup()
 {
 	roiRenderWidgetBase::cleanup();
+	cleanLocalObjects();
+}
 
-	if (_waveTriangleCrossLeft != nullptr )
-		delete _waveTriangleCrossLeft;
-	_waveTriangleCrossLeft = nullptr;
+void roiRenderWidgetWave::cleanLocalObjects()
+{
+	if (_waveTriangleCross != nullptr )
+		delete _waveTriangleCross;
+	_waveTriangleCross = nullptr;
+	_allCrossesArray.clear();
 }
 
 void roiRenderWidgetWave::setROIs(   bool bIsInitialROI
@@ -38,29 +43,31 @@ void roiRenderWidgetWave::setROIs(   bool bIsInitialROI
 
 void roiRenderWidgetWave::createCrossHairs( float creationScale )
 {		
-	if (_waveTriangleCrossLeft != nullptr )
-		delete _waveTriangleCrossLeft;
-	
-	_waveTriangleCrossLeft = nullptr;
-	_allCrossesArray.clear();
+	cleanLocalObjects();
 
 	if (!_waveTriangleROIRc.isEmpty())
 	{
-		_waveTriangleCrossLeft = new moveableLayerWidget(
+		_waveTriangleCross = new moveableLayerWidget(
 				  this
 				, moveableLayerWidget::CROSS_I2S
 				, _waveTriangleMarginX * 2
 				, _waveTriangleMarginY * 2
 				, 0
-				, _waveTriangleROIRc.topLeft(), creationScale);
+				, _waveTriangleROIRc.topLeft()
+				, I2S_COLOR
+				, SOLID_PEN
+				, creationScale);
 	}
 
-	_allCrossesArray << _waveTriangleCrossLeft;
+	_allCrossesArray << _waveTriangleCross;
 	for ( auto elem : _allCrossesArray)
 	{
-		connect (elem, &moveableLayerWidget::crossMoving, this, &roiRenderWidgetBase::onCrossMoving );
-		connect (elem, &moveableLayerWidget::movingOver, this, &roiRenderWidgetBase::onCrossMovingOver );
-		connect (elem, &moveableLayerWidget::crossMoved, this, &roiRenderWidgetBase::onROIControlPointMoved );
+		if ( elem)
+		{
+			connect (elem, &moveableLayerWidget::crossMoving, this, &roiRenderWidgetBase::onCrossMoving );
+			connect (elem, &moveableLayerWidget::movingOver, this, &roiRenderWidgetBase::onCrossMovingOver );
+			connect (elem, &moveableLayerWidget::crossMoved, this, &roiRenderWidgetBase::onROIControlPointMoved );
+		}
 	}
 	updateInternalLayers();
 }
@@ -72,21 +79,18 @@ void roiRenderWidgetWave::handleROIControlPointMoved(moveableLayerWidget* sender
 	sender->setTopLeftOnOriginalImage(newLeftToPos);
 
 	// update rectangle for draw
-	if (sender == _waveTriangleCrossLeft )
+	if (sender == _waveTriangleCross )
 	{
 		_waveTriangleROIRc = QRect(newLeftToPos.x(), newLeftToPos.y(), _waveTriangleROIRc.width(), _waveTriangleROIRc.height());
 	}
 
-	// gather all ROI control points
-	const auto roiPts = gatherROICenterPoints();
-
 	// send them up
-	emit roiChanged(roiPts);
+	emit waveTriangleChanged(fromWidget2OriginalImagePt(centerPos));
 	update();
 }
 
-void roiRenderWidgetWave::paintROIRects(std::function<void(const QRect&)> func)
+void roiRenderWidgetWave::paintROIRects( glDrawFunc func )
 {
-	func(_waveTriangleROIRc);
-	func(_waveROIRc);
+	func(_waveTriangleROIRc, true, I2S_COLOR_FRAME, false, JGL_NO_COLOR);
+	func(_waveROIRc, true, C2C_COLOR_FRAME, false, JGL_NO_COLOR);
 }

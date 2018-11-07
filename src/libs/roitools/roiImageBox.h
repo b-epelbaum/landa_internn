@@ -25,7 +25,7 @@ public:
 	void setpx2mmRatio(  double hRatio,double vRatio );
 	bool hasImage() const { return _renderWidget->hasImage(); }
 
-	void setC2CRoisLinedUp ( bool bVal );
+	void setC2CRoisLinedUp ( bool bVal ) const;
 
 	void setFileMetaInfo (QString strPrompt, QString strFileSaveKey)
 	{
@@ -39,22 +39,51 @@ public:
 							, const QRect& is2sRcRight	
 							, const QVector<QRect>& c2cRectsLeft
 							, const QVector<QRect>& c2cRectsRight
+							, QRect leftStripRect
+							, QRect rightStripRect
+							, const int pageOffsetX
 							, QSize i2sMargins
 							, QSize c2cMargins
 							, int c2cCircleDiameter  ) const
 	{
-		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setROIs( true, is2sRcLeft, is2sRcRight, c2cRectsLeft, c2cRectsRight, i2sMargins,c2cMargins, c2cCircleDiameter );
+		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setROIs( true, 
+																		is2sRcLeft, 
+																		is2sRcRight, 
+																		c2cRectsLeft, 
+																		c2cRectsRight, 
+																		leftStripRect,
+																		rightStripRect,
+																		pageOffsetX, 
+																		i2sMargins,
+																		c2cMargins, 
+																		c2cCircleDiameter, 
+																		true );
 	}
 
 	void updateROIs_Full(const QRect& is2sRcLeft
 							, const QRect& is2sRcRight	
 							, const QVector<QRect>& c2cRectsLeft
 							, const QVector<QRect>& c2cRectsRight
+							, QRect leftStripRect
+							, QRect rightStripRect
+							, const int pageOffsetX
 							, QSize i2sMargins
 							, QSize c2cMargins
-							, int c2cCircleDiameter) const
+							, int c2cCircleDiameter
+							, bool updateBoth) const
 	{
-		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setROIs( !_renderWidget->hasImage(), is2sRcLeft, is2sRcRight, c2cRectsLeft, c2cRectsRight, i2sMargins,c2cMargins, c2cCircleDiameter );
+		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setROIs( !_renderWidget->hasImage(), 
+																		is2sRcLeft, 
+																		is2sRcRight, 
+																		c2cRectsLeft, 
+																		c2cRectsRight, 
+																		leftStripRect,
+																		rightStripRect,
+																		pageOffsetX, 
+																		i2sMargins,
+																		c2cMargins, 
+																		c2cCircleDiameter, 
+																		updateBoth );
 	}
 
 	// wave image functions
@@ -99,8 +128,8 @@ public:
 		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setROIs( !_renderWidget->hasImage(), is2sRc, c2cRects, edgeX, i2sMargins, c2cMargins, c2cCircleDiameter, bInteractive);
 	}
 	
-	void updateScaleFromExternal( double glScale, double imageScale );
-	void updateScrollsFromExternal( int hScrollVal, int vScrollVal );
+	void updateScaleFromExternal( double glScale, double imageScale ) const;
+	void updateScrollsFromExternal( int hScrollVal, int vScrollVal ) const;
 	void updateUnits ( int oldUnits, int newUnits );
 
 protected:
@@ -122,10 +151,14 @@ signals :
 	void roiChanged_strip_c2c	( const QPoint i2spt, const QVector<QPoint>& c2cPts );
 
 	// full image signals
-	void roiChanged_full( const QVector<QPoint>& c2cPts );
+	void roiChanged_full_leftStripEdge	( const QPoint i2spt,  const int edgeX );
+	void roiChanged_full_rightStripEdge	( const QPoint i2spt,  const int edgeX );
+	void roiChanged_full_pageEdge	( const QPoint i2spt,  const int edgeX );
+	void roiChanged_full_i2s	( const QPoint i2spt );
+	void roiChanged_full_c2c	( const QPoint i2spt, const QVector<QPoint>& c2cPts );
 
 	// full image signals
-	void roiChanged_wave( const QVector<QPoint>& c2cPts );
+	void roiChanged_waveTriangle( QPoint newControlPoint );
 
 	// general signals
 	void scaleChanged(double glScale, double imageScale);

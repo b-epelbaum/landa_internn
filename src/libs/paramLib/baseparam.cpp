@@ -40,6 +40,7 @@ BaseParameters::BaseParameters()
 void BaseParameters::reset()
 {
 	*this = {};
+	_bDirty = false;
 }
 
 BaseParameters::BaseParameters(const BaseParameters& other)

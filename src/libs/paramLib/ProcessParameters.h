@@ -144,23 +144,24 @@ namespace LandaJune
 			// calculated values
 
 			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
-			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,				int,	0)
+			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(ScanStartToPaperEdgeOffset_px,		int,	0	)
 			DECLARE_CALCULATED_PROPERTY(LeftOffsetFromPaperEdgeX_px,		int,	0)
 			
-			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,				QRect, {})
-			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,				QRect, {})
+			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,					QRect, {})
+			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,					QRect, {})
 
-			DECLARE_CALCULATED_PROPERTY(I2SCornerLeft_px,				QPoint, {})
-			DECLARE_CALCULATED_PROPERTY(I2SCornerRight_px,				QPoint, {})
+			DECLARE_CALCULATED_PROPERTY(I2SCornerLeft_px,					QPoint, {})
+			DECLARE_CALCULATED_PROPERTY(I2SCornerRight_px,					QPoint, {})
 
-			DECLARE_CALCULATED_PROPERTY(I2SRectLeft_px,					QRect, {})
-			DECLARE_CALCULATED_PROPERTY(I2SRectRight_px,				QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2SRectLeft_px,						QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2SRectRight_px,					QRect, {})
 
-			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,						int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,						int,	0)
 
-			DECLARE_CALCULATED_PROPERTY(C2CMarginX_px,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(C2CMarginY_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(C2CMarginX_px,						int,	0)
+			DECLARE_CALCULATED_PROPERTY(C2CMarginY_px,						int,	0)
 
 
 			// TODO : This value is never calculated, but used in algorithm : check

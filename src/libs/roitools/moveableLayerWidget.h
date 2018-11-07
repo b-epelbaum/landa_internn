@@ -9,7 +9,17 @@ class moveableLayerWidget : public QWidget
 public:
 
 	enum CROSS_TYPE {CROSS_I2S, CROSS_SPOT_FIRST, CROSS_SPOT_OTHER, CROSS_EDGE };
-	moveableLayerWidget(QWidget* parent, CROSS_TYPE crossType, int width, int height, int circleDiameter, QPoint startPt, float initScale );
+	moveableLayerWidget(
+			  QWidget* parent
+			, CROSS_TYPE crossType
+			, int width
+			, int height
+			, int circleDiameter
+			, QPoint startPt
+			, QColor lineColor
+			, Qt::PenStyle penStyle
+			, float initScale );
+
 	~moveableLayerWidget();
 	
 	void showCross(bool bShow);
@@ -47,9 +57,9 @@ signals:
 
 protected:
 
-	void paintI2SCross(QPainter& painter);
-	void paintC2CCross(QPainter& painter);
-	void paintEdgeCross(QPainter& painter);
+	void paintI2SCross(QPainter& painter) const;
+	void paintC2CCross(QPainter& painter) const;
+	void paintEdgeCross(QPainter& painter) const;
 
 	void paintEvent(QPaintEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
@@ -75,4 +85,7 @@ protected:
 	QPointF _topLeftOnActualImageInFloat;
 	float	_scaleRatio = 1.0;
 	bool _canChangeX = true;
+
+	QColor _lineColor;
+	Qt::PenStyle _penStyle = Qt::SolidLine;
 };

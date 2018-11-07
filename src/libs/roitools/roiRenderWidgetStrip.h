@@ -27,7 +27,7 @@ protected:
 	void cleanup() override;
 	void createCrossHairs( float creationScale ) override;
 	void handleROIControlPointMoved( moveableLayerWidget* sender, QPoint topLeft, QPoint centerPos ) override;
-	void paintROIRects( std::function<void(const QRect&)> func ) override;
+	void paintROIRects( glDrawFunc func ) override;
 
 	void reportEdgeChange(const QPoint& i2sPoint);
 	void reportI2S(const QPoint& i2sPoint, const QPoint& newLeftTop);

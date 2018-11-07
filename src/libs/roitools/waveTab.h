@@ -4,6 +4,7 @@
 #include "ui_waveTab.h"
 #include "roiParamWidget.h"
 #include "common/type_usings.h"
+#include "baseparam.h"
 
 class roiWidget;
 
@@ -16,28 +17,39 @@ public:
 	~waveTab();
 	
 	void setParameters (roiParamWidget* paramWidget, LandaJune::ProcessParametersPtr params );
+	LandaJune::ProcessParametersPtr getEditedParameters () const { return std::move(_params); }
 
 private slots:
 
 	void onImageLoaded ( QString strPath, LandaJune::CORE_ERROR );
 	void onPropertyChanged (QString propName, QVariant newVal );
-	void onROIChanged( const QVector<QPoint> ptArray );
+
+	void onWaveTriangleChanged( QPoint newControlPoint );
+
+	void onColorCountChanged ( const QString&  newVal );
+
+	void onUnitsChanged ( int oldUnits, int newUnits );
+
+	void onDoubleClick( QPoint pos );
+	void onEditDone( bool bApply );
+
 
 signals :
 
 	void editDone( bool bApply );
+	void wantFullScreen ( bool bFullScreen );
 
 private:
+
+	void buildControls();
+	void setFullScreen ( bool bSet );
+	void setupInitialROIs() const;
+	void updateROIs() const;
 
 	double toMMX(int val_pxx) const;
 	double toMMY(int val_pxy) const;
 
-	void buildControls();
-	void setupInitialROIs();
-	void updateROIs();
-
-	void recalculateOffsets (const QVector<QPoint>& pts);
-	void recalculateI2SOffset(const QPoint& pt);
+	void recalculateWaveTriangleOffset(const QPoint& pt) const;
 
 	Ui::waveTab ui;
 
@@ -48,4 +60,7 @@ private:
 	double _Pixel2MM_Y = 0.0;
 
 	LandaJune::ProcessParametersPtr _params;
+	bool _bFullScreen = false;
+
+	QVector<LandaJune::Parameters::COLOR_TRIPLET> _originalColorTriplets;
 };

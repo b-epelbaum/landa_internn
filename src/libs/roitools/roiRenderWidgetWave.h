@@ -19,18 +19,19 @@ public:
 protected:
 
 	void cleanup() override;
+	void cleanLocalObjects();
 	void createCrossHairs( float creationScale ) override;
 	void handleROIControlPointMoved( moveableLayerWidget* sender, QPoint topLeft, QPoint centerPos ) override;
-	void paintROIRects( std::function<void(const QRect&)> func ) override;
+	void paintROIRects( glDrawFunc func ) override;
 
 signals:
 
-	void roiChanged( const QVector<QPoint>& c2cPts );
+	void waveTriangleChanged( QPoint controlPoint );
 
 private:
 
 	QRect _waveTriangleROIRc, _waveROIRc;
-	moveableLayerWidget * _waveTriangleCrossLeft = nullptr;;
+	moveableLayerWidget * _waveTriangleCross = nullptr;
 
 	int	_waveTriangleMarginX = 0;
 	int	_waveTriangleMarginY = 0;
