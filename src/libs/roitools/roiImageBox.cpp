@@ -1,6 +1,5 @@
 #include "roiImageBox.h"
 
-#include <QAction>
 #include "commonTabs.h"
 #include <QMenuBar>
 
@@ -12,18 +11,13 @@ roiImageBox::roiImageBox(QWidget *parent)
 	QAction *opeFileAction = ui.browseFileEdit->addAction(QIcon(":/roiTools/Resources/file_open.png"), QLineEdit::TrailingPosition);
 	connect(opeFileAction, &QAction::triggered, this, &roiImageBox::onOpenFile);
 
-	_renderWidget = ui.openGLWidget;
+	_horizontalBar = ui.horizontalScrollBar;
+	_verticalBar = ui.verticalScrollBar;
+	_zoomButt = ui.zoomButt;
 
-	connect(_renderWidget, &roiRenderWidget::i2sPosChanged, this, &roiImageBox::i2sPosChanged);
-	connect(_renderWidget, &roiRenderWidget::c2cPosChanged, this, &roiImageBox::c2cPosChanged);
+	connect(_horizontalBar, &QScrollBar::valueChanged, this, &roiImageBox::onHorizonalScrollbarValueChanged);
+	connect(_verticalBar, &QScrollBar::valueChanged, this, &roiImageBox::onVerticalScrollbarValueChanged);
 
-	connect(_renderWidget, &roiRenderWidget::cursorPos, this, &roiImageBox::onImageCursorPos);
-	connect(_renderWidget, &roiRenderWidget::scaleChanged, this, &roiImageBox::onScaleChanged);
-	
-	connect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
-	connect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
-
-	ui.openGLWidget->assignScrollBars(ui.horizontalScrollBar, ui.verticalScrollBar);
 	ui.imageCoordsLabel->setText ("");
 
 	QMenu *menu = new QMenu();
@@ -46,22 +40,150 @@ roiImageBox::roiImageBox(QWidget *parent)
 		idxProp ++;
 	}
 
-	ui.zoomButt->setMenu(menu);
-	ui.zoomButt->setPopupMode(QToolButton::InstantPopup);
+	_zoomButt->setMenu(menu);
+	_zoomButt->setPopupMode(QToolButton::InstantPopup);
+	_zoomButt->setEnabled(false);
+	_horizontalBar->setEnabled(false);
+	_verticalBar->setEnabled(false);
+
+	connect(ui.mmButt, &QToolButton::clicked, this, &roiImageBox::onChangeUnits);
+	connect(ui.pxButt, &QToolButton::clicked, this, &roiImageBox::onChangeUnits);
 }
 
 roiImageBox::~roiImageBox()
 {
+
 }
 
-LandaJune::CORE_ERROR roiImageBox::setImage(const QString& strFilePath)
+void roiImageBox::updateUnits ( int oldUnits, int newUnits )
 {
-	auto err = _renderWidget->setImage(strFilePath);
+	auto _oldUnits = static_cast<unitSwitchLabel::LABEL_UNITS>(oldUnits);
+	_currentUnits = static_cast<unitSwitchLabel::LABEL_UNITS>(newUnits);
+
+	ui.mmButt->setChecked(_currentUnits == unitSwitchLabel::MM);
+	ui.pxButt->setChecked(_currentUnits == unitSwitchLabel::PX);
+	updateCursorPositionText (QPoint(), QSize());
+}
+
+void roiImageBox::onChangeUnits()
+{
+	const auto butt = dynamic_cast<QToolButton*>(sender());
+	auto const oldUnits = _currentUnits;
+	if (butt == ui.mmButt)
+	{
+		_currentUnits = unitSwitchLabel::MM;
+	}
+	else
+	{
+		_currentUnits = unitSwitchLabel::PX;
+	}
+	updateCursorPositionText (QPoint(), QSize());
+	emit unitsChanged ( static_cast<int>(oldUnits), static_cast<int>(_currentUnits) );
+}
+
+void roiImageBox::createWidget(RENDER_WIDGET_TYPE rType)
+{
+	_renderWidgetType = rType;
+	createRenderWidget();
+}
+
+void roiImageBox::setpx2mmRatio(double hRatio, double vRatio)
+{
+	_hRatio = hRatio;
+	_vRatio = vRatio;
+}
+
+void roiImageBox::setC2CRoisLinedUp ( bool bVal ) const
+{
+	if (_renderWidgetType == RENDER_STRIP )
+	{
+		dynamic_cast<roiRenderWidgetStrip*>(_renderWidget)->setC2CRoisLinedUp(bVal);
+	}
+	else if (_renderWidgetType == RENDER_FULL )
+	{
+		dynamic_cast<roiRenderWidgetFull*>(_renderWidget)->setC2CRoisLinedUp(bVal);
+	}
+}
+
+void roiImageBox::createRenderWidget()
+{
+	// replace to 
+	if (_renderWidgetType == RENDER_STRIP )
+	{
+		_renderWidget = new roiRenderWidgetStrip(this);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_edge, this, &roiImageBox::roiChanged_strip_edge);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_i2s, this, &roiImageBox::roiChanged_strip_i2s);
+		connect(dynamic_cast<roiRenderWidgetStrip*>(_renderWidget), &roiRenderWidgetStrip::roiChanged_c2c, this, &roiImageBox::roiChanged_strip_c2c);
+	}
+	else if (_renderWidgetType == RENDER_FULL )
+	{
+		_renderWidget = new roiRenderWidgetFull(this);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_leftStripEdge, this, &roiImageBox::roiChanged_full_leftStripEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_rightStripEdge, this, &roiImageBox::roiChanged_full_rightStripEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_pageStripEdge, this, &roiImageBox::roiChanged_full_pageEdge);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_i2s, this, &roiImageBox::roiChanged_full_i2s);
+		connect(dynamic_cast<roiRenderWidgetFull*>(_renderWidget), &roiRenderWidgetFull::roiChanged_c2c, this, &roiImageBox::roiChanged_full_c2c);
+	}
+	else if (_renderWidgetType == RENDER_WAVE )
+	{
+		_renderWidget = new roiRenderWidgetWave(this);
+		connect(dynamic_cast<roiRenderWidgetWave*>(_renderWidget), &roiRenderWidgetWave::waveTriangleChanged, this,
+		        &roiImageBox::roiChanged_waveTriangle);
+	}
+
+	if (_renderWidget != nullptr )
+	{
+		auto oldWidget = ui.pageGL->layout()->replaceWidget(ui.openGLWidget, _renderWidget );
+		if ( oldWidget )
+			delete oldWidget;
+		connect(_renderWidget, &roiRenderWidgetBase::cursorPos, this, &roiImageBox::onImageCursorPos);
+		connect(_renderWidget, &roiRenderWidgetBase::scaleChanged, this, &roiImageBox::onScaleChanged);
+		connect(_renderWidget, &roiRenderWidgetBase::doubleClick, this, &roiImageBox::onDoubleClick);
+		_renderWidget->assignScrollBars(_horizontalBar, _verticalBar);
+	}
+}
+
+
+void roiImageBox::onDoubleClick (QPoint pos)
+{
+	ui.metaWidget->setVisible(!ui.metaWidget->isVisible());
+	emit doubleClick (pos);
+}
+
+void roiImageBox::onHorizonalScrollbarValueChanged(int hVal) 
+{
+	if (!_renderWidget->hasImage())
+		return;
+
+	_renderWidget->redrawAll();
+	emit scrollValuesChanged (hVal, -1);
+}
+
+void roiImageBox::onVerticalScrollbarValueChanged(int vVal) 
+{
+	if (!_renderWidget->hasImage())
+		return;
+
+	_renderWidget->redrawAll();
+	emit scrollValuesChanged (-1, vVal);
+}
+
+void roiImageBox::setImage(const QString& strFilePath)
+{
+	const auto err = _renderWidget->setImage(strFilePath);
+	
+	_zoomButt->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	_horizontalBar->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	_verticalBar->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.dimsWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.zoomWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+	ui.cursorInfoWidget->setEnabled(err == LandaJune::CORE_ERROR::RESULT_OK);
+
 	if (err == LandaJune::CORE_ERROR::RESULT_OK)
 	{
 		displayMetaData();
 	}
-	return err;
+	emit imageLoaded(strFilePath, err);
 }
 
 void roiImageBox::displayMetaData()
@@ -73,6 +195,9 @@ void roiImageBox::displayMetaData()
 
 void roiImageBox::setZoom(int zoomPercentage)
 {
+	if (!_renderWidget->hasImage())
+		return;
+
 	if ( zoomPercentage == -1)
 	{
 		_renderWidget->showActualPixels();
@@ -87,26 +212,36 @@ void roiImageBox::setZoom(int zoomPercentage)
 	}
 }
 
-void roiImageBox::setScales(float glScale, float imageScale)
+
+void roiImageBox::updateScaleFromExternal(double glScale, double imageScale) const
 {
+	if (!_renderWidget->hasImage())
+		return;
+	
 	ui.labelZoom->setText(QString::number(int(imageScale * 100)));
-	_renderWidget->setScales(glScale, imageScale);
+	_renderWidget->updateScaleFromExternal(glScale, imageScale);
 }
 
-void roiImageBox::setScrolls(int hScrollVal, int vScrollVal)
+void roiImageBox::updateScrollsFromExternal(int hScrollVal, int vScrollVal) const
 {
-	disconnect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
-	disconnect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
+	if (!_renderWidget->hasImage())
+		return;
 
-	ui.horizontalScrollBar->setValue(hScrollVal);
-	ui.verticalScrollBar->setValue(vScrollVal);
-	_renderWidget->updateHScroll(hScrollVal);
-	_renderWidget->updateVScroll(vScrollVal);
-	_renderWidget->update();
-	
-	connect(ui.horizontalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(horzValueChanged(int)));
-	connect(ui.verticalScrollBar, SIGNAL(valueChanged(int)), this, SLOT(vertValueChanged(int)));
+	if (vScrollVal != -1)
+	{
+		disconnect(_verticalBar, &QScrollBar::valueChanged, this, &roiImageBox::onVerticalScrollbarValueChanged);
+		_verticalBar->setValue(vScrollVal);
+		connect(_verticalBar, &QScrollBar::valueChanged, this, &roiImageBox::onVerticalScrollbarValueChanged);
+	}
 
+	if (hScrollVal != -1)
+	{
+		disconnect(_horizontalBar, &QScrollBar::valueChanged, this, &roiImageBox::onHorizonalScrollbarValueChanged);
+		_horizontalBar->setValue(hScrollVal);
+		connect(_horizontalBar, &QScrollBar::valueChanged, this, &roiImageBox::onHorizonalScrollbarValueChanged);
+	}
+		
+	_renderWidget->redrawAll();
 }
 
 void roiImageBox::onOpenFile()
@@ -142,28 +277,57 @@ void roiImageBox::onZoomAction()
 	setZoom(zoomPercentge);
 }
 
-void roiImageBox::onImageCursorPos(QPoint pt, QSize size)
+void roiImageBox::updateCursorPositionText(QPoint pt, QSize size)
 {
-	QString strText = QString("X = %1, Y = %2").arg(pt.x()).arg(pt.y());
+	if (!_renderWidget->hasImage())
+		return;
+
+	if ( pt.isNull() )
+		pt = _lastPostionPt;
+	else
+		_lastPostionPt = pt;
+
+	QString strText;
+	if ( _currentUnits == unitSwitchLabel::MM )
+		strText = QString("X = %1, Y = %2").arg(_lastPostionPt.x() * _hRatio, 0, 'f', 3).arg(_lastPostionPt.y() * _vRatio, 0, 'f', 3 );
+	else
+	{
+		strText = QString("X = %1, Y = %2").arg(_lastPostionPt.x()).arg(_lastPostionPt.y());
+	}
+
 	if (!size.isEmpty() )
-		strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]").arg(pt.x()).arg(pt.y()).arg(pt.x() + size.width()).arg(pt.y()+ size.height()).arg(size.width()).arg(size.height());;
+	{
+		if ( _currentUnits == unitSwitchLabel::MM )
+		{
+			strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]")
+						.arg(pt.x() * _hRatio)
+						.arg(pt.y() * _vRatio)
+						.arg((pt.x() + size.width())* _hRatio)
+						.arg((pt.y() + size.height()) * _vRatio)
+						.arg(size.width()* _hRatio)
+						.arg(size.height() * _vRatio);
+		}
+		else
+		{
+			strText = QString("X1 = %1, Y1 = %2, X2 = %3, Y2 = %4 [ %5, %6 ]").arg(pt.x()).arg(pt.y()).arg(pt.x() + size.width()).arg(pt.y()+ size.height()).arg(size.width()).arg(size.height());;
+		}
+	}
 	ui.imageCoordsLabel->setText(strText);
 }
 
-void roiImageBox::horzValueChanged(int hVal) 
+void roiImageBox::onImageCursorPos(QPoint pt, QSize size)
 {
-	ui.openGLWidget->updateHScroll(hVal);
-	emit scrollValuesChanged (hVal, ui.verticalScrollBar->value());
-}
+	if (!_renderWidget->hasImage())
+		return;
 
-void roiImageBox::vertValueChanged(int vVal) 
-{
-	ui.openGLWidget->updateVScroll(vVal);
-	emit scrollValuesChanged (ui.horizontalScrollBar->value(), vVal);
+	updateCursorPositionText(pt, size);
 }
 
 void roiImageBox::onScaleChanged(double newGLScale, double newImageScale)
 {
+	if (!_renderWidget->hasImage())
+		return;
+
 	ui.labelZoom->setText(QString::number(int(newImageScale * 100)));
 	emit scaleChanged(newGLScale, newImageScale );
 }

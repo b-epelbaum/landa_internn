@@ -25,6 +25,9 @@ static const QString FULL_IMAGE_RUNNER_DESC = "Full Scanned Page Algorithm Set";
 // file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
 
 
+//static int testVal = 0;
+
+
 fullImageRunner::fullImageRunner()
 {
 	FULLIMAGE_RUNNER_SCOPED_LOG << "Root object created";
@@ -107,7 +110,7 @@ void fullImageRunner::init(BaseParametersPtr parameters, Core::ICore* coreObject
 		const INIT_PARAMETER edgeInitParam ( toROIRect(_processParameters->LeftStripRect_px()) );
 		initEdge(edgeInitParam);
 
-		const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2RectLeft_px()) };
+		const INIT_PARAMETER i2sInitParam{ toROIRect(_processParameters->I2SRectLeft_px()) };
 		initI2S(i2sInitParam);
 
 		if (!_processParameters->C2CROIArrayLeft_px().empty())
@@ -120,7 +123,7 @@ void fullImageRunner::init(BaseParametersPtr parameters, Core::ICore* coreObject
 			FULLIMAGE_RUNNER_SCOPED_WARNING << "No C2C ROI defined !";
 		}
 
-		const INIT_PARAMETER waveInitParam{ toROIRect(_processParameters->WaveROI()) };
+		const INIT_PARAMETER waveInitParam{ toROIRect(_processParameters->WaveROI_px()) };
 		initWave(waveInitParam);
 	}
 	catch(BaseException& bex)
@@ -156,6 +159,8 @@ void fullImageRunner::validateProcessParameters(BaseParametersPtr parameters)
 
 CORE_ERROR fullImageRunner::processInternal()
 {
+	//testVal = 1 -testVal;
+
 	try
 	{
 		if ( !_processParameters->EnableProcessing() )
@@ -495,4 +500,72 @@ void fullImageRunner::logFailedWaves(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> &
 					<< "\t\t\t\t\tSource image : \t" << _sourceFramePath	<< "\r\n";
 
 	FULLIMAGE_RUNNER_SCOPED_ERROR << ss.str().c_str();
+}
+
+bool fullImageRunner::shouldProcessLeftStrip() const
+{
+	//return isLeftStripInOfflineMode();
+
+	// if common parameter disable left strip handling, return false
+	const bool bProcessEnabledByParam = _processParameters->ProcessLeftStrip();
+	if ( !bProcessEnabledByParam )
+		return false;
+
+	// if frame source is not from offline mode
+	if ( _sourceFramePath.empty() )
+		return bProcessEnabledByParam;
+	
+	// if runner does not work in STRIP ONLY mode
+	// return common parameter
+	if (_processParameters->OfflineRegStripOnly())
+	{
+		// define if source file is from LEFT source
+		return isLeftStripInOfflineMode();
+	}
+	return  bProcessEnabledByParam;
+}
+
+
+bool fullImageRunner::shouldProcessRightStrip() const
+{
+	//!return isLeftStripInOfflineMode();
+	const bool bProcessEnabledByParam = _processParameters->ProcessRightStrip();
+	if ( !bProcessEnabledByParam )
+		return false;
+
+	// if frame source does not hap parity property, return
+	if  (!_frame->hasNamedParameter(NAMED_PROPERTY_FRAME_PARITY) )
+		return bProcessEnabledByParam;
+	
+	// if runner does not work in STRIP ONLY mode
+	// return common parameter
+	if (!_processParameters->OfflineRegStripOnly())
+	{
+		return  bProcessEnabledByParam;
+	}
+
+	// if it works in STRIP ONLY mode
+	// return common parameter
+	if (_processParameters->OfflineRegStripOnly())
+	{
+		// define if source file is from LEFT source
+		return !isLeftStripInOfflineMode();
+	}
+	return  bProcessEnabledByParam;
+}
+
+bool fullImageRunner::isLeftStripInOfflineMode() const
+{
+	//return testVal == 1;
+
+	auto frameParity = 1;
+	try
+	{
+		frameParity = std::any_cast<int>(_frame->getNamedParameter(NAMED_PROPERTY_FRAME_PARITY));
+	}
+	catch (const std::bad_any_cast& e)
+	{
+	}
+
+	return frameParity == 1;
 }

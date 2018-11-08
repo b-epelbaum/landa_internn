@@ -40,6 +40,7 @@ BaseParameters::BaseParameters()
 void BaseParameters::reset()
 {
 	*this = {};
+	_bDirty = false;
 }
 
 BaseParameters::BaseParameters(const BaseParameters& other)
@@ -64,6 +65,9 @@ BaseParameters& BaseParameters::operator=(const BaseParameters& other)
 		const auto name = metaproperty.name();
 		setProperty(name, other.property(name));
 	}
+	recalculate();
+	_bDirty = true;
+	emit loaded ();
 	return *this;
 }
 
@@ -291,6 +295,7 @@ bool BaseParameters::setParamProperty(const QString& strValName, const QVariant&
 			if (retVal)
 			{
 				recalculate();
+				_bDirty = true;
 				return retVal;
 			}
 		}

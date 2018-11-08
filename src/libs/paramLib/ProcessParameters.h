@@ -12,7 +12,7 @@ namespace LandaJune
 
 		public:
 			ProcessParameters();
-			virtual ~ProcessParameters() = default;
+			virtual ~ProcessParameters(){};
 			explicit ProcessParameters(const QJsonObject& obj );
 			ProcessParameters(const ProcessParameters& other) = default;
 
@@ -20,7 +20,7 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateWidth_mm,				double,					1000	)
 			DECLARE_NORMAL_PARAM_PROPERTY(SubstrateHeight_mm,				double,					700		)
 			DECLARE_NORMAL_PARAM_PROPERTY(ScanStartToPaperEdgeOffset_mm,	double,					10.7	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OffsetFromLeftEdge_mm,			double,					2.94	)
+			DECLARE_NORMAL_PARAM_PROPERTY(LeftOffsetFromPaperEdgeX_mm,		double,					2.94	)
 			DECLARE_NORMAL_PARAM_PROPERTY(LeftStripWidth_mm,				double,					13.7	)
 			DECLARE_NORMAL_PARAM_PROPERTY(RightStripROIsOffsetY_mm,			double,					0.0	)
 			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_X,						double,					0.08466683	)
@@ -44,8 +44,22 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenDotsX_mm,	double,				3.048	)
 			DECLARE_NORMAL_PARAM_PROPERTY(C2CDistanceBetweenDotsY_mm,	double,				3.048	)
 			DECLARE_NORMAL_PARAM_PROPERTY(C2CCircleDiameter_mm,			double,				1.542	)
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CDROIMarginX_mm,			double,				2.5	)
-			DECLARE_NORMAL_PARAM_PROPERTY(C2CDROIMarginY_mm,			double,				2.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CROIMarginX_mm,			double,				2.5	)
+			DECLARE_NORMAL_PARAM_PROPERTY(C2CROIMarginY_mm,			double,				2.5	)
+
+			DECLARE_EDITABLE_ONLY_PROPERTY(Wave, PARAM_GROUP_HEADER, { "Wave Parameters" })
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleCornerX_mm,						double,				510.230	)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleCornerY_mm,						double,				4.223	)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleWidth_mm,							double,				8.5		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleHeight_mm,						double,				8.5		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleMarginX_mm,						double,				2.5		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleMarginY_mm,						double,				2.5		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveSideMarginsX_mm,							double,				2.0		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveCircleDiameter_mm,						double,				1.016	)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveFirstLineCircleMarginY_mm,				double,				2.5		)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveDistanceBetweenCircleCentersX_mm,			double,				2.709	)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveDistanceBetweenCircleCentersY_mm,			double,				3.048	)
+			DECLARE_NORMAL_PARAM_PROPERTY(WaveOffsetFromCornerToFirstLineCenter_mm,		double,				9.687	)
 
 			// HSV
 			DECLARE_EDITABLE_ONLY_PROPERTY(Colors, PARAM_GROUP_HEADER, { "Color Parameters" })
@@ -126,34 +140,28 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SaveOverlayWave,				bool,				true	)
 			
 			
-			DECLARE_EDITABLE_ONLY_PROPERTY(Wave, PARAM_GROUP_HEADER, { "Wave Parameters" })
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleApproximateX_um, double,				510230	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveTriangleApproximateY_um, double,				4223	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveImageMarginX_um,		double,					2000	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveCircleDiameter_um,	double,					1016	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveDistanceBetweenDotsX_um, double,				2709.3	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveDistanceBetweenDotsY_um, double,				3048	)
-			DECLARE_NORMAL_PARAM_PROPERTY(WaveDistanceBetweenTriangleAndFirstRow_um, double, 9687	)
-
-
 			//-------------------------------------------------------
 			// calculated values
 
 			DECLARE_CALCULATED_PROPERTY(SubstrateParamsCalc, PARAM_GROUP_HEADER, { "Substrate values" })
 			DECLARE_CALCULATED_PROPERTY(OpenCVImageFormat,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(LeftEdgeApproxOffsetX_px,			int,	0)
+			DECLARE_CALCULATED_PROPERTY(ScanStartToPaperEdgeOffset_px,		int,	0	)
+			DECLARE_CALCULATED_PROPERTY(LeftOffsetFromPaperEdgeX_px,		int,	0)
 			
-			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,						QRect, {})
-			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,						QRect, {})
-			
-			DECLARE_CALCULATED_PROPERTY(I2RectLeft_px, QRect, {})
-			DECLARE_CALCULATED_PROPERTY(I2RectRight_px, QRect, {})
+			DECLARE_CALCULATED_PROPERTY(LeftStripRect_px,					QRect, {})
+			DECLARE_CALCULATED_PROPERTY(RightStripRect_px,					QRect, {})
 
-			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SCornerLeft_px,					QPoint, {})
+			DECLARE_CALCULATED_PROPERTY(I2SCornerRight_px,					QPoint, {})
 
-			DECLARE_CALCULATED_PROPERTY(C2CMarginX_px,					int,	0)
-			DECLARE_CALCULATED_PROPERTY(C2CMarginY_px,					int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SRectLeft_px,						QRect, {})
+			DECLARE_CALCULATED_PROPERTY(I2SRectRight_px,					QRect, {})
+
+			DECLARE_CALCULATED_PROPERTY(I2SMarginX_px,						int,	0)
+			DECLARE_CALCULATED_PROPERTY(I2SMarginY_px,						int,	0)
+
+			DECLARE_CALCULATED_PROPERTY(C2CMarginX_px,						int,	0)
+			DECLARE_CALCULATED_PROPERTY(C2CMarginY_px,						int,	0)
 
 
 			// TODO : This value is never calculated, but used in algorithm : check
@@ -161,13 +169,17 @@ namespace LandaJune
 			
 			// C2C ROIs values
 			DECLARE_CALCULATED_PROPERTY(C2CROICount, int, 0 )
+			DECLARE_CALCULATED_PROPERTY(C2CCircleDiameter_px, int, 0 )
 			DECLARE_CALCULATED_PROPERTY(C2CROIArrayLeft_px, QVector<QRect>, {})
 			DECLARE_CALCULATED_PROPERTY(C2CROIArrayRight_px, QVector<QRect>, {})
 
 			DECLARE_CALCULATED_PROPERTY(WaveCalc, PARAM_GROUP_HEADER, { "Wave Parameters" })
-			DECLARE_CALCULATED_PROPERTY(WaveROI, QRect, {}) 
-			DECLARE_CALCULATED_PROPERTY(WaveNumberOfColorDotsPerLine, int, 0) // 367
-			DECLARE_CALCULATED_PROPERTY(WaveTriangleROIRect, QRect, {}) 
+			DECLARE_CALCULATED_PROPERTY(WaveTriangleCorner_px,				QPoint,		{})
+			DECLARE_CALCULATED_PROPERTY(WaveTriangleROI_px,					QRect,		{})
+			DECLARE_CALCULATED_PROPERTY(WaveROI_px,							QRect,		{})
+			DECLARE_CALCULATED_PROPERTY(WaveTriangleMarginX_px,				int,		0) 
+			DECLARE_CALCULATED_PROPERTY(WaveTriangleMarginY_px,				int,		0) 
+			DECLARE_CALCULATED_PROPERTY(WaveNumberOfColorDotsPerLine,		int,		0) // 367
 
 		protected:
 
@@ -181,8 +193,8 @@ namespace LandaJune
 			void recalculateForFullImage();
 			void recalculateForOfflineLeftStrip();
 
-			int toPixelsX(const double val_mmx ) const { return val_mmx / _Pixel2MM_X;}
-			int toPixelsY(const double val_mmy ) const { return val_mmy / _Pixel2MM_Y;}
+			int toPixelsX(const double val_mmx ) const { return lround(val_mmx / _Pixel2MM_X);}
+			int toPixelsY(const double val_mmy ) const { return lround(val_mmy / _Pixel2MM_Y);}
 			
 		};
 	}

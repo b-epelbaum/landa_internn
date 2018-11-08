@@ -101,9 +101,9 @@ void baseAlgorithmRunner::setupSheetProcessParameters(PARAMS_C2C_SHEET_INPUT_PTR
 		setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 		
 		// strips 
-		if (_processParameters->ProcessLeftStrip())
+		if (shouldProcessLeftStrip())
 			setupStripProcessParameters(input->_stripInputParamLeft, LEFT);
-		if (_processParameters->ProcessRightStrip())
+		if (shouldProcessRightStrip())
 			setupStripProcessParameters(input->_stripInputParamRight, RIGHT);
 
 		if (_processParameters->ProcessWave())
@@ -191,7 +191,7 @@ void baseAlgorithmRunner::setupEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT_PTR 
 	try
 	{
 		setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
-		input->_approxDistanceFromEdgeX = _processParameters->LeftEdgeApproxOffsetX_px();
+		input->_approxDistanceFromEdgeX = _processParameters->LeftOffsetFromPaperEdgeX_px();
 		input->_triangeApproximateY = _processParameters->EdgeTriangleApproximateY_px();
 		input->_side = side;
 	}
@@ -225,7 +225,7 @@ void baseAlgorithmRunner::setupWaveProcessParameters(std::vector<PARAMS_WAVE_INP
 			auto input = std::make_shared<PARAMS_WAVE_INPUT>(_frame);
 			setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
 			input->_circleColor = color2HSV(color);
-			input->_waveROI = toROIRect(_processParameters->WaveROI());
+			input->_waveROI = toROIRect(_processParameters->WaveROI_px());
 			input->_circlesCount = _processParameters->WaveNumberOfColorDotsPerLine();
 			inputs.emplace_back(std::move(input));
 		}
@@ -244,9 +244,9 @@ void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input,
 {
 	try
 	{
-		if ( _processParameters->ProcessLeftStrip())
+		if (shouldProcessLeftStrip())
 			generateStripRegions(input->_stripInputParamLeft, regionList);
-		if ( _processParameters->ProcessRightStrip())
+		if ( shouldProcessRightStrip())
 			generateStripRegions(input->_stripInputParamRight, regionList);
 
 		// Wave regions
@@ -276,8 +276,8 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 			: _processParameters->RightStripRect_px();
 
 		const auto& approxRect = (input->_side == LEFT)
-			? toROIRect(_processParameters->I2RectLeft_px())
-			: toROIRect(_processParameters->I2RectRight_px());
+			? toROIRect(_processParameters->I2SRectLeft_px())
+			: toROIRect(_processParameters->I2SRectRight_px());
 
 
 		// add strip region
@@ -333,10 +333,10 @@ void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_RE
 									: _processParameters->SaveSourceRightI2S() );
 
 		const auto& approxRect = (input->_side == WAVE) 
-							? toROIRect(_processParameters->WaveTriangleROIRect())
+							? toROIRect(_processParameters->WaveTriangleROI_px())
 							: ((input->_side == LEFT) 
-									? toROIRect(_processParameters->I2RectLeft_px())
-									: toROIRect(_processParameters->I2RectRight_px()));
+									? toROIRect(_processParameters->I2SRectLeft_px())
+									: toROIRect(_processParameters->I2SRectRight_px()));
 
 		input->_approxTriangeROI = approxRect;
 		regionList.push_back(std::move(ImageRegion::createRegion(_frame->image().get()
@@ -396,7 +396,7 @@ void baseAlgorithmRunner::generateWavesRegions(PARAMS_C2C_SHEET_INPUT_PTR input,
 {
 	try
 	{
-		input->_waveTriangleInput->_approxTriangeROI = toROIRect(_processParameters->WaveTriangleROIRect());
+		input->_waveTriangleInput->_approxTriangeROI = toROIRect(_processParameters->WaveTriangleROI_px());
 		generateI2SRegion(input->_waveTriangleInput, regionList);
 		auto waveCount = 0;
 		for (auto& waveInput : input->_waveInputs)
@@ -500,9 +500,9 @@ PARAMS_C2C_SHEET_OUTPUT_PTR baseAlgorithmRunner::processSheet(PARAMS_C2C_SHEET_I
 		};
 		
 		std::vector<std::function<void()>> processLambdas;
-		if ( _processParameters->ProcessLeftStrip())
+		if ( shouldProcessLeftStrip())
 			processLambdas.emplace_back(leftStripLambda);
-		if ( _processParameters->ProcessRightStrip())
+		if (shouldProcessRightStrip())
 			processLambdas.emplace_back(rightStripLambda);
 		if ( _processParameters->ProcessWave())
 			processLambdas.emplace_back(wavesLambda);
@@ -922,4 +922,14 @@ void baseAlgorithmRunner::getSourceFrameIndexString()
 		_sourceFrameIndexStr = std::to_string(_frameIndex);
 	else
 		_frameIndex = std::stoi(_sourceFrameIndexStr);
+}
+
+bool baseAlgorithmRunner::shouldProcessLeftStrip() const
+{
+	return _processParameters->ProcessLeftStrip();
+}
+	
+bool baseAlgorithmRunner::shouldProcessRightStrip() const
+{
+	return _processParameters->ProcessRightStrip();
 }

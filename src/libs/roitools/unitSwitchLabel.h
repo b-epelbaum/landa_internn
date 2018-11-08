@@ -8,7 +8,7 @@ class unitSwitchLabel : public QWidget
 	Q_OBJECT
 
 public:
-	enum LABEL_UNITS { MM, UM, PX, NO_UNITS };
+	enum LABEL_UNITS { MM, PX, UM, NO_UNITS };
 
 	explicit unitSwitchLabel(QWidget *parent) : QWidget(parent)
 	{

@@ -11,21 +11,25 @@ public:
 
 private slots :
 
-	void switchTool();
+	void openFullImageTool() const;
+	void openWaveTool() const;
+	void openStripsTool() const;
+
+	void onRegOfflineDone(bool bApply);
+	void onFullImageDone(bool bApply);
+	void onWaveDone(bool bApply);
+	void onWantsFullScreen ( bool bFullScreen );
+	
 
 private:
 	Ui::roiToolMainWindow ui{};
-
-	QAction * offlineRegAct = nullptr;
-	QAction * waveAct = nullptr;
-	QAction * fullImageActAct = nullptr;
 
 	offlineRegTab * _offlineTab		= nullptr;
 	waveTab * _waveTab				= nullptr;
 	fullImageTab * _fullImageTab	= nullptr;
 
 	LandaJune::ProcessParametersPtr _parameters;
-
 	roiParamWidget * _paramWidget = nullptr;;
 
+	QAction * _dockAction = nullptr;
 };

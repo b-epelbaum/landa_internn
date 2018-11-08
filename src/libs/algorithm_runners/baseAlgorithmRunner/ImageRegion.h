@@ -111,7 +111,7 @@ namespace LandaJune
 				const auto& normRight = ((std::min)(regReqRight, srcWidth));
 				const auto& normBottom = ((std::min)(regReqBottom, srcHeight));
 
-				retValRect.width = normRight - _srcNormalizedRect.x;
+				retValRect.width = normRight - retValRect.x;
 				retValRect.height = normBottom - retValRect.y;
 
 				return retValRect;

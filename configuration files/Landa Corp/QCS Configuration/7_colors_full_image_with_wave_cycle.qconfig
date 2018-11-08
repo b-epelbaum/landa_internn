@@ -1,10 +1,33 @@
 {
     "AlgorithmRunner": "Full Image Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
-    "C2CDistanceBetweenDots_um": 3048,
-    "C2CDistanceBetweenSets_um": 160300,
-    "C2CDistanceFromTriangle2FirstSet_um": 9300,
-    "C2CROISetsCount": 5,
+    "C2CCircleDiameter_mm": 1.542,
+    "C2CDistanceBetweenDotsX_mm": 3.048,
+    "C2CDistanceBetweenDotsY_mm": 3.048,
+    "C2COffsetsArray": [
+        {
+            "dx": -0.3,
+            "dy": 8.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 167.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 327.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 487.8
+        },
+        {
+            "dx": -0.3,
+            "dy": 647.8
+        }
+    ],
+    "C2CROIMarginX_mm": 2.5,
+    "C2CROIMarginY_mm": 2.5,
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
@@ -123,16 +146,18 @@
     "FrameFrequencyInMSec": 500,
     "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
-    "I2SMarginX_mm": 2.5,
-    "I2SMarginY_mm": 2.5,
+    "I2SHeight_mm": 8.5,
     "I2SOffsetFromPaperEdgeX_mm": 3.2,
     "I2SOffsetFromPaperEdgeY_mm": 9.3,
-    "I2SROIHeight_mm": 8.5,
-    "I2SROIWidth_mm": 8.5,
+    "I2SROIMarginX_mm": 2.5,
+    "I2SROIMarginY_mm": 2.5,
+    "I2SWidth_mm": 8.5,
     "ImageMaxCount": 10,
     "JobID": 0,
-    "OffsetBetweenTriangles_mm": 990,
-    "OffsetFromLeftEdge_mm": 9.5,
+    "LeftOffsetFromPaperEdgeX_mm": 2.94,
+    "LeftStripWidth_mm": 13.7,
+    "OfflineRegStripOnly": false,
+    "OfflineTreatEvenFilesAsRight": false,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -153,6 +178,7 @@
         "S": 0,
         "V": 0
     },
+    "RightStripROIsOffsetY_mm": 0,
     "RootOutputFolder": "C:\\temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,
@@ -180,18 +206,22 @@
     "SaveSourceWave": true,
     "SaveWaveCSV": true,
     "ScanBitDepth": 24,
+    "ScanStartToPaperEdgeOffset_mm": 9.13,
     "SheetID": 0,
     "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\7_colors_full_image_with_wave_cycle\\Image_7_colors.bmp",
     "SourceFolderPath": "",
-    "StripWidth_mm": 13.7,
     "SubstrateHeight_mm": 700,
-    "SubstrateImageMargin_mm": 2.5,
     "SubstrateWidth_mm": 1000,
-    "WaveCircleDiameter_um": 1016,
-    "WaveDistanceBetweenDotsX_um": 2709.3,
-    "WaveDistanceBetweenDotsY_um": 3283,
-    "WaveDistanceBetweenTriangleAndFirstRow_um": 9589,
-    "WaveImageMarginX_um": 2700,
-    "WaveTriangleApproximateX_um": 495500,
-    "WaveTriangleApproximateY_um": 63400
+    "WaveCircleDiameter_mm": 1.016,
+    "WaveDistanceBetweenCircleCentersX_mm": 2.709,
+    "WaveDistanceBetweenCircleCentersY_mm": 3.29,
+    "WaveFirstLineCircleMarginY_mm": 1.5,
+    "WaveOffsetFromCornerToFirstLineCenter_mm": 10.22,
+    "WaveSideMarginsX_mm": 1.5,
+    "WaveTriangleCornerX_mm": 509.44031610999997,
+    "WaveTriangleCornerY_mm": 62.7868705,
+    "WaveTriangleHeight_mm": 4.41,
+    "WaveTriangleMarginX_mm": 1.5,
+    "WaveTriangleMarginY_mm": 1.5,
+    "WaveTriangleWidth_mm": 3
 }

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <QWidget>
+#include <QDoubleSpinBox>
+#include <QComboBox>
+#include <QCheckBox>
+
 #include "unitSwitchLabel.h"
 #include "ui_roiParamWidget.h"
-#include <QDoubleSpinBox>
 #include "ProcessParameters.h"
-
 
 class roiParamWidget : public QWidget
 {
@@ -15,18 +17,27 @@ public:
 	roiParamWidget(QWidget *parent = Q_NULLPTR);
 	~roiParamWidget();
 
+	void enableControls( bool bEnable );
 	void clear() const;
 
-	void setProcessParameters (LandaJune::ProcessParametersPtr params) { _params = params; }
+	void setProcessParameters (LandaJune::ProcessParametersPtr params);
 	void setControlsHeight ( int controlHeight ) { _controlHeight = controlHeight; }
 	int getControlsHeight() const { return _controlHeight; }
 
 	void setControlsTextAlignment ( Qt::Alignment align ) { _textAlignH = align; }
 	Qt::Alignment getControlsTextAlignment () const { return _textAlignH; }
 
-	QWidget * addControl( QString strParamName, QString labelText, bool bSwitchableLabel );
+	QWidget * addControl( 
+				QString strParamName
+			  , QString labelText
+			  , bool bSwitchableLabel = true
+			  , bool bEditable = true
+			  , QString strToolTip = "" );
+
 	QDoubleSpinBox * addDoubleSpinBox(double currentValue, QString labelText, QString propertyName, bool bSwitchableLabel);
 	QComboBox * addComboBox(QString labelText);
+	QCheckBox * addCheckBox(QString labelText);
+	QLineEdit * addReadOnlyEdit( QVariant value, QString labelText, QString propertyName );
 
 	void addSpacer( int w, int h) const
 	{
@@ -40,30 +51,30 @@ public:
 
 	void addWidget(QWidget * widget) const;
 
-	unitSwitchLabel::LABEL_UNITS currentUnits () const { return _currentUnits; }
-	void switchUnits (unitSwitchLabel::LABEL_UNITS units);
-
 signals:
 
-	void unitsChanged (unitSwitchLabel::LABEL_UNITS oldUnits, unitSwitchLabel::LABEL_UNITS newUnits );
 	void propertyChanged( QString propertyName, QVariant newVal );
+	void done( bool bApply);
 
 private slots:
 
+	void onParamsUpdated();
 	void onDoubleSpinnerValChanged( double newValue);
+	void onApply();
+	void onCancel();
 
 private:
 
-	void translateUnits(QDoubleSpinBox* spinBox, unitSwitchLabel::LABEL_UNITS oldUnits, unitSwitchLabel::LABEL_UNITS newUnits );
+	QString getValueString (const QVariant& varVal) const;
 
 	Ui::roiParamWidget ui;
 	QList<unitSwitchLabel*> _switchLabelList;
 	Qt::Alignment _textAlignH = Qt::AlignHCenter;
 	int _controlHeight = 30;
 
-	unitSwitchLabel::LABEL_UNITS _currentUnits = unitSwitchLabel::MM;
 	QWidget * _controlBox = nullptr;
 	QMap<QString, QDoubleSpinBox*> _spinBoxMap;
+	QMap<QString, QLineEdit*> _readonlyEditMap;
 
 	LandaJune::ProcessParametersPtr _params;
 };

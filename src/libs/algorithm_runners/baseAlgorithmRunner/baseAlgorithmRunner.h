@@ -122,6 +122,9 @@ namespace LandaJune
 			//////////////////////////////////////////////////////
 			//////////////  UTILITY FUNCTIONS 
 
+			virtual bool shouldProcessLeftStrip() const;
+			virtual bool shouldProcessRightStrip() const;
+
 			template<typename T>
 			void dumpOverlay(T& out, bool asyncWrite)
 			{

@@ -1,6 +1,12 @@
 #include "roiParamWidget.h"
 #include <QToolTip>
 #include <QComboBox>
+#include <QAction>
+#include <QLineEdit>
+
+
+using namespace LandaJune;
+using namespace Parameters;
 
 roiParamWidget::roiParamWidget(QWidget *parent)
 	: QWidget(parent)
@@ -8,16 +14,17 @@ roiParamWidget::roiParamWidget(QWidget *parent)
 	ui.setupUi(this);
 	_controlBox = ui.controlBox;
 
-	connect (ui.unitsCombo, qOverload<int>(&QComboBox::currentIndexChanged), this
-			, [this](int iIndex)
-			{
-				switchUnits(static_cast<unitSwitchLabel::LABEL_UNITS>(iIndex) );
-			}
-	);
+	connect ( ui.applyButt, &QPushButton::clicked, this, &roiParamWidget::onApply );
+	connect ( ui.cancelButt, &QPushButton::clicked, this, &roiParamWidget::onCancel );
 }
 
 roiParamWidget::~roiParamWidget()
 {
+}
+
+void roiParamWidget::enableControls(bool bEnable)
+{
+	setEnabled(bEnable);
 }
 
 void roiParamWidget::clear() const
@@ -36,22 +43,39 @@ void roiParamWidget::clear() const
     }
 }
 
-
-QWidget* roiParamWidget::addControl(QString strParamName, QString labelText, bool bSwitchableLabel)
+void roiParamWidget::setProcessParameters(LandaJune::ProcessParametersPtr params)
 {
+	_params = params;
+	connect(_params.get(), &BaseParameters::updateCalculated, this, &roiParamWidget::onParamsUpdated );
+}
+
+
+QWidget* roiParamWidget::addControl(QString strParamName, QString labelText, bool bSwitchableLabel, bool bEditable, QString strToolTip)
+{
+	QWidget* retVal = nullptr;
 	if (!_params )
-		return nullptr;
+		return retVal;
 
 	QVariant varVal = _params->getParamProperty(strParamName);
 	if (varVal.isNull())
-		return nullptr;
+		return retVal;
 
-	if (varVal.canConvert<double>())
+	if (bEditable)
 	{
-		return addDoubleSpinBox( varVal.toDouble(), labelText, strParamName, bSwitchableLabel);
+		if ( varVal.type() == QVariant::Double  )
+		{
+			retVal = addDoubleSpinBox( varVal.toDouble(), labelText, strParamName, bSwitchableLabel);
+		}
+	}
+	else
+	{
+		retVal = addReadOnlyEdit( varVal, labelText, strParamName);
 	}
 
-	return nullptr;
+	if ( retVal && !strToolTip.isEmpty())
+		retVal->setToolTip(strToolTip);
+	
+	return retVal;
 }
 
 QDoubleSpinBox * roiParamWidget::addDoubleSpinBox(double currentValue, QString labelText, QString propertyName, bool bSwitchableLabel)
@@ -62,13 +86,12 @@ QDoubleSpinBox * roiParamWidget::addDoubleSpinBox(double currentValue, QString l
 	targetWidget->setMinimum(-DBL_MAX);
 	targetWidget->setMaximum(DBL_MAX);
 	targetWidget->setValue(currentValue);
-	targetWidget->setSingleStep(1);
+	targetWidget->setSingleStep(0.1);
 	targetWidget->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 	targetWidget->setMinimumHeight(_controlHeight);
 	targetWidget->setMaximumHeight(_controlHeight);
 	targetWidget->setProperty("ownerProperty", propertyName);
 	connect(targetWidget, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiParamWidget::onDoubleSpinnerValChanged);
-	//QToolTip::showText(QCursor::pos(), "<img src=':/icon.png'>Message", this, QRect(), 5000);
 
 	if ( !labelText.isEmpty())
 	{
@@ -77,22 +100,22 @@ QDoubleSpinBox * roiParamWidget::addDoubleSpinBox(double currentValue, QString l
 			const auto unitLabel = new unitSwitchLabel(_controlBox, labelText, unitSwitchLabel::MM);
 			_switchLabelList.push_back(unitLabel);
 			addWidget (unitLabel);
-			_spinBoxMap[propertyName] = targetWidget;
 		}
 		else
 		{
 			addWidget (new QLabel(labelText, _controlBox));
 		}
 	}
+	
+	_spinBoxMap[propertyName] = targetWidget;
+	
 	addWidget(targetWidget);
 	return targetWidget;
 }
 
 QComboBox* roiParamWidget::addComboBox(QString labelText)
 {
-	QComboBox * targetWidget = nullptr;
-
-	targetWidget = new QComboBox(this);
+	QComboBox * targetWidget = new QComboBox(this);
 	targetWidget->setMinimumHeight(_controlHeight);
 	targetWidget->setMaximumHeight(_controlHeight);
 
@@ -104,6 +127,45 @@ QComboBox* roiParamWidget::addComboBox(QString labelText)
 	addWidget(targetWidget);
 	return targetWidget;
 }
+
+QCheckBox* roiParamWidget::addCheckBox(QString labelText)
+{
+	QCheckBox * targetWidget = new QCheckBox(this);
+	targetWidget->setMinimumHeight(_controlHeight);
+	targetWidget->setMaximumHeight(_controlHeight);
+
+	if ( !labelText.isEmpty())
+	{
+		targetWidget->setText(labelText);
+	}
+	
+	addWidget(targetWidget);
+	return targetWidget;
+}
+
+QLineEdit * roiParamWidget::addReadOnlyEdit( QVariant value, QString labelText, QString propertyName )
+{
+	QLineEdit * targetWidget = new QLineEdit(this);
+	targetWidget->setMinimumHeight(_controlHeight);
+	targetWidget->setMaximumHeight(_controlHeight);
+	targetWidget->setProperty("ownerProperty", propertyName);
+
+	if ( !labelText.isEmpty())
+	{
+		addWidget (new QLabel(labelText, _controlBox));
+	}
+
+	targetWidget->setReadOnly(true);
+	targetWidget->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+
+	_readonlyEditMap[propertyName] = targetWidget;
+	
+	targetWidget->setText(getValueString(value));
+
+	addWidget(targetWidget);
+	return targetWidget;
+}
+
 
 void roiParamWidget::addWidget(QWidget * widget) const
 {
@@ -117,13 +179,48 @@ void roiParamWidget::onDoubleSpinnerValChanged(double newValue)
 	emit propertyChanged(sender()->property("ownerProperty").toString(), newValue );
 }
 
-void roiParamWidget::translateUnits(QDoubleSpinBox* spinBox, unitSwitchLabel::LABEL_UNITS oldUnits,
-	unitSwitchLabel::LABEL_UNITS newUnits)
+void roiParamWidget::onApply()
 {
-
+	emit done(true);
 }
 
-void roiParamWidget::switchUnits(unitSwitchLabel::LABEL_UNITS units)
+void roiParamWidget::onCancel()
 {
-	_currentUnits = units;
+	emit done(false);
+}
+
+void roiParamWidget::onParamsUpdated()
+{
+	for ( auto ctrl : _spinBoxMap )
+	{
+		auto const ownProp = ctrl->property("ownerProperty").toString();
+		auto valVar = _params->getParamProperty(ownProp);
+		if (!valVar.isNull())
+		{
+			disconnect(ctrl, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiParamWidget::onDoubleSpinnerValChanged);
+			ctrl->setValue(valVar.toDouble());
+			connect(ctrl, qOverload<double>(&QDoubleSpinBox::valueChanged), this, &roiParamWidget::onDoubleSpinnerValChanged);
+		}
+	}
+
+	for ( auto ctrl : _readonlyEditMap )
+	{
+		auto const ownProp = ctrl->property("ownerProperty").toString();
+		auto valVar = _params->getParamProperty(ownProp);
+		ctrl->setText(getValueString(valVar));
+	}
+}
+
+QString roiParamWidget::getValueString (const QVariant& varVal) const
+{
+	QString valtext;
+	switch( varVal.type() )
+	{
+		case QVariant::Double :	valtext = QString::number(varVal.toDouble(), 'g', 3); break;
+		case QVariant::Int :	valtext = QString::number(varVal.toInt()); break;
+		case QVariant::String :	valtext = varVal.toString(); break;
+		default: ;
+	}
+
+	return valtext;
 }

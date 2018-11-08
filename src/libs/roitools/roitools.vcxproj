@@ -121,12 +121,14 @@
   <ItemGroup>
     <ClCompile Include="commonTabs.cpp" />
     <ClCompile Include="fullImageTab.cpp" />
-    <ClCompile Include="imagescrollarea.cpp" />
     <ClCompile Include="moveableLayerWidget.cpp" />
     <ClCompile Include="offlineRegTab.cpp" />
-    <ClCompile Include="roiRenderWidget.cpp" />
+    <ClCompile Include="roiRenderWidgetBase.cpp" />
     <ClCompile Include="roiParamWidget.cpp" />
     <ClCompile Include="roiRectWidget.cpp" />
+    <ClCompile Include="roiRenderWidgetFull.cpp" />
+    <ClCompile Include="roiRenderWidgetStrip.cpp" />
+    <ClCompile Include="roiRenderWidgetWave.cpp" />
     <ClCompile Include="roiToolManWnd.cpp" />
     <ClCompile Include="roitools.cpp" />
     <ClCompile Include="roiImageBox.cpp" />
@@ -151,17 +153,11 @@
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
     </QtMoc>
-    <QtMoc Include="roiRenderWidget.h">
+    <QtMoc Include="roiRenderWidgetBase.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
-    </QtMoc>
-    <QtMoc Include="imagescrollarea.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions</IncludePath>
-      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_DLL;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
     </QtMoc>
     <QtMoc Include="roiRectWidget.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions</IncludePath>
@@ -195,6 +191,24 @@
       <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
     </QtMoc>
     <QtMoc Include="roiToolManWnd.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetStrip.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetFull.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
+      <Define Condition="'$(Configuration)|$(Platform)'=='Release|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_NO_DEBUG;NDEBUG;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
+    </QtMoc>
+    <QtMoc Include="roiRenderWidgetWave.h">
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>
       <Define Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">UNICODE;_UNICODE;WIN32;WIN64;QT_CORE_LIB;QT_GUI_LIB;QT_WIDGETS_LIB;ROITOOLS_LIB;QT_OPENGL_LIB;QT_OPENGLEXTENSIONS_LIB;_WINDLL</Define>
       <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName)\.;$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtWidgets;$(SolutionDir)src\libs\logLib;$(SolutionDir)\thirdparty\opencv\include;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtOpenGLExtensions;$(SolutionDir)include;$(SolutionDir)\src\libs\paramLib</IncludePath>

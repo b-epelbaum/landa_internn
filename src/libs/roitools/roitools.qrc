@@ -1,10 +1,20 @@
 <RCC>
   <qresource prefix="/roiTools">
+    <file>Resources/measure.png</file>
+    <file>Resources/size.png</file>
+    <file>Resources/mm.png</file>
+    <file>Resources/px.png</file>
+    <file>Resources/microns.png</file>
     <file>Resources/setting.png</file>
     <file>Resources/zoom.png</file>
     <file>Resources/file_open.png</file>
     <file>Resources/full.png</file>
     <file>Resources/strips.png</file>
     <file>Resources/wave.png</file>
+  </qresource>
+  <qresource prefix="tips">
+    <file>Resources/tips/left_offset.png</file>
+    <file>Resources/tips/scan_start.png</file>
+    <file>Resources/tips/strip_width.png</file>
   </qresource>
 </RCC>

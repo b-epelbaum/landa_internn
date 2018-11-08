@@ -118,6 +118,7 @@ namespace LandaJune
 			void updateFrameProviderParamsView (int index);
 			void updateAlgoRunnerParamsView ( int index);
 
+			bool checkDirtyParameters();
 			void addNewColor(const QString& colorName );
 
 			bool isUIMode() const { return _runMode == RUN_UI; }
