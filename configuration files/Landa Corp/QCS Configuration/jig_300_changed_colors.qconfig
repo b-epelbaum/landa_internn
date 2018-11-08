@@ -1,0 +1,183 @@
+{
+    "AlgorithmRunner": "Full Image Runner",
+    "AsyncSaveQueueMaxSizeGB": 1,
+    "C2CCircleDiameter_mm": 1.542,
+    "C2CDistanceBetweenDotsX_mm": 3.048,
+    "C2CDistanceBetweenDotsY_mm": 3.048,
+    "C2COffsetsArray": [
+        {
+            "dx": -0.16933366,
+            "dy": 8.57365542
+        },
+        {
+            "dx": 0.08466683,
+            "dy": 163.41906846
+        },
+        {
+            "dx": 0.25400049,
+            "dy": 317.8314686
+        },
+        {
+            "dx": 0.08466683,
+            "dy": 472.24386874
+        },
+        {
+            "dx": 0.25400049,
+            "dy": 626.5696663
+        }
+    ],
+    "C2CROIMarginX_mm": 1.5,
+    "C2CROIMarginY_mm": 2.5,
+    "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
+    "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
+    "ColorArray": [
+        {
+            "ColorName": "Black",
+            "Max": {
+                "ColorName": "",
+                "H": 255,
+                "S": 50,
+                "V": 60
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 0,
+                "S": 0,
+                "V": 0
+            }
+        },
+        {
+            "ColorName": "Cyan",
+            "Max": {
+                "ColorName": "",
+                "H": 110,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 90,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Magenta",
+            "Max": {
+                "ColorName": "",
+                "H": 179,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 160,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Yellow",
+            "Max": {
+                "ColorName": "",
+                "H": 35,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 15,
+                "S": 100,
+                "V": 170
+            }
+        }
+    ],
+    "CycleImage": false,
+    "EnableAlgorithmProcessing": true,
+    "EnableAnyDataSaving": true,
+    "EnableCSVSaving": true,
+    "EnableImageSaving": true,
+    "EnableProcessing": true,
+    "FrameFrequencyInMSec": 500,
+    "FrameProviderName": "Offline Frame Provider",
+    "GenerateOverlays": true,
+    "I2SHeight_mm": 4.64,
+    "I2SOffsetFromPaperEdgeX_mm": 3.72534052,
+    "I2SOffsetFromPaperEdgeY_mm": 15.1554515,
+    "I2SROIMarginX_mm": 1.5,
+    "I2SROIMarginY_mm": 2.5,
+    "I2SWidth_mm": 3.13,
+    "ImageMaxCount": -1,
+    "JobID": "changed color",
+    "LeftOffsetFromPaperEdgeX_mm": 3.13267271,
+    "LeftStripWidth_mm": 11.93,
+    "OfflineRegStripOnly": true,
+    "OfflineTreatEvenFilesAsRight": true,
+    "PanelCount": 11,
+    "ParalellizeCalculations": true,
+    "Pixel2MM_X": 0.08466683,
+    "Pixel2MM_Y": 0.08660258,
+    "ProcessLeftC2C": true,
+    "ProcessLeftEdge": true,
+    "ProcessLeftI2S": true,
+    "ProcessLeftStrip": true,
+    "ProcessRightC2C": true,
+    "ProcessRightEdge": true,
+    "ProcessRightI2S": true,
+    "ProcessRightStrip": true,
+    "ProcessWave": false,
+    "ProcessWaveI2S": false,
+    "ReferenceColorTriplet": {
+        "ColorName": "",
+        "H": 0,
+        "S": 0,
+        "V": 0
+    },
+    "RightStripROIsOffsetY_mm": 0,
+    "RootCSVOutputFolder": "v:\\JIG\\changed color\\June\\QCS",
+    "RootImageOutputFolder": "v:\\JIG\\changed color\\June",
+    "SISO_AppletFilePath": "",
+    "SISO_BoardIndex": 0,
+    "SISO_BoardList": [
+    ],
+    "SISO_ConfigurationFilePath": "",
+    "SISO_OutputImageFormat": "",
+    "SaveC2CRegistrationCSV": true,
+    "SaveI2SPlacementCSV": true,
+    "SaveOverlayImages": true,
+    "SaveOverlayLeftC2C": true,
+    "SaveOverlayLeftEdge": true,
+    "SaveOverlayLeftI2S": true,
+    "SaveOverlayRightC2C": true,
+    "SaveOverlayRightEdge": true,
+    "SaveOverlayRightI2S": true,
+    "SaveOverlayWave": true,
+    "SaveSourceImages": true,
+    "SaveSourceLeftC2C": true,
+    "SaveSourceLeftI2S": true,
+    "SaveSourceLeftStrip": true,
+    "SaveSourceRightC2C": true,
+    "SaveSourceRightI2S": true,
+    "SaveSourceRightStrip": true,
+    "SaveSourceWave": true,
+    "SaveWaveCSV": true,
+    "ScanBitDepth": 24,
+    "ScanStartToPaperEdgeOffset_mm": 0,
+    "SheetID": 0,
+    "SourceFilePath": "",
+    "SourceFolderPath": "v:\\JIG\\changed color\\AVT",
+    "SubstrateHeight_mm": 700,
+    "SubstrateWidth_mm": 1000,
+    "WaveCircleDiameter_mm": 1.016,
+    "WaveDistanceBetweenCircleCentersX_mm": 2.709,
+    "WaveDistanceBetweenCircleCentersY_mm": 3.048,
+    "WaveFirstLineCircleMarginY_mm": 2.5,
+    "WaveOffsetFromCornerToFirstLineCenter_mm": 9.687,
+    "WaveSideMarginsX_mm": 2,
+    "WaveTriangleCornerX_mm": 510.23,
+    "WaveTriangleCornerY_mm": 4.223,
+    "WaveTriangleHeight_mm": 8.5,
+    "WaveTriangleMarginX_mm": 2.5,
+    "WaveTriangleMarginY_mm": 2.5,
+    "WaveTriangleWidth_mm": 8.5
+}

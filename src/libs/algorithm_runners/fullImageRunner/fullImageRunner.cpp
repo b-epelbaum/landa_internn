@@ -59,7 +59,7 @@ std::string fullImageRunner::getFrameFolderName()  const
 			return std::move(QFileInfo(QString::fromStdString(_sourceFramePath)).absoluteDir().dirName().toStdString());
 	}
 	//\\Frame_<FrameID>_<ImageIndex>_algo_name
-	return std::move(fmt::format("Frame_{0}_{1}_full_page", _frameIndex, _imageIndex));
+	return std::move(fmt::format("{0}_{1}_images", _frameIndex, _imageIndex));
 }
 
 
@@ -159,8 +159,6 @@ void fullImageRunner::validateProcessParameters(BaseParametersPtr parameters)
 
 CORE_ERROR fullImageRunner::processInternal()
 {
-	//testVal = 1 -testVal;
-
 	try
 	{
 		if ( !_processParameters->EnableProcessing() )
@@ -299,7 +297,7 @@ void fullImageRunner::processStripOutputCSV(PARAMS_C2C_STRIP_OUTPUT_PTR stripOut
 
 		auto const dumpCSVRegLambda = [=]()
 		{
-			dumpRegistrationCSV(stripOutput, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
+			dumpRegistrationCSV(stripOutput, jobID.toStdString(), frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
 		};
 
 		auto const dumpCSVPlacementLambda = [=]()
@@ -454,7 +452,7 @@ void fullImageRunner::processWaveOutputsCSV(concurrent_vector<PARAMS_WAVE_OUTPUT
 
 		const auto saveWaveCSVLambda = [=]()
 		{
-			dumpWaveCSV(waveOutputs, jobID, frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
+			dumpWaveCSV(waveOutputs, jobID.toStdString(), frameIndex, imgIndex, csvFolder, sourceFilePath, bAsyncWrite );
 		};
 
 		if (_bParallelCalc)
@@ -533,7 +531,7 @@ bool fullImageRunner::shouldProcessRightStrip() const
 	if ( !bProcessEnabledByParam )
 		return false;
 
-	// if frame source does not hap parity property, return
+	// if frame source does not has parity property, return
 	if  (!_frame->hasNamedParameter(NAMED_PROPERTY_FRAME_PARITY) )
 		return bProcessEnabledByParam;
 	

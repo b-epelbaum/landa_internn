@@ -22,9 +22,10 @@ namespace LandaJune
 				, int											frameIndex
 				, const std::string&							saveFilePath				// ROI Name
 				, const bool									needSaving = false			// if should be dumped to disk as well
+				, const bool									asyncWrite = true			// save asynchronously or not
 			)
 			{
-				return  ImageRegion(srcMat,	targetMat, params, srcRect,	frameIndex, saveFilePath, needSaving );
+				return  ImageRegion(srcMat,	targetMat, params, srcRect,	frameIndex, saveFilePath, needSaving, asyncWrite );
 			}
 
 			ImageRegion(

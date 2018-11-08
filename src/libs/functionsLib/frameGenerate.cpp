@@ -27,7 +27,7 @@ using namespace Helpers;
  */
 
 
-#define FRAMEGENERATE_SCOPED_LOG PRINT_INFO3 << "[frameGenerate func] : "
+#define FRAMEGENERATE_SCOPED_LOG PRINT_INFO8 << "[frameGenerate func] : "
 #define FRAMEGENERATE_SCOPED_ERROR PRINT_ERROR << "[frameGenerate func] : "
 #define FRAMEGENERATE_SCOPED_WARNING PRINT_WARNING << "[frameGenerate func] : "
 
@@ -81,10 +81,12 @@ CORE_ERROR Functions::frameGenerate(
 			// TODO : if no frames from provide the thread eats all CPU time
 			// TODO : notify core about skipped frame
 
-			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesSkipped, 1);
-
-			if (coreCallback)
-				coreCallback( coreObject, CoreCallbackType::CALLBACK_PROVIDER_FRAME_SKIPPED, std::make_any<int>(1) );
+			if (frameProvider->shouldReportSkippedFrame())
+			{
+				RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_acquiredFramesSkipped, 1);
+				if (coreCallback)
+					coreCallback( coreObject, CoreCallbackType::CALLBACK_PROVIDER_FRAME_SKIPPED, std::make_any<int>(1) );
+			}
 
 			static const std::chrono::milliseconds timeout(frameProvider->getFrameDropDelayTimeout());
 			std::this_thread::sleep_for(timeout);

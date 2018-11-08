@@ -16,7 +16,7 @@ using namespace Algorithms;
 using namespace LandaJune;
 
 
-#define FRAMECONSUME_SCOPED_LOG PRINT_INFO3 << "[frameConsume func] : "
+#define FRAMECONSUME_SCOPED_LOG PRINT_INFO4 << "[frameConsume func] : "
 #define FRAMECONSUME_SCOPED_ERROR PRINT_ERROR << "[frameConsume func] : "
 #define FRAMECONSUME_SCOPED_WARNING PRINT_WARNING << "[frameConsume func] : "
 CORE_ERROR Functions::frameConsume(BaseParametersPtr parameters, AlgorithmRunnerPtr algorithmRunner, Core::ICore * coreObject, CoreEventCallback coreCallback )
@@ -159,6 +159,8 @@ CORE_ERROR Functions::frameConsume(BaseParametersPtr parameters, AlgorithmRunner
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_framesHandledOk, perfTime);
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_performedAlgoSucess, perfTime);
 
+		FRAMECONSUME_SCOPED_LOG << "Frame #" << frameIndex << "finished in " << perfTime << "ms; RESULT : SUCCESS";
+
 		if (coreCallback)
 		{
 			coreCallback( coreObject, CoreCallbackType::CALLBACK_RUNNER_FRAME_HANDLED_OK, std::make_any<int>(frameIndex) );
@@ -169,6 +171,8 @@ CORE_ERROR Functions::frameConsume(BaseParametersPtr parameters, AlgorithmRunner
 	{
 		// frame has been handled OK
 		// detection has failed
+
+		FRAMECONSUME_SCOPED_LOG << "Frame #" << frameIndex << "finished in " << perfTime << "ms; RESULT : FAIL";
 
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_framesHandledOk, perfTime);
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_performedAlgoFail, perfTime);
@@ -182,6 +186,8 @@ CORE_ERROR Functions::frameConsume(BaseParametersPtr parameters, AlgorithmRunner
 	else
 	{
 		// frame handling failed
+		FRAMECONSUME_SCOPED_LOG << "Frame #" << frameIndex << "finished in " << perfTime << "ms; RESULT : GENERAL FAILURE";
+
 		RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_framesHandledFailures, perfTime);
 	}
 	return retVal;

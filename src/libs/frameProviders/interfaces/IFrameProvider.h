@@ -44,6 +44,10 @@ namespace LandaJune
 			virtual QString getName() const = 0;
 			virtual QString getDescription() const = 0;
 			virtual int getRecommendedFramePoolSize() = 0;
+			virtual int32_t getFrameLifeSpan() const = 0;
+			virtual int32_t getFrameDropDelayTimeout() const = 0;
+			virtual bool shouldReportSkippedFrame() const = 0;
+
 			
 			virtual BaseParametersPtr getProviderParameters() const = 0;
 			virtual IPropertyList getProviderProperties() const = 0;
@@ -51,9 +55,7 @@ namespace LandaJune
 			virtual CORE_ERROR prepareData(Core::FrameRef* frameRef) = 0;
 			virtual CORE_ERROR accessData(Core::FrameRef* frameRef) = 0;
 			virtual void releaseData(Core::FrameRef* frameRef) = 0;
-
-			virtual int32_t getFrameLifeSpan() const = 0;
-			virtual int32_t getFrameDropDelayTimeout() const = 0;
+			
 			virtual int64_t getCurrentFrameIndex() const = 0;
 			
 			virtual QVariant getProviderProperty(const QString& strValName) const = 0;

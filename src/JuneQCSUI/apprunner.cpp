@@ -28,20 +28,33 @@ void appRunner::parseArguments(const QApplication& app)
     parser.addOption(saveLogToFile);
 	
     // An option with a value
+
+	///////////////////////////////////////////
+	// -mode=ui|noui[console,headless]|batch
+
 	QCommandLineOption modeOption(QStringList() << "mode",
             QCoreApplication::translate("main", "Application run mode"),
             QCoreApplication::translate("main", "mode"), "ui");
     parser.addOption(modeOption);
 
-    QCommandLineOption configFileOption(QStringList() << "config",
-            QCoreApplication::translate("main", "Load processing configuration file"),
+	///////////////////////////////////////////
+	// -recipe=<path_to_file>
+
+    QCommandLineOption configFileOption(QStringList() << "recipe",
+            QCoreApplication::translate("main", "Load processing recipe file"),
             QCoreApplication::translate("main", "file"));
     parser.addOption(configFileOption);
 
-	 QCommandLineOption logRootFolderOption(QStringList() << "logRoot",
+	///////////////////////////////////////////
+	// -logroot=<path_to_log_folder>
+
+	QCommandLineOption logRootFolderOption(QStringList() << "logroot",
             QCoreApplication::translate("main", "Log files root folder"),
             QCoreApplication::translate("main", "logroot"));
     parser.addOption(logRootFolderOption);
+
+	///////////////////////////////////////////
+	// -loglevel=all|warning|errors
 
 	QCommandLineOption logLevelOption(QStringList() << "loglevel",
             QCoreApplication::translate("main", "Set a log level"),
@@ -56,7 +69,7 @@ void appRunner::parseArguments(const QApplication& app)
 
     _runMode = parser.value(modeOption);
     _saveToLogFile = parser.isSet(saveLogToFile);
-    _processConfig = parser.value(configFileOption);
+    _recipeFile = parser.value(configFileOption);
 	_logRootPath = parser.value(logRootFolderOption);
 	_logLevel = parser.value(logLevelOption);
 }
@@ -84,12 +97,12 @@ int appRunner::runApp()
 		QSplashScreen splash(pixmap);
 		splash.show();
 		_app.processEvents();
-		LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _processConfig);
+		LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _recipeFile);
 		splash.finish(w);
 		w->show();
 		return _app.exec();
 	}
 
-	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _processConfig);
+	LandaJune::UI::JuneUIWnd * w = new LandaJune::UI::JuneUIWnd(_runMode, _logLevel, _saveToLogFile, _logRootPath, _recipeFile);
 	return _app.exec();
 }

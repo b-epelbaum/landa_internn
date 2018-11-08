@@ -20,6 +20,6 @@ private:
 	QString _runMode;
 	QString _logLevel;
     bool _saveToLogFile = false;
-    QString _processConfig;
+    QString _recipeFile;
 	QString _logRootPath;
 };

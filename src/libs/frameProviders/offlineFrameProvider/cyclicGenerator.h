@@ -30,7 +30,9 @@ namespace LandaJune
 			cyclicGenerator & operator = (cyclicGenerator &&) = delete;
 
 			int32_t getFrameLifeSpan() const override;
-			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency();  }
+			int getRecommendedFramePoolSize() override { return std::thread::hardware_concurrency();}
+			bool shouldReportSkippedFrame() const override { return true;}
+
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;

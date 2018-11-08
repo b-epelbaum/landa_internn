@@ -81,11 +81,18 @@ namespace LandaJune
 			void onRemoveColor();
 
 			void onTimerTick();
-			void onFrameProcessed ( int frameIndex );
-
+			
 			void processParamSelectionChanged(const  QModelIndex&, const  QModelIndex&);
 			void onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
+			
 			void onOfflineFileCount(int fileCount);
+			void onFrameGeneratedOK ( int frameIndex );
+			void onFrameProviderSkipped ( int frameIndex );
+
+			void onFrameProcessedOK ( int frameIndex );
+			void onFrameProcessedSkipped ( int frameIndex );
+			void onFrameProcessedDetectionSuccess ( int frameIndex );
+			void onFrameProcessedDetectionFailed ( int frameIndex );
 
 			void onVerticalScrollBarValueChanged(int val);
 			void onHorizontalScrollBarValueChanged(int val);

@@ -38,6 +38,9 @@
     <ClInclude Include="cmdHdr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="natsort.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="util.cpp">
