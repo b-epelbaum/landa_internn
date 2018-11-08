@@ -175,7 +175,7 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 
 // when given points on edge (afEdges) - the linear line coefficients are found
 // Use Ransac like method
-void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
+void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB, float fThreshold)
 {
 	const int STEP = max(iEdges_Len / 50, 1);
 
@@ -195,7 +195,7 @@ void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
 			fY = afEdges[iCnt1] - fSlope * iCnt1;
 
 			for (iCnt3 = 0; iCnt3 < iEdges_Len; iCnt3 += STEP)
-				if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < 1)
+				if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < fThreshold)
 					g_anCount[iCnt1 + iCnt2 * iEdges_Len] ++;
 		}
 
@@ -219,7 +219,7 @@ void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
 	float	fAverage_Y = 0;
 	float	fAverage_XY = 0;
 	for (iCnt3 = 0; iCnt3 < iEdges_Len; iCnt3++)
-		if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < 1) {
+		if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < fThreshold) {
 			fAverage_X += iCnt3;
 			fAverage_X2 += iCnt3 * iCnt3;
 			fAverage_Y += afEdges[iCnt3];

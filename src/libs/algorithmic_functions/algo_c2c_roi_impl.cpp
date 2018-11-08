@@ -21,12 +21,13 @@ void	Find_Template_In_Image(const Mat& imImage, const Mat& imTemplate, Mat& tCor
 Mat		H_Diff (const Mat& imH1, int iH) ;
 
 // global variables
-thread_local	Mat		g_imPart_GL, g_imPart_HSV, g_imPart_GL_Smooth;
+thread_local	Mat		g_imPart_GL, g_imPart_HSV, g_imPart_GL_Smooth, g_imPart_GL_Smooth_For_Template;
 thread_local	Mat		g_aimBGR[3];
 thread_local	Mat		g_aimHSV[3];
 //thread_local	Mat		g_imMin_Channel;
 //thread_local	Mat		g_imPart_T;
 thread_local	Mat		g_imColor_Circle ;
+thread_local	Mat		g_imColor_Circle_Orig;
 //thread_local	Mat		g_imCyan, g_imYellow, g_imMagenta, g_imBlack;
 thread_local	Mat		g_imLabels, g_imStat, g_imCentroids;
 thread_local	Mat		g_imUsed_Proc;
@@ -120,6 +121,8 @@ void detect_c2c_roi(PARAMS_C2C_ROI_INPUT_PTR input, PARAMS_C2C_ROI_OUTPUT_PTR ou
 							g_aimHSV[1] >= input->_colors[iCircle]._min._iS & g_aimHSV[1] <= input->_colors[iCircle]._max._iS &
 							g_aimHSV[2] >= input->_colors[iCircle]._min._iV & g_aimHSV[2] <= input->_colors[iCircle]._max._iV ;
 
+		g_imColor_Circle_Orig = g_imColor_Circle.clone () ;
+
 		
 		dilate(g_imColor_Circle, g_imColor_Circle, Mat::ones(5, 5, CV_8U));
 		erode(g_imColor_Circle, g_imColor_Circle, Mat::ones(9, 9, CV_8U));
@@ -148,19 +151,41 @@ void detect_c2c_roi(PARAMS_C2C_ROI_INPUT_PTR input, PARAMS_C2C_ROI_OUTPUT_PTR ou
 			int iHT = g_imStat.at<int>(iLabel, cv::CC_STAT_HEIGHT);
 			int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
 
-			// remove blbls - to small, too large, high aspect ratio
+			// remove blobls - to small, too large, high aspect ratio
 			if (iSize < 80 || iSize > 400 || abs(iWH - iHT) > 12)
 				g_imColor_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
 		}
 
+		// in case of no labels - probably due to overlap
+		// do again with smaller size
 		iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+		if (iLabels == 1) {
+			g_imColor_Circle = g_imColor_Circle_Orig.clone () ;
+			for (int iLabel = 1; iLabel < iLabels; iLabel++) {
+
+				int iXS = g_imStat.at<int>(iLabel, cv::CC_STAT_LEFT);
+				int iWH = g_imStat.at<int>(iLabel, cv::CC_STAT_WIDTH);
+				int iYS = g_imStat.at<int>(iLabel, cv::CC_STAT_TOP);
+				int iHT = g_imStat.at<int>(iLabel, cv::CC_STAT_HEIGHT);
+				int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
+
+				// remove blobls - to small, too large, high aspect ratio
+				if (iSize < 50 || iSize > 400 || abs(iWH - iHT) > 12)
+					g_imColor_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
+			}
+			iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+		}
+		
+		// dilate g_imColor_Circle for correlation area
+		dilate(g_imColor_Circle, g_imColor_Circle_Dil, Mat::ones(13, 13, CV_8U));
+		multiply (g_imPart_GL_Smooth, g_imColor_Circle_Dil, g_imPart_GL_Smooth_For_Template, 1/255.f) ;
 
 		if (iLabels == 2) {
 			afX[iCircle] = (float)g_imCentroids.at<double>(2); // + (float)iStart_X;
 			afY[iCircle] = (float)g_imCentroids.at<double>(3); // + (float)iStart_Y;
 
 			for (int iMode = 0; iMode < 1; iMode++)
-				Find_Template_In_Image(g_imPart_GL_Smooth, g_imTemplate_Smooth, g_tCorr_Matrix, (int)g_imCentroids.at<double>(2), (int)g_imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
+				Find_Template_In_Image(g_imPart_GL_Smooth_For_Template, g_imTemplate_Smooth, g_tCorr_Matrix, (int)g_imCentroids.at<double>(2), (int)g_imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
 			//Find_Template_In_Image(imPart_GL, imTemplate, (int)imCentroids.at<double>(2), (int)imCentroids.at<double>(3), 5, afDx[iMode], afDy[iMode], afCorr[iMode], iMode);
 
 			//qsort (afDx, 5, sizeof (afDx[0]), Compare_Float) ;
