@@ -27,7 +27,8 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_Y,						double,					0.08660258	)
 			DECLARE_NORMAL_PARAM_PROPERTY(ReferenceColorTriplet,			COLOR_TRIPLET_SINGLE,	{}		)
 			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripOnly,				bool,					false	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OfflineTreatEvenFilesAsRight,		bool,					false	)
+			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripsLeftAndRight,		bool,					false	)
+			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRightStripIsEven,			bool,					true	)
 			
 			// I2S Triangle
 			DECLARE_EDITABLE_ONLY_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" })
@@ -70,6 +71,8 @@ namespace LandaJune
 			DECLARE_EDITABLE_ONLY_PROPERTY(OffLineProvider, PARAM_GROUP_HEADER, { "Offline Frame Generator parameters" })
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath,			QString,			"c:\\temp")
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFilePath,			QString,			""	)
+			DECLARE_NORMAL_PARAM_PROPERTY(RootImageOutputFolder,	QString,			"C:\\temp\\june_out" )
+			DECLARE_NORMAL_PARAM_PROPERTY(RootCSVOutputFolder,		QString,			"C:\\temp\\june_out" )
 			DECLARE_NORMAL_PARAM_PROPERTY(FrameFrequencyInMSec,		int,				500	)
 			DECLARE_NORMAL_PARAM_PROPERTY(CycleImage,				bool,				true)
 			DECLARE_NORMAL_PARAM_PROPERTY(ImageMaxCount,			int,				-1	)
@@ -82,11 +85,10 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SISO_BoardIndex,				int,				0	)
 			
 			DECLARE_EDITABLE_ONLY_PROPERTY(GeneralParams, PARAM_GROUP_HEADER, {"Process General parameters"})
-			DECLARE_NORMAL_PARAM_PROPERTY(JobID,						int,				0	)
+			DECLARE_NORMAL_PARAM_PROPERTY(JobID,						QString,			"Generic job"	)
 			DECLARE_NORMAL_PARAM_PROPERTY(SheetID,						int,				0	)
 			DECLARE_NORMAL_PARAM_PROPERTY(PanelCount,					int,				11	)
 			DECLARE_NORMAL_PARAM_PROPERTY(ScanBitDepth,					int,				24	)
-			DECLARE_NORMAL_PARAM_PROPERTY(RootOutputFolder,				QString,			"C:\\temp\\june_out" )
 			DECLARE_SAVEABLE_ONLY_PROPERTY(FrameProviderName,			QString,			"Offline Frame Provider"	)
 			DECLARE_SAVEABLE_ONLY_PROPERTY(AlgorithmRunner,				QString,			"Full Image Runner"	)
 			

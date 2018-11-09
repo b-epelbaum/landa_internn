@@ -33,7 +33,7 @@ namespace LandaJune
 			, DUMP_LAST
 		};
 
-		static std::string SAVE_IMAGE_TYPE_NAME [] =
+		static std::string SAVE_IMAGE_TYPE_NAME[] =
 		{
 			  "FULL_FRAME"
 			, "EDGE_OVERLAY"
@@ -50,15 +50,15 @@ namespace LandaJune
 		// meta data generation functions
 
 		static std::string generateImageSavePath
-		( 
-				  const std::string& rootFolder // c:\\temp\\out
-				, const std::string& imageFolder // 11_Reg_Left or Frame_<FrameID>_<ImageIndex>_algo_name
-				, int JobID
-				, int frameID
-				, int imageIdx
-				, SAVED_IMAGE_TYPE imageType
-				, const std::string& customPreffix = ""
-				, const std::string& customExtension = ".bmp"
+		(
+			const std::string& rootFolder // c:\\temp\\out
+			, const std::string& imageFolder // 11_Reg_Left or Frame_<FrameID>_<ImageIndex>_algo_name
+			, int JobID
+			, int frameID
+			, int imageIdx
+			, SAVED_IMAGE_TYPE imageType
+			, const std::string& customPreffix = ""
+			, const std::string& customExtension = ".bmp"
 		)
 		{
 			std::string filePath = rootFolder;
@@ -67,17 +67,17 @@ namespace LandaJune
 				filePath = DEFAULT_OUT_FOLDER;
 			}
 
-			filePath =  fmt::format("{0}\\{1}\\{2}\\{3}.bmp"
-							, filePath
-							, JobID
-							, imageFolder
-							, SAVE_IMAGE_TYPE_NAME[imageType]
-						);
+			filePath = fmt::format("{0}\\{1}\\{2}\\{3}.bmp"
+				, filePath
+				, JobID
+				, imageFolder
+				, SAVE_IMAGE_TYPE_NAME[imageType]
+			);
 
 			return filePath;
 		}
 
-		static void createDirectoryIfNeeded (const std::string& pathName)
+		static void createDirectoryIfNeeded(const std::string& pathName)
 		{
 			fs::path p{ pathName };
 			auto const parentPath = p.parent_path();
@@ -96,17 +96,15 @@ namespace LandaJune
 			}
 		}
 
-		
+
 		static std::string getBatchRootFolder(ProcessParametersPtr processParameters)
 		{
-			if (!processParameters->ConfigFileName().isEmpty())
-				return (processParameters->ConfigFileName() + "\\" + QString::number(processParameters->JobID())).toStdString();
-			return std::to_string(processParameters->JobID());
+			return processParameters->JobID().toStdString();
 		}
 
-		static std::string generateFullPathForRegCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> out, const std::string csvFolder, const int frameIndex )
+		static std::string generateFullPathForRegCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> out, const std::string csvFolder, const int frameIndex)
 		{
-			return fmt::format("{0}\\Registration_{1}_{2}.csv", csvFolder, SIDE_NAMES[out->_input->_side], frameIndex );
+			return fmt::format("{0}\\Registration_{1}_{2}.csv", csvFolder, SIDE_NAMES[out->_input->_side], frameIndex);
 		}
 
 		static std::string generateFullPathForPlacementCSV(const SHEET_SIDE side, const std::string& csvFolder)
@@ -114,18 +112,18 @@ namespace LandaJune
 			return fmt::format("{0}\\ImagePlacement_{1}.csv", csvFolder, SIDE_NAMES[side]);
 		}
 
-		static std::string generateFullPathForFilePairInfoFile(const std::string& csvFolder, const std::string& preffix )
+		static std::string generateFullPathForFilePairInfoFile(const std::string& csvFolder, const std::string& preffix)
 		{
 			return fmt::format("{0}\\SourceFileMappings_{1}.txt", csvFolder, preffix);
 		}
 
-		static std::string generateFullPathForWaveCSV(const std::string csvFolder, const int frameIndex )
+		static std::string generateFullPathForWaveCSV(const std::string csvFolder, const int frameIndex)
 		{
-			return fmt::format("{0}\\WaveY_{1}.csv", csvFolder, frameIndex );
+			return fmt::format("{0}\\WaveY_{1}.csv", csvFolder, frameIndex);
 		}
 
 
-		static std::string getElementPrefix(const int frameIndex, const int imageIndex )
+		static std::string getElementPrefix(const int frameIndex, const int imageIndex)
 		{
 			//file name for ROIs : <Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
 			return (
@@ -137,11 +135,11 @@ namespace LandaJune
 		}
 
 		static std::string generateFullPathForElement(const std::string& elementName
-											, const std::string& ext
-											, ProcessParametersPtr processParameters
-											, const int frameIndex
-											, const int imageIndex
-											, const std::string frameFolderName  )
+			, const std::string& ext
+			, ProcessParametersPtr processParameters
+			, const int frameIndex
+			, const int imageIndex
+			, const std::string frameFolderName)
 		{
 			// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_EDGE_LEFT or
 			// target folder <root_folder>\0\11_Reg_Left\\<Frame_ID>_<ImageIndex>_C2C_LEFT_00_[x,y].bmp
@@ -149,7 +147,7 @@ namespace LandaJune
 			return (
 				fmt::format(
 					R"({0}\{1}\{2}\{3}_{4}.{5})"
-					, processParameters->RootOutputFolder().toStdString()
+					, processParameters->RootImageOutputFolder().toStdString()
 					, getBatchRootFolder(processParameters)
 					, frameFolderName
 					, getElementPrefix(frameIndex, imageIndex)
@@ -160,31 +158,31 @@ namespace LandaJune
 
 		template<typename T>
 		static std::string generateFullPathForElement(T& inout
-										, const std::string& ext
-										, ProcessParametersPtr processParameters
-										, const int frameIndex
-										, const int imageIndex
-										, const std::string frameFolderName )
+			, const std::string& ext
+			, ProcessParametersPtr processParameters
+			, const int frameIndex
+			, const int imageIndex
+			, const std::string frameFolderName)
 		{
 			return generateFullPathForElement(inout->getElementName(), ext, processParameters, frameIndex, imageIndex, frameFolderName);
 		}
 
 		static std::string createCSVFolder(ProcessParametersPtr processParameters)
 		{
-			auto rootPath = processParameters->RootOutputFolder().toStdString();
+			auto rootPath = processParameters->RootCSVOutputFolder().toStdString();
 			if (rootPath.empty())
 			{
 				rootPath = DEFAULT_OUT_FOLDER;
 			}
 
-			const fs::path p{ 
-				fmt::format("{0}\\{1}\\RawResults"
+			const fs::path p{
+				fmt::format("{0}\\RawResults"
 				, rootPath
-				, getBatchRootFolder(processParameters) )
+				)
 			};
 
 			std::string retVal = p.generic_u8string();
-			
+
 			if (!is_directory(p) || !exists(p))
 			{
 				create_directories(p); // create CSV folder
@@ -197,7 +195,7 @@ namespace LandaJune
 		////////////////   FILE SAVING FUNCTIONS
 		//////////////////////////////////////////////
 
-		static void dumpMatFile (std::shared_ptr<cv::Mat> img, const std::string& filePath, bool asyncProcess,  bool asyncWrite)
+		static void dumpMatFile(std::shared_ptr<cv::Mat> img, const std::string& filePath, bool asyncProcess, bool asyncWrite)
 		{
 			const auto dumpLambda = [img, filePath, asyncWrite]()
 			{
@@ -205,7 +203,7 @@ namespace LandaJune
 				try
 				{
 					const auto data = std::make_shared<std::vector<unsigned char>>();
-					if (cv::imencode(".bmp",*img.get(), *data ) )
+					if (cv::imencode(".bmp", *img.get(), *data))
 					{
 						if (!Core::dumpThreadPostJob(data, filePath, asyncWrite))
 						{
@@ -214,17 +212,17 @@ namespace LandaJune
 					}
 					else
 					{
-						throw std::runtime_error ("[dumpMatFile] : cannot encode data to BMP");
+						throw std::runtime_error("[dumpMatFile] : cannot encode data to BMP");
 					}
 				}
-				catch ( const std::exception& ex)
+				catch (const std::exception& ex)
 				{
 					PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << ex.what();
 					RETHROW(CORE_ERROR::ERR_CORE_CANNOT_ENCODE_TO_BMP);
 				}
 			};
 
-			if (asyncProcess)	
+			if (asyncProcess)
 			{
 				task<void> t(dumpLambda);
 			}
@@ -234,11 +232,11 @@ namespace LandaJune
 			}
 		}
 
-		static void dumpInputOutputPairInfo(std::string inputPathInfo, std::string outPathInfo, std::string csvFolder, std::string preffix )
+		static void dumpInputOutputPairInfo(std::string inputPathInfo, std::string outPathInfo, std::string csvFolder, std::string preffix)
 		{
 			try
 			{
-				auto const qFilePath = QString::fromStdString(generateFullPathForFilePairInfoFile(csvFolder, preffix ));
+				auto const qFilePath = QString::fromStdString(generateFullPathForFilePairInfoFile(csvFolder, preffix));
 				const auto fileExists = QFileInfo(qFilePath).exists();
 				const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
 				QFile outFile(qFilePath);
@@ -249,43 +247,43 @@ namespace LandaJune
 				const auto& outString = ss.str();
 				outFile.write(outString.c_str(), outString.size());
 			}
-			catch(...)
+			catch (...)
 			{
 				PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught";
 			}
 		}
 
 		static void dumpWaveCSV(const concurrent_vector<std::shared_ptr<PARAMS_WAVE_OUTPUT>> & waveOutputs
-					, const int jobID
-					, const int frameIndex
-					, const int imageIndex
-					, const std::string csvFolder
-					, const std::string sourceFilePath
-					, bool asyncWrite)
+			, const std::string jobID
+			, const int frameIndex
+			, const int imageIndex
+			, const std::string csvFolder
+			, const std::string sourceFilePath
+			, bool asyncWrite)
 		{
-			const auto overallResult = 
-			std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& colorWave) { return colorWave->_result == ALG_STATUS_SUCCESS; } )
-			? ALG_STATUS_SUCCESS
-			: ALG_STATUS_FAILED;
+			const auto overallResult =
+				std::all_of(waveOutputs.begin(), waveOutputs.end(), [](auto& colorWave) { return colorWave->_result == ALG_STATUS_SUCCESS; })
+				? ALG_STATUS_SUCCESS
+				: ALG_STATUS_FAILED;
 
-			std::string resultName = (overallResult == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+			std::string resultName = (overallResult == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
 
 			std::ostringstream ss;
 			ss << "Pattern Type :,WaveY" << std::endl << std::endl
-			<< "Job Id :," <<jobID << std::endl
-			<< "Flat ID :," << frameIndex << std::endl
-			<< "ImageIndex ID :," << imageIndex << std::endl
-			<< "Mark Index In Layout Id :,2" << std::endl
-			<< "Wave Y Overall Status :," << resultName << std::endl
-			<< "DotIndex\\Separation,";
+				<< "Job Id :," << jobID << std::endl
+				<< "Flat ID :," << frameIndex << std::endl
+				<< "ImageIndex ID :," << imageIndex << std::endl
+				<< "Mark Index In Layout Id :,2" << std::endl
+				<< "Wave Y Overall Status :," << resultName << std::endl
+				<< "DotIndex\\Separation,";
 
 			const auto colorCount = waveOutputs.size();
 			auto counter = 0;
 			for (const auto& out : waveOutputs)
 			{
-				resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+				resultName = (out->_result == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
 				ss << out->_input->_circleColor._colorName << "(" << resultName << ")";
-				if ( counter < static_cast<int>(colorCount) -1 )
+				if (counter < static_cast<int>(colorCount) - 1)
 					ss << ",";
 				counter++;
 			}
@@ -294,53 +292,53 @@ namespace LandaJune
 			const static std::string nan = "NaN";
 
 			int i, j;
-			const auto printVals = [&ss, &i, &j, &waveOutputs] ()
+			const auto printVals = [&ss, &i, &j, &waveOutputs]()
 			{
-				if ( const auto& val =  waveOutputs[j]->_colorCenters[i]._y; val != -1 )
-						ss <<  val;
-					else
-						ss <<  nan;
+				if (const auto& val = waveOutputs[j]->_colorCenters[i]._y; val != -1)
+					ss << val;
+				else
+					ss << nan;
 			};
 
-			for ( i = 0; i < waveOutputs[0]->_colorCenters.size(); i++)
+			for (i = 0; i < waveOutputs[0]->_colorCenters.size(); i++)
 			{
 				ss << i << ",";
-				for ( j = 0; j < colorCount-1; j++)
+				for (j = 0; j < colorCount - 1; j++)
 				{
 					printVals();
-					ss  << ",";
+					ss << ",";
 				}
-				j = colorCount-1;
+				j = colorCount - 1;
 				printVals();
 				ss << std::endl;
 			}
 
-			auto const& fPath = generateFullPathForWaveCSV(csvFolder,frameIndex );
+			auto const& fPath = generateFullPathForWaveCSV(csvFolder, frameIndex);
 			const auto& outString = ss.str();
 			const auto& charData = outString.c_str();
 
 			auto dataVector = std::make_shared<std::vector<unsigned char>>();
-			dataVector->assign(charData, charData + outString.size() + 1 );
-			
-			if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite) )
+			dataVector->assign(charData, charData + outString.size() + 1);
+
+			if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite))
 			{
 				PRINT_WARNING << "[" << __FUNCTION__ << "] : cannot post new save job; Saving queue exceeded maximum size. Saving file dropped [" << fPath.c_str() << "]";
 			}
 
 			if (!sourceFilePath.empty())
-				dumpInputOutputPairInfo (sourceFilePath, fPath, csvFolder, "wave" );
-			
+				dumpInputOutputPairInfo(sourceFilePath, fPath, csvFolder, "wave");
+
 		}
 
 		static void dumpRegistrationCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut
-					, const int jobID
-					, const int frameIndex
-					, const int imageIndex
-					, const std::string csvFolder
-					, const std::string sourceFilePath
-					, bool asyncWrite)
+			, const std::string jobID
+			, const int frameIndex
+			, const int imageIndex
+			, const std::string csvFolder
+			, const std::string sourceFilePath
+			, bool asyncWrite)
 		{
-			if ( stripOut->_c2cROIOutputs.empty() )
+			if (stripOut->_c2cROIOutputs.empty())
 			{
 				//BASE_RUNNER_SCOPED_WARNING << "C2C array is empty, aborting CSV creation...";
 				return;
@@ -348,59 +346,64 @@ namespace LandaJune
 
 			try
 			{
-				std::string resultName = (stripOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-			
+				std::string resultName = (stripOut->_result == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
+
 				std::ostringstream ss;
 				ss << "Pattern Type :,Registration" << std::endl << std::endl
-				<< "Job Id :," <<jobID << std::endl
-				<< "Flat ID :," << frameIndex << std::endl
-				<< "ImageIndex ID :," << imageIndex << std::endl
-				<< "Registration Side :" << SIDE_NAMES[stripOut->_input->_side] << std::endl
-				<< "Registration Overall Status :," << resultName << std::endl
-				<< "Ink\\Sets,";
-			
+					<< "Job Id :," << jobID << std::endl
+					<< "Flat ID :," << frameIndex << std::endl
+					<< "ImageIndex ID :," << imageIndex << std::endl
+					<< "Registration Side :," << SIDE_NAMES[stripOut->_input->_side] << std::endl
+					<< "Registration Overall Status :," << resultName << std::endl
+					<< "Ink\\Sets,";
+
+				const auto& setArraySize = stripOut->_c2cROIOutputs.size();
 				for (const auto& out : stripOut->_c2cROIOutputs)
 				{
-					resultName =  (out->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
-					ss << "Set #" << out->_input->_roiIndex + 1 << " :," << resultName << ",";
+					resultName = (out->_result == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
+					ss << "Set #" << out->_input->_roiIndex + 1 << " :," << resultName;
+					if (out->_input->_roiIndex < setArraySize -1 )
+						ss << ",";
 				}
 				ss << std::endl;
 
-				for ( size_t i = 0; i < stripOut->_c2cROIOutputs[0]->_input->_colors.size(); i++)
+				const auto& colorArraySize = stripOut->_c2cROIOutputs[0]->_input->_colors.size();
+				for (size_t i = 0; i < colorArraySize; i++)
 				{
 					ss << stripOut->_c2cROIOutputs[0]->_input->_colors[i]._colorName;
 					for (const auto& out : stripOut->_c2cROIOutputs)
 					{
 						ss << "," << out->_colorCenters[i]._x << "," << out->_colorCenters[i]._y;
 					}
-					ss << std::endl;
+					if ( i < colorArraySize - 1)
+						ss << std::endl;
 				}
 
-				auto const& fPath = generateFullPathForRegCSV(stripOut, csvFolder,frameIndex );
+				auto const& fPath = generateFullPathForRegCSV(stripOut, csvFolder, frameIndex);
 				const auto& outString = ss.str();
 				const auto& charData = outString.c_str();
 
 				auto dataVector = std::make_shared<std::vector<unsigned char>>();
-				dataVector->assign(charData, charData + outString.size() + 1 );
-				if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite) )
+				dataVector->assign(charData, charData + outString.size() + 1);
+				if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite))
 				{
 					PRINT_WARNING << "[" << __FUNCTION__ << "] : cannot post new save job; Saving queue exceeded maximum size. Saving file dropped [" << fPath.c_str() << "]";
 				}
 
 				if (!sourceFilePath.empty())
-					dumpInputOutputPairInfo (sourceFilePath, fPath, csvFolder, "reg" );
+					dumpInputOutputPairInfo(sourceFilePath, fPath, csvFolder, "reg");
 			}
-			catch(...)
+			catch (...)
 			{
 				PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught";
 			}
 		}
-		
+
 		static void dumpPlacementCSV(std::shared_ptr<PARAMS_C2C_STRIP_OUTPUT> stripOut
-								, const int frameIndex
-								, const int imageIndex
-								, const std::string csvFolder
-								, bool asyncWrite)
+			, const int frameIndex
+			, const int imageIndex
+			, const std::string csvFolder
+			, bool asyncWrite)
 		{
 			try
 			{
@@ -408,35 +411,35 @@ namespace LandaJune
 				static const std::string colons = ",,,,,,,";
 
 				const auto& csvOutFilePath = QString::fromStdString(generateFullPathForPlacementCSV(stripOut->_input->_side, csvFolder));
-				
+
 				const auto fileExists = QFileInfo(csvOutFilePath).exists();
 
 				const QFile::OpenMode flags = (fileExists) ? QFile::Append : QFile::WriteOnly;
-				
+
 				QFile outFile(csvOutFilePath);
 				outFile.open(flags | QFile::Text);
 
-				const std::string resultName =  (i2sOut->_result == ALG_STATUS_SUCCESS ) ? "Success" : "Fail";
+				const std::string resultName = (i2sOut->_result == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
 				std::ostringstream ss;
 
 				if (!fileExists)
-					ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl ;
+					ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl;
 
 				// TODO : move pixel density multiplication to algorithm function
-				ss << frameIndex 
-					<< "," 
+				ss << frameIndex
+					<< ","
 					<< imageIndex
-					<< "," 
-					<< resultName 
-					<< colons 
-					<< i2sOut->_triangeCorner._x  *  1000 
-					<< "," << i2sOut->_triangeCorner._y * 1000 
+					<< ","
+					<< resultName
+					<< colons
+					<< i2sOut->_triangeCorner._x * 1000
+					<< "," << i2sOut->_triangeCorner._y * 1000
 					<< std::endl;
 
 				const auto& outString = ss.str();
 				outFile.write(outString.c_str(), outString.size());
 			}
-			catch(...)
+			catch (...)
 			{
 				PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught";
 			}

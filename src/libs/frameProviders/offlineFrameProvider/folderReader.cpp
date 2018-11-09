@@ -10,6 +10,7 @@
 #include <opencv2/imgcodecs.hpp>
 #include <QDateTime>
 #include "common/june_enums.h"
+#include "natsort.h"
 
 #ifdef _DEBUG
 #pragma comment(lib, "opencv_world342d.lib")
@@ -18,7 +19,7 @@
 #endif
 
 
-#define FOLDER_READER_PROVIDER_SCOPED_LOG PRINT_INFO2 << "[folderReader] : "
+#define FOLDER_READER_PROVIDER_SCOPED_LOG PRINT_INFO6 << "[folderReader] : "
 #define FOLDER_READER_PROVIDER_SCOPED_ERROR PRINT_ERROR << "[folderReader] : "
 #define FOLDER_READER_PROVIDER_SCOPED_WARNING PRINT_WARNING << "[folderReader] : "
 
@@ -27,18 +28,6 @@ using namespace Core;
 using namespace Parameters;
 using namespace FrameProviders;
 using namespace Helpers;
-
-struct ImageFileLessFunctor
-{
-	bool operator() (const QString& left, const QString& right)
-	{
-		auto leftInfo  = QFileInfo(left);
-		auto rightInfo  = QFileInfo(right);
-
-		return leftInfo.lastModified() < rightInfo.lastModified();
-	}
-};
-
 
 folderReader::folderReader()
 {
@@ -50,14 +39,25 @@ folderReader::~folderReader()
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
+void folderReader::splitToLeftAndRight()
+{
+	for ( int i = 0; i < _imagePaths.size(); i++ )
+	{
+		if (_OfflineRightStripIsEven)
+			(i % 2) ? _imagePathsRight.push_back(_imagePaths[i]) : _imagePathsLeft.push_back(_imagePaths[i]);
+		else
+			(i % 2) ? _imagePathsLeft.push_back(_imagePaths[i]) : _imagePathsRight.push_back(_imagePaths[i]);
+	}
+}
+
 void folderReader::sortImageFileList()
 {
 	std::sort(_imagePaths.begin(), _imagePaths.end(), 
 			[](const QString& left, const QString& right) 
 			{
-				auto leftInfo  = QFileInfo(left);
-				auto rightInfo  = QFileInfo(right);
-				return leftInfo.lastModified() < rightInfo.lastModified();
+				auto ls = left.toStdString();
+				auto rs = right.toStdString();
+				return natural_compare(ls, rs);
 			});
 }
 
@@ -73,7 +73,8 @@ void folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, 
 			
 		_lastAcquiredImage = -1;
 		_imagePaths.clear();
-
+		_imagePathsLeft.clear();
+		_imagePathsRight.clear();
 		
 		const auto imageFolder = _SourceFolderPath; 
 		if ( imageFolder.isEmpty() || !QFileInfo(imageFolder).exists())
@@ -98,6 +99,21 @@ void folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, 
 		}
 
 		sortImageFileList();
+		if (_OfflineRegStripOnly)
+		{
+			FOLDER_READER_PROVIDER_SCOPED_LOG << "Images contain strip registration only";
+
+			if (_OfflineRegStripsLeftAndRight)
+			{
+				splitToLeftAndRight();
+				FOLDER_READER_PROVIDER_SCOPED_LOG << "Images has been split to Left and Right parts";
+			}
+			else
+			{
+				_imagePathsLeft = _imagePaths;
+			}
+		}
+
 		FOLDER_READER_PROVIDER_SCOPED_LOG << "sorting complete.";
 
 		if (_dataCallback)
@@ -148,6 +164,9 @@ void folderReader::validateParameters(BaseParametersPtr parameters)
 
 	_SourceFolderPath = processParams->SourceFolderPath();
 	_ImageMaxCount = processParams->ImageMaxCount();
+	_OfflineRegStripOnly = processParams->OfflineRegStripOnly();
+	_OfflineRegStripsLeftAndRight = processParams->OfflineRegStripsLeftAndRight();
+	_OfflineRightStripIsEven = processParams->OfflineRightStripIsEven();
 		
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Validating provider parameters : ";
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "---------------------------------------";
@@ -165,10 +184,25 @@ int32_t folderReader::getFrameLifeSpan() const
 
 CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 {
-	if (_imagePaths.empty())
+	if (_OfflineRegStripOnly && _OfflineRegStripsLeftAndRight )
 	{
-		FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
-		return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
+		if (_imagePathsLeft.size() < 3)
+		{
+			FOLDER_READER_PROVIDER_SCOPED_LOG << "aa";
+		}
+		if (_imagePathsLeft.empty() && _imagePathsRight.empty() )
+		{
+			FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
+			return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
+		}	
+	}
+	else
+	{
+		if (_imagePaths.empty())
+		{
+			FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
+			return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
+		}
 	}
 
 	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount -1 )
@@ -183,9 +217,38 @@ CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 {
 	// read image to cv::Mat object
-	const auto srcFullPath = _imagePaths.first();
+	QString srcFullPath;
+
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "loading source file " << srcFullPath << "...";
-	_imagePaths.pop_front();
+
+	if ( _OfflineRegStripOnly )
+	{
+		if (_OfflineRegStripsLeftAndRight)
+		{
+			if (_bAccessLeft )
+			{
+				srcFullPath = _imagePathsLeft.first();
+				_imagePathsLeft.pop_front();
+			}
+			else
+			{
+				srcFullPath = _imagePathsRight.first();
+				_imagePathsRight.pop_front();
+			}
+			(_bAccessLeft) ? frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 1) : frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 0);
+			_bAccessLeft = !_bAccessLeft;
+		}
+		else
+		{
+			srcFullPath = _imagePaths.first();
+			_imagePaths.pop_front();
+		}
+	}
+	else
+	{
+		srcFullPath = _imagePaths.first();
+		_imagePaths.pop_front();
+	}
 
 	const auto& stdPath = srcFullPath.toStdString();
 

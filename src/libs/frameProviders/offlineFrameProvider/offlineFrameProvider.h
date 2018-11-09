@@ -6,6 +6,7 @@
 #include <QImageReader>
 
 #include <opencv2/imgcodecs.hpp>
+#include <thread>
 
 namespace LandaJune
 {
@@ -27,7 +28,9 @@ namespace LandaJune
 			const offlineFrameProvider & operator = (const offlineFrameProvider &) = delete;
 			offlineFrameProvider & operator = (offlineFrameProvider &&) = delete;
 
-			int getRecommendedFramePoolSize() override { return 4;  }
+			int getRecommendedFramePoolSize() override;
+			bool shouldReportSkippedFrame() const override;
+
 			CORE_ERROR prepareData(Core::FrameRef* frameRef) override;
 			CORE_ERROR accessData(Core::FrameRef* frameRef) override;
 			void releaseData(Core::FrameRef* frameRef) override;

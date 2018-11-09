@@ -8,18 +8,9 @@ oneRunViewer::oneRunViewer(QWidget *parent)
 	: QWidget(parent)
 {
 	ui.setupUi(this);
-	//connect(ui.treeView, &QTreeView::clicked, this, &oneRunViewer::onTreeClicked);
-}
 
-oneRunViewer::~oneRunViewer()
-{
-}
-
-void oneRunViewer::setTargetFolder(const QString& targetFolder)
-{
-	QStringList paths;
-
-	disconnect(ui.treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &oneRunViewer::handleSelectionChanged);
+	if (ui.treeView->selectionModel())
+		disconnect(ui.treeView->selectionModel(), &QItemSelectionModel::selectionChanged, this, &oneRunViewer::handleSelectionChanged);
 
     _filesModel = new QFileSystemModel(this);
 	_filesModel->setFilter(QDir::AllDirs | QDir::AllEntries |QDir::NoDotAndDotDot);
@@ -29,15 +20,22 @@ void oneRunViewer::setTargetFolder(const QString& targetFolder)
 	connect(_filesModel, &QFileSystemModel::directoryLoaded, this, &oneRunViewer::onDirectoryLoaded);
 	connect(_filesModel, &QFileSystemModel::rootPathChanged, this, &oneRunViewer::onRootPathChanged);
 
-	QModelIndex idx =  _filesModel->setRootPath(targetFolder);
+	QModelIndex idx =  _filesModel->setRootPath(_targetFolder);
 	ui.treeView->setRootIndex(idx);
 
 
 	ui.treeView->header()->setSectionHidden(1, true);
 	ui.treeView->header()->setSectionHidden(2, true);
 	ui.treeView->header()->setSectionHidden(3, true);
+}
 
+oneRunViewer::~oneRunViewer()
+{
+}
 
+void oneRunViewer::setTargetFolder(const QString& targetFolder)
+{
+	QStringList paths;
 	_targetFolder = targetFolder;
 	paths << targetFolder;
 }

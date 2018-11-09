@@ -43,6 +43,19 @@ offlineFrameProvider::~offlineFrameProvider()
 	OFFLINE_GENERATORSCOPED_LOG << "destroyed";
 }
 
+int offlineFrameProvider::getRecommendedFramePoolSize()
+{
+	CHECK_INIT
+
+	return _currentOfflineProvider->getRecommendedFramePoolSize();
+}
+
+bool offlineFrameProvider::shouldReportSkippedFrame() const
+{
+	CHECK_INIT
+
+	return _currentOfflineProvider->shouldReportSkippedFrame();
+}
 
 CORE_ERROR offlineFrameProvider::prepareData(FrameRef* frameRef)
 {

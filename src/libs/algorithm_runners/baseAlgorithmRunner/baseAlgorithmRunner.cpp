@@ -291,6 +291,7 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 				, _frameIndex
 				, generateFullPathForElement<PARAMS_C2C_STRIP_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 				, saveSourceStrip
+				, _bAsyncWrite
 			))
 		);
 
@@ -345,7 +346,8 @@ void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_RE
 				, roirect2cvrect(input->_approxTriangeROI)
 				, _frameIndex
 				, generateFullPathForElement<PARAMS_I2S_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
-				, saveSourceI2S)));
+				, saveSourceI2S
+				, _bAsyncWrite)));
 	}
 	catch(BaseException& bex)
 	{
@@ -379,6 +381,7 @@ void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAG
 				, _frameIndex
 				, generateFullPathForElement<PARAMS_C2C_ROI_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 				, saveSourceC2C
+				, _bAsyncWrite
 			))
 		);
 	}
@@ -432,6 +435,7 @@ void baseAlgorithmRunner::generateWaveRegion(PARAMS_WAVE_INPUT_PTR input, IMAGE_
 				, _frameIndex
 				, generateFullPathForElement<PARAMS_WAVE_INPUT_PTR>(input, "bmp", _processParameters, _frameIndex, _imageIndex, getFrameFolderName())
 				, bDumpWave && _processParameters->SaveSourceWave()
+				, _bAsyncWrite
 			))
 		);
 	}
@@ -551,12 +555,13 @@ PARAMS_C2C_STRIP_OUTPUT_PTR baseAlgorithmRunner::processStrip(PARAMS_C2C_STRIP_I
 		{
 			BASE_RUNNER_SCOPED_WARNING << "No C2C ROI defined in input parameters.";
 		}
-
+	
+		retVal->_c2cROIOutputs.resize(roiInputs.size());
 		auto calculateC2CfuncPar = 
 			[&]{
 				parallel_for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
 				{
-					retVal->_c2cROIOutputs.push_back(processC2CROI(in));
+					retVal->_c2cROIOutputs[in->_roiIndex] = processC2CROI(in);
 				});
 			};
 
@@ -564,7 +569,7 @@ PARAMS_C2C_STRIP_OUTPUT_PTR baseAlgorithmRunner::processStrip(PARAMS_C2C_STRIP_I
 			[&]{
 				std::for_each (std::begin(roiInputs), std::end(roiInputs), [&](auto &in) 
 				{
-					retVal->_c2cROIOutputs.push_back(processC2CROI(in));
+					retVal->_c2cROIOutputs[in->_roiIndex] = processC2CROI(in);
 				});
 			};
 

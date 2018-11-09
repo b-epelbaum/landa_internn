@@ -168,7 +168,7 @@ void BaseCore::runOne()
 	cleanDestinationFolder(QString::fromStdString(getRootFolderForOneRun()));
 	
 	processParametersOnce->setImageMaxCount(1);
-	processParametersOnce->setRootOutputFolder(QString::fromStdString(getRootFolderForOneRun()));
+	processParametersOnce->setRootImageOutputFolder(QString::fromStdString(getRootFolderForOneRun()));
 
 	run(processParametersOnce);
 }
@@ -287,7 +287,7 @@ void BaseCore::cleanDestinationFolder (const QString& destFolder )
 std::string BaseCore::getRootFolderForOneRun() const
 {
 	const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
-	auto tempRoot =  processParams->RootOutputFolder();
+	auto tempRoot =  processParams->RootImageOutputFolder();
 	//auto tempRoot = QStandardPaths::standardLocations(QStandardPaths::TempLocation)[0];
 
 	tempRoot += "/OneRun/";
