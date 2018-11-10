@@ -52,6 +52,12 @@
     <ClCompile Include="widgets\qmeterdrawfunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="framezone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="navigatorzone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="juneuiwnd.h">
@@ -70,6 +76,12 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="widgets\qmeter.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="framezone.h">
+      <Filter>Header Files</Filter>
+    </QtMoc>
+    <QtMoc Include="navigatorzone.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

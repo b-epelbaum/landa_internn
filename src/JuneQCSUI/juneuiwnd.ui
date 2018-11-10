@@ -17,7 +17,7 @@
    <layout class="QVBoxLayout" name="verticalLayout_13">
     <item>
      <widget class="QWidget" name="framePlaceHolder" native="true">
-      <widget class="QLabel" name="frameBox">
+      <widget class="NavigatorZone" name="frameBox">
        <property name="geometry">
         <rect>
          <x>140</x>
@@ -52,33 +52,13 @@
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_6">
         <item>
-         <widget class="QLabel" name="frameZone">
+         <widget class="FrameZone" name="frameZone">
           <property name="text">
            <string/>
         </property>
          </widget>
         </item>
-        <item>
-         <widget class="QScrollBar" name="horizontalScrollBar">
-          <property name="maximum">
-           <number>0</number>
-        </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-         </property>
-        </widget>
-        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QScrollBar" name="verticalScrollBar">
-        <property name="maximum">
-         <number>0</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-       </widget>
       </item>
      </layout>
     </item>
@@ -842,6 +822,16 @@
    <extends>QWidget</extends>
    <header location="global">qmeter.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FrameZone</class>
+   <extends>QLabel</extends>
+   <header>framezone.h</header>
+  </customwidget>
+  <customwidget>
+   <class>NavigatorZone</class>
+   <extends>QLabel</extends>
+   <header>navigatorzone.h</header>
   </customwidget>
  </customwidgets>
  <resources>
