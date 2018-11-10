@@ -341,13 +341,6 @@ void fullImageRunner::processStripOutputCSV(PARAMS_C2C_STRIP_OUTPUT_PTR stripOut
 
 void fullImageRunner::sortWaveOutputs( concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs )
 {
-	static std::map<std::string, int> colorOrderMap =
-	{
-		  {"black", 0}
-		, {"cyan", 1}
-		, {"magenta", 2}
-		, {"yellow", 3}
-	};
 
 	std::sort(waveOutputs.begin(), waveOutputs.end(),   
 			[](const PARAMS_WAVE_OUTPUT_PTR& left, const PARAMS_WAVE_OUTPUT_PTR& right) 

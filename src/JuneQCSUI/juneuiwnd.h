@@ -81,7 +81,7 @@ namespace LandaJune
 			void onRemoveColor();
 
 			void onTimerTick();
-			
+
 			void processParamSelectionChanged(const  QModelIndex&, const  QModelIndex&);
 			void onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
 			
@@ -93,9 +93,6 @@ namespace LandaJune
 			void onFrameProcessedSkipped ( int frameIndex );
 			void onFrameProcessedDetectionSuccess ( int frameIndex );
 			void onFrameProcessedDetectionFailed ( int frameIndex );
-
-			void onVerticalScrollBarValueChanged(int val);
-			void onHorizontalScrollBarValueChanged(int val);
 
 		signals :
 
@@ -141,9 +138,6 @@ namespace LandaJune
 			std::unique_ptr<ParamPropModel> _processParamModelEditable;
 			std::unique_ptr<ParamPropModel> _processParamModelCalculated;
 
-			void updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameData> fData);
-			void updateFrameZone();
-
 			oneRunViewer * _onRunViewer;
 
 			QAction *zoomInAct{};
@@ -183,20 +177,6 @@ namespace LandaJune
 			bool _savelogToFile;
 			QString _strProcessingConfig;
 
-			// frame preview caching
-			int _frameBoxWidth = 0;
-			int _frameBoxHeight = 0;
-			int _frameBoxRatio = 0;
-			double _lastFrameImageRatio = 0.0;
-			QSize _frameDisplayImageSize = {0,0};
-			QRect _frameBoxRect = {0,0,0,0};
-			QSize _frameZoneSize = {0, 0};
-			QPoint _frameZonePosition = {0, 0};
-			std::shared_ptr<cv::Mat> _originalFrame = nullptr;
-
-		protected:
-
-			void resizeEvent(QResizeEvent* event) override;
 		};
 	}
 }

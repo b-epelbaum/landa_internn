@@ -697,6 +697,9 @@ PARAMS_I2S_OUTPUT_PTR baseAlgorithmRunner::processI2S(PARAMS_I2S_INPUT_PTR input
 	try
 	{
 		const auto tStart = Utility::now_in_microseconds();
+
+		// TODO : update I2S coordinates from absolute pixels to approximate mm
+
 		auto retVal = std::make_shared<PARAMS_I2S_OUTPUT>(input);
 
 		if ( !_processParameters->EnableAlgorithmProcessing() )

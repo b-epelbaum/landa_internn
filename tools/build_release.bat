@@ -8,6 +8,12 @@ echo ""
 echo ""
 
 
+IF "%QT_ROOT%"=="" (
+	ECHO Variable QT_ROOT is NOT defined. Please add this variable to the environment
+	echo "******************   Build FAILED !  ***********************"
+	quit
+	)
+
 set OLDDIR=%CD%
 
 set RELTOOLDIR=.
@@ -65,7 +71,7 @@ if exist "%InstallDir%\MSBuild\15.0\Bin\MSBuild.exe" (
 )
 
 echo "--------------------------------------------"
-echo "*****   		Building finiished     *******"
+echo "*****   Compilation finished     *******"
 echo "--------------------------------------------"
 
 echo/

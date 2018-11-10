@@ -351,8 +351,9 @@ namespace LandaJune
 				std::ostringstream ss;
 				ss << "Pattern Type :,Registration" << std::endl << std::endl
 					<< "Job Id :," << jobID << std::endl
-					<< "Flat ID :," << frameIndex << std::endl
-					<< "ImageIndex ID :," << imageIndex << std::endl
+					// AVT write frame index starting from 1
+					<< "Flat ID :," << frameIndex + 1 << std::endl
+					<< "ImageIndex ID :," << imageIndex + 1<< std::endl
 					<< "Registration Side :," << SIDE_NAMES[stripOut->_input->_side] << std::endl
 					<< "Registration Overall Status :," << resultName << std::endl
 					<< "Ink\\Sets,";
@@ -373,7 +374,8 @@ namespace LandaJune
 					ss << stripOut->_c2cROIOutputs[0]->_input->_colors[i]._colorName;
 					for (const auto& out : stripOut->_c2cROIOutputs)
 					{
-						ss << "," << out->_colorCenters[i]._x << "," << out->_colorCenters[i]._y;
+						// AVT switches between X and Y coordinate
+						ss << "," << out->_colorCenters[i]._y << "," << out->_colorCenters[i]._x;
 					}
 					if ( i < colorArraySize - 1)
 						ss << std::endl;
@@ -426,14 +428,16 @@ namespace LandaJune
 					ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl;
 
 				// TODO : move pixel density multiplication to algorithm function
-				ss << frameIndex
+				// AVT switches between X and Y coordinate
+
+				ss << frameIndex + 1
 					<< ","
-					<< imageIndex
+					<< imageIndex + 1
 					<< ","
 					<< resultName
 					<< colons
-					<< i2sOut->_triangeCorner._x * 1000
-					<< "," << i2sOut->_triangeCorner._y * 1000
+					<< i2sOut->_triangeCorner._y
+					<< "," << i2sOut->_triangeCorner._x
 					<< std::endl;
 
 				const auto& outString = ss.str();

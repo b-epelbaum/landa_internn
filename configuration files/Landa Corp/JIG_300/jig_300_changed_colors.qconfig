@@ -36,8 +36,8 @@
             "Max": {
                 "ColorName": "",
                 "H": 255,
-                "S": 50,
-                "V": 60
+                "S": 180,
+                "V": 128
             },
             "Min": {
                 "ColorName": "",
@@ -56,9 +56,9 @@
             },
             "Min": {
                 "ColorName": "",
-                "H": 90,
+                "H": 80,
                 "S": 100,
-                "V": 170
+                "V": 150
             }
         },
         {
@@ -71,24 +71,24 @@
             },
             "Min": {
                 "ColorName": "",
-                "H": 160,
+                "H": 150,
                 "S": 100,
-                "V": 170
+                "V": 150
             }
         },
         {
             "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 35,
+                "H": 39,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 15,
+                "H": 0,
                 "S": 100,
-                "V": 170
+                "V": 150
             }
         }
     ],
@@ -112,7 +112,8 @@
     "LeftOffsetFromPaperEdgeX_mm": 3.13267271,
     "LeftStripWidth_mm": 11.93,
     "OfflineRegStripOnly": true,
-    "OfflineTreatEvenFilesAsRight": true,
+    "OfflineRegStripsLeftAndRight": true,
+    "OfflineRightStripIsEven": true,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,

@@ -6,6 +6,15 @@ namespace LandaJune
 {
 	namespace Parameters
 	{
+		static std::map<std::string, int> colorOrderMap =
+		{
+			  {"cyan", 0}
+			, {"black", 1}
+			, {"yellow", 2}
+			, {"magenta", 3}
+			
+		};
+
 		class ProcessParameters : public BaseParameters
 		{
 			Q_OBJECT
@@ -191,6 +200,8 @@ namespace LandaJune
 		private:
 
 			void _recalculate();
+
+			void sortColorArray();
 
 			void recalculateForFullImage();
 			void recalculateForOfflineLeftStrip();

@@ -123,6 +123,8 @@ void JuneUIWnd::init()
 		initUI();
 		setWindowState(Qt::WindowMaximized);
 	}
+	connect(ui.frameBox, &NavigatorZone::newFrameZonePosition,
+		ui.frameZone, &FrameZone::onNewFrameZonePosition);
 
 	initCore();
 	if (isUIMode() )
@@ -130,6 +132,7 @@ void JuneUIWnd::init()
 		enumerateFrameProviders();
 		enumerateAlgoRunners();
 	}
+
 
 	initProcessParameters();
 
@@ -192,12 +195,7 @@ void JuneUIWnd::initUI()
 	_progressBarTimer.setInterval(150);
 
 	connect(&_progressBarTimer, &QTimer::timeout, this, &JuneUIWnd::onTimerTick);
-
-	connect(ui.verticalScrollBar, &QScrollBar::valueChanged, this, &JuneUIWnd::onVerticalScrollBarValueChanged);
-	connect(ui.horizontalScrollBar, &QScrollBar::valueChanged, this, &JuneUIWnd::onHorizontalScrollBarValueChanged);
-
 }
-
 
 
 ///////////////////////////////////////////////////////////////////
@@ -930,10 +928,6 @@ void JuneUIWnd::enableUIForProcessing(bool bEnable)
 		statusGeneral->setText("Idle");
 		statusFrameCount->setText("");
 		iconGeneral->setPixmap(_greyLed);
-
-		_lastFrameImageRatio = 0.0;
-		_frameDisplayImageSize = {0,0};
-		_frameBoxRect = {0,0,0,0};
 	}
 }
 
@@ -1031,98 +1025,6 @@ void JuneUIWnd::processParamSelectionChanged(const  QModelIndex& current, const 
 	removeColor->setEnabled( typeName == "LandaJune::Parameters::COLOR_TRIPLET" );
 }
 
-void JuneUIWnd::updateFrameImage(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
-{
-	const auto& sourceWidth = fData->_img->cols;
-	const auto& sourceHeight = fData->_img->rows;
-	_originalFrame = fData->_img;
-
-	auto const imgRatio = static_cast<double>(sourceWidth) / static_cast<double>(sourceHeight);
-	if ( _lastFrameImageRatio != imgRatio )
-	{
-		_frameDisplayImageSize = ( _frameBoxRatio <  imgRatio ) 
-					? QSize(_frameBoxWidth, _frameBoxWidth / imgRatio) 
-					: QSize(_frameBoxHeight * imgRatio, _frameBoxHeight);
-		
-		const auto& frameBoxRect = ( _frameBoxRatio <  imgRatio) 
-				? QRect(0, + (_frameBoxHeight - _frameDisplayImageSize.height()) / 2 ,_frameDisplayImageSize.width(), _frameDisplayImageSize.height()) 
-				: QRect((_frameBoxWidth -_frameDisplayImageSize.width()) / 2, 0 ,_frameDisplayImageSize.width(), _frameDisplayImageSize.height());
-		
-		if (frameBoxRect != _frameBoxRect )
-		{
-			ui.frameBox->setGeometry(frameBoxRect);
-			_frameBoxRect = frameBoxRect;
-		}
-	}
-	
-	cv::Mat previewImg;
-	cv::resize(*(fData->_img), previewImg, { _frameDisplayImageSize.width(), _frameDisplayImageSize.height() });
-	cv::cvtColor(previewImg, previewImg, CV_BGR2RGB);
-	ui.frameBox->setPixmap(QPixmap::fromImage(QImage(static_cast<unsigned char*>(previewImg.data), previewImg.cols, previewImg.rows, previewImg.step, QImage::Format_RGB888)));
-}
-
-void JuneUIWnd::updateFrameZone()
-{
-	// TODO : fix crash
-	//return;
-
-	if (!_originalFrame) {
-		return;
-	}
-/*
-	ui.verticalScrollBar->setMaximum(_originalFrame->rows);
-	ui.horizontalScrollBar->setMaximum(_originalFrame->cols);
-
-	cv::Mat croppedImg;
-	_frameZoneSize = ui.frameZone->size();
-	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
-	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
-	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
-*/
-}
-
-void JuneUIWnd::onVerticalScrollBarValueChanged(int val)
-{
-	if (!_originalFrame) {
-		return;
-	}
-
-	if (val + _frameZoneSize.height() >= _originalFrame->rows) {
-		return;
-	}
-	_frameZonePosition.setY(val);
-	
-	cv::Mat croppedImg;
-	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
-	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
-	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
-}
-
-void JuneUIWnd::onHorizontalScrollBarValueChanged(int val)
-{
-	if (!_originalFrame) {
-		return;
-	}
-
-	if (val + _frameZoneSize.width() >= _originalFrame->cols) {
-		return;
-	}
-	_frameZonePosition.setX(val);
-
-	cv::Mat croppedImg;
-	(*_originalFrame)(cv::Rect(_frameZonePosition.x(), _frameZonePosition.y(), _frameZoneSize.width(), _frameZoneSize.height())).copyTo(croppedImg);
-	cv::cvtColor(croppedImg, croppedImg, CV_BGR2RGB);
-	ui.frameZone->setPixmap(QPixmap::fromImage(QImage((unsigned char*)croppedImg.data, croppedImg.cols, croppedImg.rows, croppedImg.step, QImage::Format_RGB888)));
-}
-
-void JuneUIWnd::resizeEvent(QResizeEvent* event)
-{
-	_frameBoxWidth = ui.frameBox->parentWidget()->geometry().width();
-	_frameBoxHeight = ui.frameBox->parentWidget()->geometry().height();
-
-	_frameBoxRatio = static_cast<double>(_frameBoxWidth) / static_cast<double>(_frameBoxHeight);
-
-}
 
 /////////////////////////////////////////
 
@@ -1141,7 +1043,7 @@ void JuneUIWnd::initCore()
 		{
 			_onRunViewer->setTargetFolder(QString::fromStdString(core->getRootFolderForOneRun()));
 
-			connect (core.get()->getClassObject(), SIGNAL(frameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)), this, SLOT(onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)) );
+			connect(ICore::get()->getClassObject(), SIGNAL(providerFrameImageData(std::shared_ptr<LandaJune::Core::SharedFrameData>)), this, SLOT(onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData>)) );
 			connect(ICore::get()->getClassObject(), SIGNAL(providerScannedFilesCount(int)), this, SLOT(onOfflineFileCount(int)));
 			connect(ICore::get()->getClassObject(), SIGNAL(providerFrameGeneratedOk(int)), this, SLOT(onFrameGeneratedOK(int)));
 			connect(ICore::get()->getClassObject(), SIGNAL(providerFrameSkipped(int)), this, SLOT(onFrameProviderSkipped(int)));
@@ -1192,8 +1094,8 @@ void JuneUIWnd::onCoreException(const BaseException& ex)
 
 void JuneUIWnd::onSharedFrameData(std::shared_ptr<LandaJune::Core::SharedFrameData> fData)
 {
-	updateFrameImage(fData);
-	updateFrameZone();
+	ui.frameBox->updateImage(fData->_img);
+	ui.frameZone->updateFrameZone(fData->_img);
 }
 
 void JuneUIWnd::onOfflineFileCount(int fileCount)

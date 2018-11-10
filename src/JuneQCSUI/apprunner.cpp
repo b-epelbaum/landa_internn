@@ -71,6 +71,7 @@ void appRunner::parseArguments(const QApplication& app)
     _saveToLogFile = parser.isSet(saveLogToFile);
     _recipeFile = parser.value(configFileOption);
 	_logRootPath = parser.value(logRootFolderOption);
+	_saveToLogFile = !_logRootPath.isEmpty();
 	_logLevel = parser.value(logLevelOption);
 }
 
