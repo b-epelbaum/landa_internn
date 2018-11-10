@@ -18,7 +18,7 @@ thread_local  Mat		g_imPaperEdge_Input_GL;
 
 // function declarations
 float	Detect_Edge_X(const Mat& imImage, int iX1, int iX2, int iY);
-void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB);
+void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB, float fThreshold);
 void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, float fFactor = 1);
 
 
@@ -63,7 +63,7 @@ void detect_edge(PARAMS_PAPEREDGE_INPUT_PTR input, PARAMS_PAPEREDGE_OUTPUT_PTR o
 
 		g_afPaperEdge_Edges[iEdges_Len++] = fMiddle_Paper;
 	}
-	Find_Line_Data(g_afPaperEdge_Edges, iEdges_Len, fAx, fBx);
+	Find_Line_Data(g_afPaperEdge_Edges, iEdges_Len, fAx, fBx, 1);
 
 	if (iFails > iCount / 2)
 		output->_result = ALG_STATUS_FAILED;

@@ -19,7 +19,7 @@ thread_local Mat	g_imTriangle_T;
 // function declarations
 float	Detect_Edge_X(const Mat& imImage, int iX1, int iX2, int iY);
 float	Detect_Edge_Y(const Mat& imImage, int iX1, int iX2, int iY);
-void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB);
+void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB, float fThreshold);
 void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, float fFactor = 1);
 
 
@@ -46,6 +46,14 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 	Mat		imLabels, imStat, imCentroids;	// data for labeling
 	int		iEdges_Len;
 
+	// parameters of 3 triangle edges
+	float afX[3];
+	float afY[3];
+	float afVx[3];
+	float afVy[3];
+	float aiValid[3];	// is linbe valid
+
+	// triangle position
 	fTriangle_X = fTriangle_Y = 0;
 
 	// create and clear overlay
@@ -93,67 +101,125 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 		int iHT = imStat.at<int>(1, cv::CC_STAT_HEIGHT);
 		int iWT = imStat.at<int>(1, cv::CC_STAT_WIDTH);
 
-		// find one triangle line
+		// find vertical triangle line
 		iEdges_Len = 0;
-		for (iY = iYS + 5; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
-			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS - 10, iXS + 10, iY);	// detect single pixel edge
+		for (iY = iYS + 3; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
+			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS - 5, iXS + 5, iY);	// detect single pixel edge
 			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
+			if (input->GenerateOverlay())
+				Draw_Point(*output->_triangleOverlay, fMiddle_X - 5, iY + 3, 0, 128, 0, 1);
 		}
 
 		// estimate line for edge-pixels
-		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAx, fBx);
+		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAx, fBx, 0.25f);
 		if (input->GenerateOverlay())
 			for (fCntY = 0; fCntY < iEdges_Len; fCntY += 1) {
 				float fPos_X = fAx * fCntY + fBx;
-				Draw_Point(*output->_triangleOverlay, fPos_X, fCntY + iYS + 5, 0, 255, 0, 1);
+				Draw_Point(*output->_triangleOverlay, fPos_X, fCntY + iYS + 3, 0, 255, 0, 1);
 			}
-		float fX0 = fBx;
-		float fY0 = iYS + 5.f;
-		float fV0x = fAx;
-		float fV0y = 1;
 
-		// find other triangle line
+		afX[0]	= fBx;
+		afY[0]	= iYS + 3.f;
+		afVx[0]	= fAx;
+		afVy[0]	= 1;
+		aiValid[0] = fabsf(fAx) < 0.05 ;
+
+
+		// find horizontal triangle line
 		iEdges_Len = 0;
-		for (iX = iXS + 5; iX < iXS + iWT * 2 / 3; iX++) {	// loop on part of the triangle side
-			float fMiddle_Y = Detect_Edge_Y(g_imTriangle_Input_GL, iYS - 10, iYS + 10, iX);	// detect single pixel edge
+		// for (iX = iXS + 5; iX < iXS + iWT * 2 / 3; iX++) {	// loop on part of the triangle side
+		for (iX = iXS + 3; iX < iXS + iWT - 5; iX++) {	// loop on part of the triangle side
+			float fMiddle_Y = Detect_Edge_Y(g_imTriangle_Input_GL, iYS - 5, iYS + 5, iX);	// detect single pixel edge
 			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_Y;
+			if (input->GenerateOverlay())
+				Draw_Point(*output->_triangleOverlay, iX, fMiddle_Y - 5, 0, 128, 0, 1);
 		}
 
 		// estimate line for edge-pixels
-		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAy, fBy);
+		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAy, fBy, 0.25f);
 		if (input->GenerateOverlay())
 			for (fCntX = 0; fCntX < iEdges_Len; fCntX += 1) {
 				float fPos_Y = fAy * fCntX + fBy;
-				Draw_Point(*output->_triangleOverlay, fCntX + iXS + 5, fPos_Y, 0, 255, 0, 1);
+				Draw_Point(*output->_triangleOverlay, fCntX + iXS + 3, fPos_Y, 0, 255, 0, 1);
 			}
-		float fX1 = iXS + 5.f;
-		float fY1 = fBy;
-		float fV1x = 1;
-		float fV1y = fAy;
+		afX[1] = iXS + 3.f;
+		afY[1] = fBy;
+		afVx[1] = 1;
+		afVy[1] = fAy;
+		aiValid[1] = fabsf(fAy) < 0.05;
 
-		// meeting betwen lines
-		float fDet = -fV0x * fV1y + fV0y * fV1x;
-		float fT1 = (fY1 - fY0) * fV0x - (fX1 - fX0) * fV0y;
-		float fT0 = (fY1 - fY0) * fV1x - (fX1 - fX0) * fV1y;
-	
-		fT0 = fT0 / fDet;
-		fT1 = fT1 / fDet;
 
-		// triangle position
-		fTriangle_X = fV0x * fT0 + fX0;
-		fTriangle_Y = fV0y * fT0 + fY0;
+		// find slanted triangle line
+		iEdges_Len = 0;
+		for (iY = iYS + 3; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
+			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS + 45, iXS + 5, iY);	// detect single pixel edge
+			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
+			if (input->GenerateOverlay())
+				Draw_Point(*output->_triangleOverlay, fMiddle_X + 5, iY + 3, 0, 128, 0, 1);
+		}
 
-		// overlay
+		// estimate line for edge-pixels
+		Find_Line_Data(g_afTriangle_Edges[input->_side], iEdges_Len, fAx, fBx, 0.25f);
 		if (input->GenerateOverlay())
-			Draw_Point(*output->_triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
+			for (fCntY = 0; fCntY < iEdges_Len; fCntY += 1) {
+				float fPos_X = fAx * fCntY + fBx;
+				Draw_Point(*output->_triangleOverlay, fPos_X, fCntY + iYS + 3, 0, 255, 0, 1);
+			}
+		afX[2] = fBx;
+		afY[2] = iYS + 3.f;
+		afVx[2] = fAx;
+		afVy[2] = 1;
+		aiValid[2] = fabsf(fAx+0.744) < 0.05;
 
-		// set output data
-		output->_triangeCorner._x = (int)round((fTriangle_X + input->_approxTriangeROI.left()) * input->Pixel2MM_X() * 1000);
-		output->_triangeCorner._y = (int)round((fTriangle_Y + input->_approxTriangeROI.top()) * input->Pixel2MM_Y() * 1000);
-		output->_result = ALG_STATUS_SUCCESS;
+		int iValid_Point_Found = false ;
 
-		//if (input->GenerateOverlay())
-		//	imwrite("e:\\temp\\res2.tif", output->_triangleOverlay);	// ***
+		// loop on lines - the first valid 2 are used for the point
+		for (int iPoint = 0 ; iPoint < 3 ; iPoint ++) {
+			int iNext_Point = (iPoint + 1) % 3 ;
+
+			if (aiValid [iPoint] && aiValid[iNext_Point]) {
+
+				// meeting between lines
+				float fDet = -afVx[iPoint] * afVy[iNext_Point] + afVy[iPoint] * afVx[iNext_Point];
+				float fT1 = (afY[iNext_Point] - afY[iPoint]) * afVx[iPoint] - (afX[iNext_Point] - afX[iPoint]) * afVy[iPoint];
+				float fT0 = (afY[iNext_Point] - afY[iPoint]) * afVx[iNext_Point] - (afX[iNext_Point] - afX[iPoint]) * afVy[iNext_Point];
+	
+				fT0 = fT0 / fDet;
+				fT1 = fT1 / fDet;
+
+				// triangle position
+				fTriangle_X = afVx[iPoint] * fT0 + afX[iPoint];
+				fTriangle_Y = afVy[iPoint] * fT0 + afY[iPoint];
+
+				// overlay
+				if (input->GenerateOverlay())
+					Draw_Point(*output->_triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
+
+				// get the corner position
+				if (iPoint == 1)
+					fTriangle_X -= 36.6 ;
+				if (iPoint == 2)
+					fTriangle_Y -= 49.7;
+
+				if (iPoint > 0 && input->GenerateOverlay())
+					Draw_Point(*output->_triangleOverlay, fTriangle_X, fTriangle_Y, 255, 0, 0);
+
+				iValid_Point_Found = true ;
+				break ;
+			}
+		}
+
+		// one (or more) lines are too slanted
+		if (iValid_Point_Found) {
+			// set output data
+			output->_triangeCorner._x = (int)round((fTriangle_X + input->_approxTriangeROI.left()) * input->Pixel2MM_X() * 1000);
+			output->_triangeCorner._y = (int)round((fTriangle_Y + input->_approxTriangeROI.top()) * input->Pixel2MM_Y() * 1000);
+			output->_result = ALG_STATUS_SUCCESS;
+		}
+		else {
+			// set output data
+			output->_result = ALG_STATUS_FAILED;
+		}
 	}
 	else {
 		// set output data for failure

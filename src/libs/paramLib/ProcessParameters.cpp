@@ -235,6 +235,7 @@ void ProcessParameters::_recalculate()
 	// wave dots count
 	_WaveNumberOfColorDotsPerLine = lround((static_cast<float>(_WaveROI_px.width()) - static_cast<float>(toPixelsX(2 * static_cast<float>(_WaveSideMarginsX_mm) + (float)_WaveCircleDiameter_mm)) ) / (float)toPixelsX(_WaveDistanceBetweenCircleCentersX_mm));
 
+	sortColorArray();
 	emit updateCalculated();
 }
 
@@ -274,4 +275,24 @@ void ProcessParameters::recalculateForOfflineLeftStrip()
 					  };
 
 	
+}
+
+void ProcessParameters::sortColorArray()
+{
+	std::sort(_ColorArray.begin(), _ColorArray.end(),   
+			[](const COLOR_TRIPLET& left, const COLOR_TRIPLET& right) 
+			{
+				auto lV (left.ColorName().toStdString());
+				auto rV (right.ColorName().toStdString());
+
+				std::transform(lV.begin(), lV.end(), lV.begin(), ::tolower);
+				std::transform(rV.begin(), rV.end(), rV.begin(), ::tolower);
+
+				auto const lIt = colorOrderMap.find(lV);
+				auto const rIt = colorOrderMap.find(rV);
+
+				return lIt != colorOrderMap.end() && rIt != colorOrderMap.end() 
+								? colorOrderMap.find(lV)->second <  colorOrderMap.find(rV)->second 
+								: false;
+			});	
 }

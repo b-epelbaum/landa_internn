@@ -6,6 +6,7 @@ namespace LandaJune
 {
 	namespace Algorithms
 	{
+
 		class FULLIMAGERUNNER_EXPORT fullImageRunner : public baseAlgorithmRunner
 		{
 			Q_OBJECT

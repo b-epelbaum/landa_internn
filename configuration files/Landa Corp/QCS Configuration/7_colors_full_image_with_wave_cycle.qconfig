@@ -6,24 +6,24 @@
     "C2CDistanceBetweenDotsY_mm": 3.048,
     "C2COffsetsArray": [
         {
-            "dx": -0.3,
-            "dy": 8.8
+            "dx": -0.67733464,
+            "dy": 9.00666832
         },
         {
-            "dx": -0.3,
-            "dy": 167.8
+            "dx": -0.25400049,
+            "dy": 169.39464648
         },
         {
-            "dx": -0.3,
-            "dy": 327.8
+            "dx": -0.25400049,
+            "dy": 329.78262464
         },
         {
-            "dx": -0.3,
-            "dy": 487.8
+            "dx": -0.25400049,
+            "dy": 490.1706028
         },
         {
-            "dx": -0.3,
-            "dy": 647.8
+            "dx": -0.42333414999999996,
+            "dy": 650.03896548
         }
     ],
     "C2CROIMarginX_mm": 2.5,
@@ -31,21 +31,6 @@
     "CircleTemplateResourceC2C": "C2CCircleTemplate.tif",
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
-        {
-            "ColorName": "Black",
-            "Max": {
-                "ColorName": "",
-                "H": 255,
-                "S": 50,
-                "V": 60
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 0,
-                "V": 0
-            }
-        },
         {
             "ColorName": "Cyan",
             "Max": {
@@ -62,18 +47,18 @@
             }
         },
         {
-            "ColorName": "Magenta",
+            "ColorName": "Black",
             "Max": {
                 "ColorName": "",
-                "H": 179,
-                "S": 255,
-                "V": 255
+                "H": 255,
+                "S": 50,
+                "V": 60
             },
             "Min": {
                 "ColorName": "",
-                "H": 160,
-                "S": 100,
-                "V": 170
+                "H": 0,
+                "S": 0,
+                "V": 0
             }
         },
         {
@@ -87,6 +72,21 @@
             "Min": {
                 "ColorName": "",
                 "H": 15,
+                "S": 100,
+                "V": 170
+            }
+        },
+        {
+            "ColorName": "Magenta",
+            "Max": {
+                "ColorName": "",
+                "H": 179,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 160,
                 "S": 100,
                 "V": 170
             }
@@ -146,18 +146,19 @@
     "FrameFrequencyInMSec": 500,
     "FrameProviderName": "Offline Frame Provider",
     "GenerateOverlays": true,
-    "I2SHeight_mm": 8.5,
-    "I2SOffsetFromPaperEdgeX_mm": 3.2,
-    "I2SOffsetFromPaperEdgeY_mm": 9.3,
-    "I2SROIMarginX_mm": 2.5,
-    "I2SROIMarginY_mm": 2.5,
-    "I2SWidth_mm": 8.5,
+    "I2SHeight_mm": 4.5,
+    "I2SOffsetFromPaperEdgeX_mm": 3.55600686,
+    "I2SOffsetFromPaperEdgeY_mm": 9.17987348,
+    "I2SROIMarginX_mm": 1.5,
+    "I2SROIMarginY_mm": 1.5,
+    "I2SWidth_mm": 4.5,
     "ImageMaxCount": 10,
-    "JobID": 0,
-    "LeftOffsetFromPaperEdgeX_mm": 2.94,
-    "LeftStripWidth_mm": 13.7,
+    "JobID": "0",
+    "LeftOffsetFromPaperEdgeX_mm": 6.4346790799999996,
+    "LeftStripWidth_mm": 16.51003185,
     "OfflineRegStripOnly": false,
-    "OfflineTreatEvenFilesAsRight": false,
+    "OfflineRegStripsLeftAndRight": false,
+    "OfflineRightStripIsEven": true,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -179,7 +180,8 @@
         "V": 0
     },
     "RightStripROIsOffsetY_mm": 0,
-    "RootOutputFolder": "C:\\temp\\june_out",
+    "RootCSVOutputFolder": "C:\\temp\\june_out",
+    "RootImageOutputFolder": "C:\\temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,
     "SISO_BoardList": [
@@ -206,7 +208,7 @@
     "SaveSourceWave": true,
     "SaveWaveCSV": true,
     "ScanBitDepth": 24,
-    "ScanStartToPaperEdgeOffset_mm": 9.13,
+    "ScanStartToPaperEdgeOffset_mm": 9.39801813,
     "SheetID": 0,
     "SourceFilePath": "d:\\Temp\\JUNE\\june_offline_input\\7_colors_full_image_with_wave_cycle\\Image_7_colors.bmp",
     "SourceFolderPath": "",

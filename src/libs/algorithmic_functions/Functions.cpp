@@ -118,8 +118,11 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 
 	// values along tested line
 	for (iY = iY1; iY != iY2; iY += iStep)
-		if (iY >= 0 && iX < imImage.rows)
+		if (iY >= 0 && iY < imImage.rows) {
+			unsigned char dd = imImage.at<byte>(iY, iX) ;
 			afVal[iY - iMin_Y] = (float)imImage.at<byte>(iY, iX);
+			float yy = afVal[iY - iMin_Y] ;
+		}
 
 	// sort to find bright and dark pixels
 	qsort(afVal, iLen, sizeof(afVal[0]), Compare_Float);
@@ -156,6 +159,10 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 			break;
 		}
 
+	// check in image
+	if (iPoint_Y - iStep < 0)
+		return 0 ;
+
 	// get the sub pixel resolution
 	float fVal1 = (float)imImage.at<byte>(iPoint_Y - iStep, iX);
 	float fVal2 = (float)imImage.at<byte>(iPoint_Y, iX);
@@ -168,7 +175,7 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 
 // when given points on edge (afEdges) - the linear line coefficients are found
 // Use Ransac like method
-void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
+void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB, float fThreshold)
 {
 	const int STEP = max(iEdges_Len / 50, 1);
 
@@ -188,7 +195,7 @@ void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
 			fY = afEdges[iCnt1] - fSlope * iCnt1;
 
 			for (iCnt3 = 0; iCnt3 < iEdges_Len; iCnt3 += STEP)
-				if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < 1)
+				if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < fThreshold)
 					g_anCount[iCnt1 + iCnt2 * iEdges_Len] ++;
 		}
 
@@ -212,7 +219,7 @@ void	Find_Line_Data(float* afEdges, int iEdges_Len, float& fA, float &fB)
 	float	fAverage_Y = 0;
 	float	fAverage_XY = 0;
 	for (iCnt3 = 0; iCnt3 < iEdges_Len; iCnt3++)
-		if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < 1) {
+		if (fabs(fY + iCnt3 * fSlope - afEdges[iCnt3]) < fThreshold) {
 			fAverage_X += iCnt3;
 			fAverage_X2 += iCnt3 * iCnt3;
 			fAverage_Y += afEdges[iCnt3];
