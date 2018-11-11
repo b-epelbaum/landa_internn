@@ -313,10 +313,8 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 		for (iY = 0; iY < imTemplate.rows; iY++) {
 
 			// out of image - correlatiion is minimum
-			if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1) {
-				fCorrelation = -1;
-				return;
-			}
+			if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1)
+				continue ;
 
 			float fVal1 = (float)imImage.at<byte>(iY + iDy, iX + iDx);
 			float fVal2 = (float)imTemplate.at<byte>(iY, iX);
@@ -348,6 +346,11 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 		fSum_12 /= iMatch;
 	}
 
+	if (iMatch < imTemplate.cols * imTemplate.rows * 0.75) {
+		fCorrelation = -1 ;
+		return ;
+	}
+
 	float fDenom = sqrtf((fSum_11 - fSum_1 * fSum_1) * (fSum_22 - fSum_2 * fSum_2));
 	float fNomin = (fSum_12 - fSum_1 * fSum_2);
 
@@ -372,17 +375,15 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 
 	fCorrelation = -1 ;
 
-	if (iDx < 0 || iDy < 0 || iDx + imTemplate.cols >= imImage.cols || iDy + imTemplate.rows >= imImage.rows)
-		return ;
+	if (iDx < -5 || iDy < -5 || iDx + imTemplate.cols >= imImage.cols + 5 || iDy + imTemplate.rows >= imImage.rows + 5)
+		return;
 
 	for (iX = 0; iX < imTemplate.cols; iX++)
 		for (iY = 0; iY < imTemplate.rows; iY++) {
 
 			// out of image - correlatiion is minimum
-			// if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1) {
-				//fCorrelation = -1;
-				//return;
-			// }
+			if (iX + iDx < 0 || iX + iDx >= imImage.cols - 1 || iY + iDy < 0 || iY + iDy >= imImage.rows - 1)
+				continue ;
 
 			float fVal1 = (float)imImage.at<byte>(iY + iDy, iX + iDx);
 			float fVal2 = (float)imTemplate.at<byte>(iY, iX);
@@ -410,6 +411,11 @@ void	Correlate_Templates(const Mat& imImage, const Mat& imTemplate, int iDx, int
 		fSum_1 /= iMatch;
 		fSum_11 /= iMatch;
 		fSum_12 /= iMatch;
+	}
+
+	if (iMatch < imTemplate.cols * imTemplate.rows * 0.75) {
+		fCorrelation = -1;
+		return;
 	}
 
 	float fDenom = sqrtf(fSum_11 - fSum_1 * fSum_1) * fTempl_Std ;
