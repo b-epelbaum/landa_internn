@@ -1,5 +1,5 @@
 {
-    "AlgorithmRunner": "Full Image Runner",
+    "AlgorithmRunner": "AVT Strip Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
     "C2CCircleDiameter_mm": 1.542,
     "C2CDistanceBetweenDotsX_mm": 3.048,
@@ -32,6 +32,21 @@
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
+            "ColorName": "Cyan",
+            "Max": {
+                "ColorName": "",
+                "H": 110,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 80,
+                "S": 100,
+                "V": 150
+            }
+        },
+        {
             "ColorName": "Black",
             "Max": {
                 "ColorName": "",
@@ -47,16 +62,16 @@
             }
         },
         {
-            "ColorName": "Cyan",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 110,
+                "H": 39,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 80,
+                "H": 0,
                 "S": 100,
                 "V": 150
             }
@@ -75,21 +90,6 @@
                 "S": 100,
                 "V": 150
             }
-        },
-        {
-            "ColorName": "Yellow",
-            "Max": {
-                "ColorName": "",
-                "H": 39,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 100,
-                "V": 150
-            }
         }
     ],
     "CycleImage": false,
@@ -99,7 +99,7 @@
     "EnableImageSaving": true,
     "EnableProcessing": true,
     "FrameFrequencyInMSec": 500,
-    "FrameProviderName": "Offline Frame Provider",
+    "FrameProviderName": "AVT Offline Strip Reader",
     "GenerateOverlays": true,
     "I2SHeight_mm": 4.64,
     "I2SOffsetFromPaperEdgeX_mm": 3.81000735,
@@ -112,8 +112,6 @@
     "LeftOffsetFromPaperEdgeX_mm": 3.13267271,
     "LeftStripWidth_mm": 11.93,
     "OfflineRegStripOnly": true,
-    "OfflineRegStripsLeftAndRight": true,
-    "OfflineRightStripIsEven": true,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,

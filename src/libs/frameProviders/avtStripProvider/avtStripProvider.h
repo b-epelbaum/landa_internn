@@ -45,7 +45,7 @@ namespace LandaJune
 		protected:
 
 			void sortImageFileList( QStringList& pathList);
-			void splitToLeftAndRight();
+			void filterLeftRightOrphans(QStringList& pathList, int& orphanCount);
 			void validateParameters(BaseParametersPtr parameters) override;
 
 		private :

@@ -46,21 +46,56 @@ avtStripProvider::~avtStripProvider()
 }
 
 
-void avtStripProvider::splitToLeftAndRight()
+
+void avtStripProvider::filterLeftRightOrphans(QStringList& pathList, int& orphanCount)
 {
-	/*
-	for ( int i = 0; i < _imagePaths.size(); i++ )
+	orphanCount = 0;
+	bool bLeftSide = true;
+	QString currentLeftPath;
+
+	auto prefixLambda = [](const QString& path)
 	{
-		if (_OfflineRightStripIsEven)
-			(i % 2) ? _imagePathsRight.push_back(_imagePaths[i]) : _imagePathsLeft.push_back(_imagePaths[i]);
+		QString retVal;
+		// parse source path of form :
+		// d:/Temp/JUNE/june_offline_input/JIG_300_default/1_911_Registration/GeometricRegInf28_15/GeometricRegInf28_15layoutImg.bmp
+		QStringList elements  = QDir::fromNativeSeparators(path).split('/');
+		if (elements.size() >= 4)
+		{
+			// should be of form : 1_911
+			QStringList parts = elements[elements.size() - 3].split('_');
+			if (!parts.empty() )
+			{
+				retVal = parts[0];
+			}
+		}
+		return retVal;
+	};
+
+	for ( const auto& framePath : pathList)
+	{
+		if (bLeftSide)
+		{
+			currentLeftPath = framePath;
+		}
 		else
-			(i % 2) ? _imagePathsLeft.push_back(_imagePaths[i]) : _imagePathsRight.push_back(_imagePaths[i]);
+		{
+			if( prefixLambda(currentLeftPath) == prefixLambda(framePath))
+			{
+				_imagePathsLeft << currentLeftPath;
+				_imagePathsRight << framePath;
+			}
+			else
+			{
+				++orphanCount;
+				AVT_STRIP_PROVIDER_SCOPED_WARNING << "Found orphan image : " << currentLeftPath << "; skipping...";
+			}
+		}
+		bLeftSide = !bLeftSide;
 	}
-	*/
 }
 
 
-void avtStripProvider::sortImageFileList( QStringList& pathList)
+void avtStripProvider::sortImageFileList( QStringList& pathList )
 {
 	std::sort(pathList.begin(), pathList.end(), 
 			[](const QString& left, const QString& right) 
@@ -110,7 +145,11 @@ void avtStripProvider::init(BaseParametersPtr parameters, Core::ICore * coreObje
 		}
 
 		sortImageFileList(imagePaths);
-		AVT_STRIP_PROVIDER_SCOPED_LOG << "sorting complete. Splittig to left and right...";
+		
+		AVT_STRIP_PROVIDER_SCOPED_LOG << "sorting complete. Splitting to left and right and filtering out single frames...";
+		int orphanCount = 0;
+		filterLeftRightOrphans(imagePaths, orphanCount);
+		AVT_STRIP_PROVIDER_SCOPED_LOG << "Filtering complete. Found " << orphanCount << " orphans";
 
 		if (_dataCallback)
 		{

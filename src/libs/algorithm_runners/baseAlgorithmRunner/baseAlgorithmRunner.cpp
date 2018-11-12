@@ -680,9 +680,14 @@ void baseAlgorithmRunner::shutdownEdge() const
 
 void baseAlgorithmRunner::initI2S(const INIT_PARAMETER& initParam) const
 {
+	I2S_ROI_INIT_PARAMETER i2sInitParam;
+	i2sInitParam._roiRect = initParam._roiRect;
+	HSV_SINGLE hsvSingle = {_processParameters->ReferenceColorTriplet().H(), _processParameters->ReferenceColorTriplet().S(), _processParameters->ReferenceColorTriplet().V(), "black" };
+	i2sInitParam._triangleColor = { hsvSingle, hsvSingle };
+
 	try
 	{
-		detect_i2s_init(initParam);
+		detect_i2s_init(i2sInitParam);
 	}
 	catch ( std::exception& ex)
 	{

@@ -70,6 +70,19 @@ namespace LandaJune
 				cv::Mat	_templateImage;
 		};
 
+		class I2S_ROI_INIT_PARAMETER : public INIT_PARAMETER
+		{
+			public:
+				I2S_ROI_INIT_PARAMETER () = default;
+				explicit I2S_ROI_INIT_PARAMETER (const I2S_ROI_INIT_PARAMETER& other) = delete;
+				explicit I2S_ROI_INIT_PARAMETER (I2S_ROI_INIT_PARAMETER&& other) = delete;
+				const I2S_ROI_INIT_PARAMETER & operator = (const I2S_ROI_INIT_PARAMETER& other) = delete;
+				I2S_ROI_INIT_PARAMETER & operator = (I2S_ROI_INIT_PARAMETER &&) = delete;
+				~I2S_ROI_INIT_PARAMETER () = default;
+
+				HSV	_triangleColor {};
+		};
+
 		class WAVE_INIT_PARAMETER : public INIT_PARAMETER
 		{
 			public:

@@ -51,6 +51,9 @@ float	Detect_Edge_X(const Mat& imImage, int iX1, int iX2, int iY)
 	int		iLen = abs(iX2 - iX1 + 1);		// lengthes of tested line
 	int		iMin_X = min(iX1, iX2 + 1);
 
+	if (iY < 0 || iY >= imImage.rows)
+		return -999 ;
+
 	// values along tested line
 	for (iX = iX1; iX != iX2; iX += iStep)
 		if (iX >= 0 && iX < imImage.cols)
@@ -69,7 +72,7 @@ float	Detect_Edge_X(const Mat& imImage, int iX1, int iX2, int iY)
 	// find point (in pixel resolution) which has around middle value
 	iPoint_X = 0;
 	for (iX = iX1; iX != iX2; iX += iStep)
-		if (imImage.at<byte>(iY, iX) < fMid) {
+		if (iX >= 0 && iX < imImage.cols && imImage.at<byte>(iY, iX) < fMid) {
 			iPoint_X = iX;
 			break;
 		}
@@ -116,6 +119,9 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 	int		iLen = abs(iY2 - iY1 + 1);		// lengthes of tested line
 	int		iMin_Y = min(iY1, iY2 + 1);
 
+	if (iX < 0 || iX >= imImage.cols)
+		return -999 ;
+
 	// values along tested line
 	for (iY = iY1; iY != iY2; iY += iStep)
 		if (iY >= 0 && iY < imImage.rows) {
@@ -133,7 +139,7 @@ float	Detect_Edge_Y(const Mat& imImage, int iY1, int iY2, int iX)
 	// find point (in pixel resolution) which has around middle value
 	iPoint_Y = 0;
 	for (iY = iY1; iY != iY2; iY += iStep)
-		if (imImage.at<byte>(iY, iX) < fMid) {
+		if (iY >= 0 && iY < imImage.rows && imImage.at<byte>(iY, iX) < fMid) {
 			iPoint_Y = iY;
 			break;
 		}

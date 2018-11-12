@@ -24,7 +24,7 @@ void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, f
 
 
 
-void detect_i2s_init(const INIT_PARAMETER& initParam)
+void detect_i2s_init(const I2S_ROI_INIT_PARAMETER& initParam)
 {
 	detect_i2s_shutdown();
 
@@ -105,7 +105,8 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 		iEdges_Len = 0;
 		for (iY = iYS + 3; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
 			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS - 5, iXS + 5, iY);	// detect single pixel edge
-			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
+			if (fMiddle_X >= 0)
+				g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
 			if (input->GenerateOverlay())
 				Draw_Point(*output->_triangleOverlay, fMiddle_X - 5, iY + 3, 0, 128, 0, 1);
 		}
@@ -130,7 +131,8 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 		// for (iX = iXS + 5; iX < iXS + iWT * 2 / 3; iX++) {	// loop on part of the triangle side
 		for (iX = iXS + 3; iX < iXS + iWT - 5; iX++) {	// loop on part of the triangle side
 			float fMiddle_Y = Detect_Edge_Y(g_imTriangle_Input_GL, iYS - 5, iYS + 5, iX);	// detect single pixel edge
-			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_Y;
+			if (fMiddle_Y >= 0)
+				g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_Y;
 			if (input->GenerateOverlay())
 				Draw_Point(*output->_triangleOverlay, iX, fMiddle_Y - 5, 0, 128, 0, 1);
 		}
@@ -153,7 +155,8 @@ void detect_i2s(PARAMS_I2S_INPUT_PTR input, PARAMS_I2S_OUTPUT_PTR output)
 		iEdges_Len = 0;
 		for (iY = iYS + 3; iY < iYS + iHT * 2 / 3; iY++) {	// loop on part of the triangle side
 			float fMiddle_X = Detect_Edge_X(g_imTriangle_Input_GL, iXS + 45, iXS + 5, iY);	// detect single pixel edge
-			g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
+			if (fMiddle_X >= 0)
+				g_afTriangle_Edges[input->_side][iEdges_Len++] = fMiddle_X;
 			if (input->GenerateOverlay())
 				Draw_Point(*output->_triangleOverlay, fMiddle_X + 5, iY + 3, 0, 128, 0, 1);
 		}
