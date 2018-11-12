@@ -24,7 +24,7 @@ void	Draw_Point(Mat& imDisp, float fX, float fY, byte ucR, byte ucG, byte ucB, f
 
 
 
-void detect_i2s_init(const I2S_ROI_INIT_PARAMETER& initParam)
+void detect_i2s_init(const INIT_PARAMETER& initParam)
 {
 	detect_i2s_shutdown();
 

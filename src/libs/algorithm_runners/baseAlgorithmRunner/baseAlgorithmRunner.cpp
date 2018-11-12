@@ -204,6 +204,8 @@ void baseAlgorithmRunner::setupEdgeProcessParameters(PARAMS_PAPEREDGE_INPUT_PTR 
 void baseAlgorithmRunner::setupI2SProcessParameters(PARAMS_I2S_INPUT_PTR input, SHEET_SIDE side)
 {
 	setupCommonProcessParameters(std::static_pointer_cast<ABSTRACT_INPUT>(input));
+	HSV_SINGLE hsvSingle = {_processParameters->ReferenceColorTriplet().H(), _processParameters->ReferenceColorTriplet().S(), _processParameters->ReferenceColorTriplet().V(), "black" };
+	input->_triangleColor = { hsvSingle, hsvSingle };
 	input->_side = side;
 }
 
@@ -680,14 +682,9 @@ void baseAlgorithmRunner::shutdownEdge() const
 
 void baseAlgorithmRunner::initI2S(const INIT_PARAMETER& initParam) const
 {
-	I2S_ROI_INIT_PARAMETER i2sInitParam;
-	i2sInitParam._roiRect = initParam._roiRect;
-	HSV_SINGLE hsvSingle = {_processParameters->ReferenceColorTriplet().H(), _processParameters->ReferenceColorTriplet().S(), _processParameters->ReferenceColorTriplet().V(), "black" };
-	i2sInitParam._triangleColor = { hsvSingle, hsvSingle };
-
 	try
 	{
-		detect_i2s_init(i2sInitParam);
+		detect_i2s_init(initParam);
 	}
 	catch ( std::exception& ex)
 	{
