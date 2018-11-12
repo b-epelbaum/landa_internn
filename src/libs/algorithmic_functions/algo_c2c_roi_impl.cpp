@@ -175,6 +175,28 @@ void detect_c2c_roi(PARAMS_C2C_ROI_INPUT_PTR input, PARAMS_C2C_ROI_OUTPUT_PTR ou
 			}
 			iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
 		}
+
+		// if too many circle - use smaller ROI in Y
+		else if (iLabels > 2) {
+			g_imColor_Circle = g_imColor_Circle_Orig.clone();
+			g_imColor_Circle (Rect (0, 0, g_imColor_Circle.cols, 15)) = 0 ;
+			g_imColor_Circle (Rect(0, g_imColor_Circle.rows-15, g_imColor_Circle.cols, 15)) = 0;
+			iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+			for (int iLabel = 1; iLabel < iLabels; iLabel++) {
+
+				int iXS = g_imStat.at<int>(iLabel, cv::CC_STAT_LEFT);
+				int iWH = g_imStat.at<int>(iLabel, cv::CC_STAT_WIDTH);
+				int iYS = g_imStat.at<int>(iLabel, cv::CC_STAT_TOP);
+				int iHT = g_imStat.at<int>(iLabel, cv::CC_STAT_HEIGHT);
+				int iSize = g_imStat.at<int>(iLabel, cv::CC_STAT_AREA);
+
+				// remove blobls - to small, too large, high aspect ratio
+				if (iSize < 50 || iSize > 400 || abs(iWH - iHT) > 12)
+					g_imColor_Circle(Rect(iXS, iYS, iWH, iHT)) = 0;
+			}
+			iLabels = cv::connectedComponentsWithStats(g_imColor_Circle, g_imLabels, g_imStat, g_imCentroids, 8, CV_16U);
+		}
+
 		
 		// dilate g_imColor_Circle for correlation area
 		dilate(g_imColor_Circle, g_imColor_Circle_Dil, Mat::ones(13, 13, CV_8U));
