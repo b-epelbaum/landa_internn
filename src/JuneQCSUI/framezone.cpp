@@ -8,7 +8,7 @@
 FrameZone::FrameZone(QWidget *parent)
 	: QLabel(parent)
 {
-	setMouseTracking(true);
+	//setMouseTracking(true);
 }
 
 FrameZone::~FrameZone()

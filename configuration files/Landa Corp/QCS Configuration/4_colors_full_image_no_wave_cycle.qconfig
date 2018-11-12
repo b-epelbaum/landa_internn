@@ -32,6 +32,21 @@
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
+            "ColorName": "Cyan",
+            "Max": {
+                "ColorName": "",
+                "H": 110,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 80,
+                "S": 170,
+                "V": 0
+            }
+        },
+        {
             "ColorName": "Black",
             "Max": {
                 "ColorName": "",
@@ -47,16 +62,16 @@
             }
         },
         {
-            "ColorName": "Cyan",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 110,
+                "H": 30,
                 "S": 255,
                 "V": 255
             },
             "Min": {
                 "ColorName": "",
-                "H": 80,
+                "H": 0,
                 "S": 170,
                 "V": 0
             }
@@ -75,21 +90,6 @@
                 "S": 100,
                 "V": 150
             }
-        },
-        {
-            "ColorName": "Yellow",
-            "Max": {
-                "ColorName": "",
-                "H": 30,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 170,
-                "V": 0
-            }
         }
     ],
     "CycleImage": true,
@@ -107,12 +107,13 @@
     "I2SROIMarginX_mm": 2.5,
     "I2SROIMarginY_mm": 2.5,
     "I2SWidth_mm": 2.9,
-    "ImageMaxCount": 10,
-    "JobID": 0,
+    "ImageMaxCount": -1,
+    "JobID": "0",
     "LeftOffsetFromPaperEdgeX_mm": 2.94,
     "LeftStripWidth_mm": 14.3,
     "OfflineRegStripOnly": false,
-    "OfflineTreatEvenFilesAsRight": false,
+    "OfflineRegStripsLeftAndRight": false,
+    "OfflineRightStripIsEven": true,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -134,7 +135,8 @@
         "V": 0
     },
     "RightStripROIsOffsetY_mm": 0,
-    "RootOutputFolder": "C:\\temp\\june_out",
+    "RootCSVOutputFolder": "C:\\temp\\june_out",
+    "RootImageOutputFolder": "C:\\temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,
     "SISO_BoardList": [
