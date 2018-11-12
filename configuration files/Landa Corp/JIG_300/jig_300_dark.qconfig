@@ -32,12 +32,27 @@
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
+            "ColorName": "Cyan",
+            "Max": {
+                "ColorName": "",
+                "H": 115,
+                "S": 255,
+                "V": 115
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 95,
+                "S": 90,
+                "V": 80
+            }
+        },
+        {
             "ColorName": "Black",
             "Max": {
                 "ColorName": "",
                 "H": 255,
-                "S": 180,
-                "V": 128
+                "S": 140,
+                "V": 40
             },
             "Min": {
                 "ColorName": "",
@@ -47,18 +62,18 @@
             }
         },
         {
-            "ColorName": "Cyan",
+            "ColorName": "Yellow",
             "Max": {
                 "ColorName": "",
-                "H": 110,
+                "H": 55,
                 "S": 255,
-                "V": 255
+                "V": 115
             },
             "Min": {
                 "ColorName": "",
-                "H": 80,
-                "S": 100,
-                "V": 150
+                "H": 35,
+                "S": 90,
+                "V": 80
             }
         },
         {
@@ -67,28 +82,13 @@
                 "ColorName": "",
                 "H": 179,
                 "S": 255,
-                "V": 255
+                "V": 80
             },
             "Min": {
                 "ColorName": "",
-                "H": 150,
-                "S": 100,
-                "V": 150
-            }
-        },
-        {
-            "ColorName": "Yellow",
-            "Max": {
-                "ColorName": "",
-                "H": 39,
-                "S": 255,
-                "V": 255
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 100,
-                "V": 150
+                "H": 145,
+                "S": 90,
+                "V": 50
             }
         }
     ],
