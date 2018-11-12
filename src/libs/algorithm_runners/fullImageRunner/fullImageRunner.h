@@ -30,7 +30,7 @@ namespace LandaJune
 			QString getName() const override;
 			QString getDescription() const override;
 
-			std::string getFrameFolderName() const override;
+			std::string getFrameFolderName() override;
 
 			BaseParametersPtr getParameters() const override;
 

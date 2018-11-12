@@ -359,7 +359,7 @@ namespace LandaJune
 
 				std::string getElementName() override
 				{
-					return fmt::format("i2s_{0}_[{1},{2}_overlay]", SIDE_NAMES[_input->_side], _input->_approxTriangeROI.left(), _input->_approxTriangeROI.top());
+					return fmt::format("i2s_{0}_[{1},{2}]_overlay", SIDE_NAMES[_input->_side], _input->_approxTriangeROI.left(), _input->_approxTriangeROI.top());
 				}
 			
 				std::shared_ptr<cv::Mat> overlay()  const override

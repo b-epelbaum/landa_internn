@@ -134,7 +134,18 @@ bool BaseParameters::fromJson(const QJsonObject& obj, bool bRootObject, QString&
 		const auto& metaProp = metaobject->property(i);
 		const auto propName = metaProp.name();
 		const auto typeName = metaProp.typeName();
-		if (strcmp(propName, "objectName") == 0 || !metaProp.isUser() || !metaProp.isStored() )
+
+		auto const isUser = metaProp.isUser();
+		auto const isStored = metaProp.isStored();
+
+		if (strcmp(propName, "AlgorithmRunner") == 0)
+		{
+			qDebug() << "aaa";
+		}
+		if (   strcmp(propName, "objectName") == 0 
+			|| (!metaProp.isUser() && !metaProp.isStored())
+			|| (metaProp.isUser() && !metaProp.isStored())
+			)
 			continue;
 			
 		if ( !obj.contains(propName) )

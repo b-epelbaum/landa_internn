@@ -1,5 +1,5 @@
 {
-    "AlgorithmRunner": "Full Image Runner",
+    "AlgorithmRunner": "AVT Strip Runner",
     "AsyncSaveQueueMaxSizeGB": 1,
     "C2CCircleDiameter_mm": 1.542,
     "C2CDistanceBetweenDotsX_mm": 3.048,
@@ -32,21 +32,6 @@
     "CircleTemplateResourceWave": "WaveCircleTemplate.tif",
     "ColorArray": [
         {
-            "ColorName": "Black",
-            "Max": {
-                "ColorName": "",
-                "H": 255,
-                "S": 180,
-                "V": 128
-            },
-            "Min": {
-                "ColorName": "",
-                "H": 0,
-                "S": 0,
-                "V": 0
-            }
-        },
-        {
             "ColorName": "Cyan",
             "Max": {
                 "ColorName": "",
@@ -62,18 +47,18 @@
             }
         },
         {
-            "ColorName": "Magenta",
+            "ColorName": "Black",
             "Max": {
                 "ColorName": "",
-                "H": 179,
-                "S": 255,
-                "V": 255
+                "H": 255,
+                "S": 180,
+                "V": 128
             },
             "Min": {
                 "ColorName": "",
-                "H": 150,
-                "S": 100,
-                "V": 150
+                "H": 0,
+                "S": 0,
+                "V": 0
             }
         },
         {
@@ -87,6 +72,21 @@
             "Min": {
                 "ColorName": "",
                 "H": 0,
+                "S": 100,
+                "V": 150
+            }
+        },
+        {
+            "ColorName": "Magenta",
+            "Max": {
+                "ColorName": "",
+                "H": 179,
+                "S": 255,
+                "V": 255
+            },
+            "Min": {
+                "ColorName": "",
+                "H": 150,
                 "S": 100,
                 "V": 150
             }
@@ -112,8 +112,6 @@
     "LeftOffsetFromPaperEdgeX_mm": 3.13267271,
     "LeftStripWidth_mm": 11.93,
     "OfflineRegStripOnly": true,
-    "OfflineRegStripsLeftAndRight": true,
-    "OfflineRightStripIsEven": true,
     "PanelCount": 11,
     "ParalellizeCalculations": true,
     "Pixel2MM_X": 0.08466683,
@@ -135,8 +133,8 @@
         "V": 0
     },
     "RightStripROIsOffsetY_mm": 0,
-    "RootCSVOutputFolder": "v:\\JIG\\default\\June\\QCS",
-    "RootImageOutputFolder": "v:\\JIG\\default\\June",
+    "RootCSVOutputFolder": "c:\\Temp\\june_out\\QCS",
+    "RootImageOutputFolder": "c:\\Temp\\june_out",
     "SISO_AppletFilePath": "",
     "SISO_BoardIndex": 0,
     "SISO_BoardList": [
@@ -166,7 +164,7 @@
     "ScanStartToPaperEdgeOffset_mm": 0,
     "SheetID": 0,
     "SourceFilePath": "",
-    "SourceFolderPath": "v:\\JIG\\default\\AVT\\default",
+    "SourceFolderPath": "d:\\Temp\\JUNE\\june_offline_input\\JIG_300_default",
     "SubstrateHeight_mm": 700,
     "SubstrateWidth_mm": 1000,
     "WaveCircleDiameter_mm": 1.016,

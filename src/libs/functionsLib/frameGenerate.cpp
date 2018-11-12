@@ -120,7 +120,7 @@ CORE_ERROR Functions::frameGenerate(
 				return RESULT_OK;
 			}
 			
-			if ( retVal == CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES || retVal == CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT )
+			if ( retVal == CORE_ERROR::ERR_OFFLINE_READER_NO_MORE_FILES || retVal == CORE_ERROR::ERR_OFFLINE_READER_REACHED_MAX_COUNT )
 			{
 				framePool->release(std::move(frameRefObj));
 

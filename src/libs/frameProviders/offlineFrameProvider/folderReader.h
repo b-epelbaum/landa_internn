@@ -37,21 +37,19 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SourceFolderPath, QString, "")
 			DECLARE_NORMAL_PARAM_PROPERTY(ImageMaxCount, int, -1)
 			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripOnly, bool, false)
-			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripsLeftAndRight, bool, false)
-			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRightStripIsEven, bool, true)
 
 		protected:
 
 			void sortImageFileList();
-			void splitToLeftAndRight();
+			//void splitToLeftAndRight();
 			void validateParameters(BaseParametersPtr parameters) override;
 
 		private :
 
 			QVector<QString>	_imagePaths;
 
-			QVector<QString>	_imagePathsLeft;
-			QVector<QString>	_imagePathsRight;
+			//QVector<QString>	_imagePathsLeft;
+			//QVector<QString>	_imagePathsRight;
 
 			bool _bAccessLeft = true;
 		};

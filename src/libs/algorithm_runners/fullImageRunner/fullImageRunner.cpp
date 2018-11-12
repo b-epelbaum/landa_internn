@@ -50,16 +50,21 @@ QString fullImageRunner::getDescription() const
 }
 
 
-std::string fullImageRunner::getFrameFolderName()  const 
+std::string fullImageRunner::getFrameFolderName()  
 {
-	if (_bOfflineSource && !_sourceFramePath.empty() )
+	if (_targetFrameFolder.empty())
 	{
-		auto const strFolder = QFileInfo(QString::fromStdString(_sourceFramePath)).absoluteDir().dirName();
-		if ( strFolder.isEmpty() )
-			return std::move(QFileInfo(QString::fromStdString(_sourceFramePath)).absoluteDir().dirName().toStdString());
+		if (_bOfflineSource && !_sourceFramePath.empty() )
+		{
+			_targetFrameFolder = QFileInfo(QString::fromStdString(_sourceFramePath)).absoluteDir().dirName().toStdString();
+		}
+		else
+		{
+			//\\Frame_<FrameID>_<ImageIndex>_algo_name
+			_targetFrameFolder =  fmt::format("{0}_{1}_images", _frameIndex, _imageIndex);
+		}
 	}
-	//\\Frame_<FrameID>_<ImageIndex>_algo_name
-	return std::move(fmt::format("{0}_{1}_images", _frameIndex, _imageIndex));
+	return _targetFrameFolder;
 }
 
 

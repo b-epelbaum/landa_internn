@@ -36,8 +36,6 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(Pixel2MM_Y,						double,					0.08660258	)
 			DECLARE_NORMAL_PARAM_PROPERTY(ReferenceColorTriplet,			COLOR_TRIPLET_SINGLE,	{}		)
 			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripOnly,				bool,					false	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRegStripsLeftAndRight,		bool,					false	)
-			DECLARE_NORMAL_PARAM_PROPERTY(OfflineRightStripIsEven,			bool,					true	)
 			
 			// I2S Triangle
 			DECLARE_EDITABLE_ONLY_PROPERTY(I2S, PARAM_GROUP_HEADER, { "I2S parameters" })
@@ -98,8 +96,8 @@ namespace LandaJune
 			DECLARE_NORMAL_PARAM_PROPERTY(SheetID,						int,				0	)
 			DECLARE_NORMAL_PARAM_PROPERTY(PanelCount,					int,				11	)
 			DECLARE_NORMAL_PARAM_PROPERTY(ScanBitDepth,					int,				24	)
-			DECLARE_SAVEABLE_ONLY_PROPERTY(FrameProviderName,			QString,			"Offline Frame Provider"	)
-			DECLARE_SAVEABLE_ONLY_PROPERTY(AlgorithmRunner,				QString,			"Full Image Runner"	)
+			DECLARE_SAVEABLE_ONLY_PROPERTY(FrameProviderName,			QString,			""	)
+			DECLARE_SAVEABLE_ONLY_PROPERTY(AlgorithmRunner,				QString,			""	)
 			
 			DECLARE_EDITABLE_ONLY_PROPERTY(ImageProcessing, PARAM_GROUP_HEADER, { "Image processing parameters" }	)
 			DECLARE_NORMAL_PARAM_PROPERTY(ParalellizeCalculations,		bool,				true	)

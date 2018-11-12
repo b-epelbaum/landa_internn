@@ -39,6 +39,7 @@ folderReader::~folderReader()
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "destroyed";
 }
 
+/*
 void folderReader::splitToLeftAndRight()
 {
 	for ( int i = 0; i < _imagePaths.size(); i++ )
@@ -49,6 +50,7 @@ void folderReader::splitToLeftAndRight()
 			(i % 2) ? _imagePathsLeft.push_back(_imagePaths[i]) : _imagePathsRight.push_back(_imagePaths[i]);
 	}
 }
+*/
 
 void folderReader::sortImageFileList()
 {
@@ -73,14 +75,12 @@ void folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, 
 			
 		_lastAcquiredImage = -1;
 		_imagePaths.clear();
-		_imagePathsLeft.clear();
-		_imagePathsRight.clear();
 		
 		const auto imageFolder = _SourceFolderPath; 
 		if ( imageFolder.isEmpty() || !QFileInfo(imageFolder).exists())
 		{
 			FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << " invalid or cannot be found. Aborting scan...";
-			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Source folder invalid or cannot be found : " + imageFolder.toStdString() );
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINE_READER_SOURCE_FILE_INVALID, "Source folder invalid or cannot be found : " + imageFolder.toStdString() );
 		}
 
 		FOLDER_READER_PROVIDER_SCOPED_LOG << "Scanning for source files at " << imageFolder << "...";
@@ -95,23 +95,13 @@ void folderReader::init(BaseParametersPtr parameters, Core::ICore * coreObject, 
 		if (_imagePaths.isEmpty())
 		{
 			FOLDER_READER_PROVIDER_SCOPED_ERROR << "Source folder " << imageFolder << " contains no viable files";
-			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_NO_FILES_TO_LOAD, "Source folder icontains no files for loading : " + imageFolder.toStdString() );
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINE_READER_NO_FILES_TO_LOAD, "Source folder icontains no files for loading : " + imageFolder.toStdString() );
 		}
 
 		sortImageFileList();
 		if (_OfflineRegStripOnly)
 		{
 			FOLDER_READER_PROVIDER_SCOPED_LOG << "Images contain strip registration only";
-
-			if (_OfflineRegStripsLeftAndRight)
-			{
-				splitToLeftAndRight();
-				FOLDER_READER_PROVIDER_SCOPED_LOG << "Images has been split to Left and Right parts";
-			}
-			else
-			{
-				_imagePathsLeft = _imagePaths;
-			}
 		}
 
 		FOLDER_READER_PROVIDER_SCOPED_LOG << "sorting complete.";
@@ -165,9 +155,7 @@ void folderReader::validateParameters(BaseParametersPtr parameters)
 	_SourceFolderPath = processParams->SourceFolderPath();
 	_ImageMaxCount = processParams->ImageMaxCount();
 	_OfflineRegStripOnly = processParams->OfflineRegStripOnly();
-	_OfflineRegStripsLeftAndRight = processParams->OfflineRegStripsLeftAndRight();
-	_OfflineRightStripIsEven = processParams->OfflineRightStripIsEven();
-		
+	
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Validating provider parameters : ";
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "---------------------------------------";
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "_SourceFolderPath = " << _SourceFolderPath;
@@ -184,31 +172,16 @@ int32_t folderReader::getFrameLifeSpan() const
 
 CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 {
-	if (_OfflineRegStripOnly && _OfflineRegStripsLeftAndRight )
+	if (_imagePaths.empty())
 	{
-		if (_imagePathsLeft.size() < 3)
-		{
-			FOLDER_READER_PROVIDER_SCOPED_LOG << "aa";
-		}
-		if (_imagePathsLeft.empty() && _imagePathsRight.empty() )
-		{
-			FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
-			return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
-		}	
-	}
-	else
-	{
-		if (_imagePaths.empty())
-		{
-			FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
-			return CORE_ERROR::ERR_OFFLINEREADER_NO_MORE_FILES;
-		}
+		FOLDER_READER_PROVIDER_SCOPED_LOG << "No more files to handle. Exiting...";
+		return CORE_ERROR::ERR_OFFLINE_READER_NO_MORE_FILES;
 	}
 
 	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount -1 )
 	{
 		FOLDER_READER_PROVIDER_SCOPED_LOG << "Reached a maximum number of provided images. Exiting...";
-		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
+		return CORE_ERROR::ERR_OFFLINE_READER_REACHED_MAX_COUNT;
 	}
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	return RESULT_OK;
@@ -217,46 +190,18 @@ CORE_ERROR folderReader::prepareData(FrameRef* frameRef)
 CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 {
 	// read image to cv::Mat object
-	QString srcFullPath;
+	QString srcFullPath = _imagePaths.first();
+	_imagePaths.pop_front();
 
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "loading source file " << srcFullPath << "...";
 
-	if ( _OfflineRegStripOnly )
-	{
-		if (_OfflineRegStripsLeftAndRight)
-		{
-			if (_bAccessLeft )
-			{
-				srcFullPath = _imagePathsLeft.first();
-				_imagePathsLeft.pop_front();
-			}
-			else
-			{
-				srcFullPath = _imagePathsRight.first();
-				_imagePathsRight.pop_front();
-			}
-			(_bAccessLeft) ? frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 1) : frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 0);
-			_bAccessLeft = !_bAccessLeft;
-		}
-		else
-		{
-			srcFullPath = _imagePaths.first();
-			_imagePaths.pop_front();
-		}
-	}
-	else
-	{
-		srcFullPath = _imagePaths.first();
-		_imagePaths.pop_front();
-	}
-
 	const auto& stdPath = srcFullPath.toStdString();
 
-	const auto tempMatObject = std::make_shared<cv::Mat>(cv::imread(stdPath));
+	const auto tempMatObject = std::make_shared<cv::Mat>(cv::imread(srcFullPath.toStdString()));
 	if (!tempMatObject->data)            // Check for invalid input
 	{
 		FOLDER_READER_PROVIDER_SCOPED_WARNING << "Cannot load image " << srcFullPath;
-		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		return CORE_ERROR::ERR_OFFLINE_READER_SOURCE_FILE_INVALID;
 	}
 
 	FOLDER_READER_PROVIDER_SCOPED_LOG << "Image " << srcFullPath << " has been loaded successfully to frameRef #" << frameRef->getFrameRefIndex();
@@ -272,5 +217,12 @@ CORE_ERROR folderReader::accessData(FrameRef* frameRef)
 
 	// pass source image path to frame
 	frameRef->setNamedParameter(NAMED_PROPERTY_SOURCE_PATH, stdPath);
+
+	// set side hint in case of strip provider
+	if ( _OfflineRegStripOnly )
+	{
+		(_bAccessLeft) ? frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 1) : frameRef->setNamedParameter(NAMED_PROPERTY_FRAME_PARITY, 0);
+		_bAccessLeft = !_bAccessLeft;
+	}
 	return RESULT_OK;
 }

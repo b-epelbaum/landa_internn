@@ -48,7 +48,7 @@ namespace LandaJune
 		};
 
 		// meta data generation functions
-
+		/*
 		static std::string generateImageSavePath
 		(
 			const std::string& rootFolder // c:\\temp\\out
@@ -76,6 +76,7 @@ namespace LandaJune
 
 			return filePath;
 		}
+		*/
 
 		static void createDirectoryIfNeeded(const std::string& pathName)
 		{
@@ -243,7 +244,7 @@ namespace LandaJune
 				outFile.open(flags | QFile::Text);
 
 				std::ostringstream ss;
-				ss << inputPathInfo << " : " << outPathInfo << std::endl;
+				ss << inputPathInfo << " : " << outPathInfo << "\r\n";
 				const auto& outString = ss.str();
 				outFile.write(outString.c_str(), outString.size());
 			}
@@ -269,12 +270,12 @@ namespace LandaJune
 			std::string resultName = (overallResult == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
 
 			std::ostringstream ss;
-			ss << "Pattern Type :,WaveY" << std::endl << std::endl
-				<< "Job Id :," << jobID << std::endl
-				<< "Flat ID :," << frameIndex << std::endl
-				<< "ImageIndex ID :," << imageIndex << std::endl
-				<< "Mark Index In Layout Id :,2" << std::endl
-				<< "Wave Y Overall Status :," << resultName << std::endl
+			ss << "Pattern Type :,WaveY" << "\r\n\r\n"
+				<< "Job Id :," << jobID << "\r\n"
+				<< "Flat ID :," << frameIndex << "\r\n"
+				<< "ImageIndex ID :," << imageIndex << "\r\n"
+				<< "Mark Index In Layout Id :,2" << "\r\n"
+				<< "Wave Y Overall Status :," << resultName << "\r\n"
 				<< "DotIndex\\Separation,";
 
 			const auto colorCount = waveOutputs.size();
@@ -287,7 +288,7 @@ namespace LandaJune
 					ss << ",";
 				counter++;
 			}
-			ss << std::endl;
+			ss << "\r\n";
 
 			const static std::string nan = "NaN";
 
@@ -310,7 +311,7 @@ namespace LandaJune
 				}
 				j = colorCount - 1;
 				printVals();
-				ss << std::endl;
+				ss << "\r\n";
 			}
 
 			auto const& fPath = generateFullPathForWaveCSV(csvFolder, frameIndex);
@@ -318,7 +319,7 @@ namespace LandaJune
 			const auto& charData = outString.c_str();
 
 			auto dataVector = std::make_shared<std::vector<unsigned char>>();
-			dataVector->assign(charData, charData + outString.size() + 1);
+			dataVector->assign(charData, charData + outString.size());
 
 			if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite))
 			{
@@ -349,13 +350,13 @@ namespace LandaJune
 				std::string resultName = (stripOut->_result == ALG_STATUS_SUCCESS) ? "Success" : "Fail";
 
 				std::ostringstream ss;
-				ss << "Pattern Type :,Registration" << std::endl << std::endl
-					<< "Job Id :," << jobID << std::endl
+				ss << "Pattern Type :,Registration" << "\r\n\r\n"
+					<< "Job Id :," << jobID << "\r\n"
 					// AVT write frame index starting from 1
-					<< "Flat ID :," << frameIndex + 1 << std::endl
-					<< "ImageIndex ID :," << imageIndex + 1<< std::endl
-					<< "Registration Side :," << SIDE_NAMES[stripOut->_input->_side] << std::endl
-					<< "Registration Overall Status :," << resultName << std::endl
+					<< "Flat ID :," << frameIndex << "\r\n"
+					<< "ImageIndex ID :," << imageIndex << "\r\n"
+					<< "Registration Side :," << SIDE_NAMES[stripOut->_input->_side] << "\r\n"
+					<< "Registration Overall Status :," << resultName << "\r\n"
 					<< "Ink\\Sets,";
 
 				const auto& setArraySize = stripOut->_c2cROIOutputs.size();
@@ -366,7 +367,7 @@ namespace LandaJune
 					if (out->_input->_roiIndex < setArraySize -1 )
 						ss << ",";
 				}
-				ss << std::endl;
+				ss << "\r\n";
 
 				const auto& colorArraySize = stripOut->_c2cROIOutputs[0]->_input->_colors.size();
 				for (size_t i = 0; i < colorArraySize; i++)
@@ -378,15 +379,16 @@ namespace LandaJune
 						ss << "," << out->_colorCenters[i]._y << "," << out->_colorCenters[i]._x;
 					}
 					if ( i < colorArraySize - 1)
-						ss << std::endl;
+						ss << "\r\n";
 				}
+				ss << "\r\n";
 
 				auto const& fPath = generateFullPathForRegCSV(stripOut, csvFolder, frameIndex);
 				const auto& outString = ss.str();
 				const auto& charData = outString.c_str();
 
 				auto dataVector = std::make_shared<std::vector<unsigned char>>();
-				dataVector->assign(charData, charData + outString.size() + 1);
+				dataVector->assign(charData, charData + outString.size());
 				if (!Core::dumpThreadPostJob(dataVector, fPath, asyncWrite))
 				{
 					PRINT_WARNING << "[" << __FUNCTION__ << "] : cannot post new save job; Saving queue exceeded maximum size. Saving file dropped [" << fPath.c_str() << "]";
@@ -425,20 +427,20 @@ namespace LandaJune
 				std::ostringstream ss;
 
 				if (!fileExists)
-					ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << std::endl;
+					ss << "Flat Id,Panel Id,Status,,,,,,,T1->X,T1->Y" << "\r\n";
 
 				// TODO : move pixel density multiplication to algorithm function
 				// AVT switches between X and Y coordinate
 
-				ss << frameIndex + 1
+				ss << frameIndex
 					<< ","
-					<< imageIndex + 1
+					<< imageIndex
 					<< ","
 					<< resultName
 					<< colons
 					<< i2sOut->_triangeCorner._y
 					<< "," << i2sOut->_triangeCorner._x
-					<< std::endl;
+					<< "\r\n";
 
 				const auto& outString = ss.str();
 				outFile.write(outString.c_str(), outString.size());

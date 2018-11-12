@@ -98,6 +98,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "threads", "src\libs\threads
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "roitools", "src\libs\roitools\roitools.vcxproj", "{675A6CAC-ED05-44B4-BF85-9E5716FD769F}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avtStripRunner", "src\libs\algorithm_runners\avtStripRunner\avtStripRunner.vcxproj", "{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "avtStripProvider", "src\libs\frameProviders\avtStripProvider\avtStripProvider.vcxproj", "{56942F24-DA9E-4F7F-92EF-373BA1698D4F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -207,6 +211,18 @@ Global
 		{675A6CAC-ED05-44B4-BF85-9E5716FD769F}.Release_With_DebugInfo|x64.Build.0 = Release|x64
 		{675A6CAC-ED05-44B4-BF85-9E5716FD769F}.Release|x64.ActiveCfg = Release|x64
 		{675A6CAC-ED05-44B4-BF85-9E5716FD769F}.Release|x64.Build.0 = Release|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Debug|x64.ActiveCfg = Debug|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Debug|x64.Build.0 = Debug|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Release_With_DebugInfo|x64.ActiveCfg = Release_With_DebugInfo|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Release_With_DebugInfo|x64.Build.0 = Release_With_DebugInfo|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Release|x64.ActiveCfg = Release|x64
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8}.Release|x64.Build.0 = Release|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Debug|x64.ActiveCfg = Debug|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Debug|x64.Build.0 = Debug|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Release_With_DebugInfo|x64.ActiveCfg = Release_With_DebugInfo|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Release_With_DebugInfo|x64.Build.0 = Release_With_DebugInfo|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Release|x64.ActiveCfg = Release|x64
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -231,6 +247,8 @@ Global
 		{56942F24-DA9E-4F7F-92EF-371BA1698D4F} = {1B904684-A96B-4260-8703-E2FCB3C4526A}
 		{29672DCC-30F4-4901-A7CF-923144194800} = {16FE1ADE-AA38-4844-A48A-90D6DDE4F21E}
 		{675A6CAC-ED05-44B4-BF85-9E5716FD769F} = {7F17C5A6-D255-4B03-A9A0-75B99A8A6C50}
+		{C4B93A79-7BA9-448D-B0F9-1081BD1B28B8} = {20844454-356C-4BE4-BBF8-24F36BEF98D5}
+		{56942F24-DA9E-4F7F-92EF-373BA1698D4F} = {1B904684-A96B-4260-8703-E2FCB3C4526A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		Qt5Version = $(DefaultQtVersion)

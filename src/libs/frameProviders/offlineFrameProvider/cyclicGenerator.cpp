@@ -50,7 +50,7 @@ void cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObjec
 		if (_SourceFilePath.isEmpty() )
 		{
 			CYCLIC_GENERATOR_SCOPED_ERROR << "Source file path is empty";
-			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Source file path is empty" );
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINE_READER_SOURCE_FILE_INVALID, "Source file path is empty" );
 		}
 
 		const auto t1 = Utility::now_in_millisecond();
@@ -61,7 +61,7 @@ void cyclicGenerator::init(BaseParametersPtr parameters, Core::ICore * coreObjec
 		if (_sourceTemplateImage.empty() )
 		{
 			CYCLIC_GENERATOR_SCOPED_ERROR << "cannot load image file from " << pathName;
-			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID, "Cannot load source image from " + pathName.toStdString() );
+			THROW_EX_ERR_STR(CORE_ERROR::ERR_OFFLINE_READER_SOURCE_FILE_INVALID, "Cannot load source image from " + pathName.toStdString() );
 		}
 		CYCLIC_GENERATOR_SCOPED_LOG << "finished loading file " << pathName << " in " << Utility::now_in_millisecond() - t1 << " msec";
 	}
@@ -127,10 +127,10 @@ int32_t cyclicGenerator::getFrameLifeSpan() const
 CORE_ERROR cyclicGenerator::prepareData(FrameRef* frameRef)
 {
 	if ( _sourceTemplateImage.empty() )
-		return CORE_ERROR::ERR_SIMULATOR_HAVE_NO_IMAGES;
+		return CORE_ERROR::ERR_OFFLINE_READER_HAS_NO_IMAGES;
 
 	if (_ImageMaxCount > 0 &&  _lastAcquiredImage == _ImageMaxCount  - 1)
-		return CORE_ERROR::ERR_SIMULATOR_REACHED_MAX_COUNT;
+		return CORE_ERROR::ERR_OFFLINE_READER_REACHED_MAX_COUNT;
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(_FrameFrequencyInMSec));
 	return RESULT_OK;
@@ -144,7 +144,7 @@ CORE_ERROR cyclicGenerator::accessData(FrameRef* frameRef)
 	if (!clonedMat->data)            // Check for invalid input
 	{
 		CYCLIC_GENERATOR_SCOPED_WARNING << "Cannot clone loaded image ";
-		return CORE_ERROR::ERR_OFFLINEREADER_SOURCE_FILE_INVALID;
+		return CORE_ERROR::ERR_OFFLINE_READER_SOURCE_FILE_INVALID;
 	}
 
 	// push bits to frameRef object

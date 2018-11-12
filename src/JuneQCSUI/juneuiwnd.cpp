@@ -127,14 +127,14 @@ void JuneUIWnd::init()
 		ui.frameZone, &FrameZone::onNewFrameZonePosition);
 
 	initCore();
+	initProcessParameters();
+
 	if (isUIMode() )
 	{
 		enumerateFrameProviders();
 		enumerateAlgoRunners();
 	}
 
-
-	initProcessParameters();
 
 	if (isUIMode() )
 	{
@@ -205,9 +205,6 @@ void JuneUIWnd::initProcessParametersUIMode()
 	{
 		const auto batchParams = ICore::get()->getProcessParameters();
 
-		connect(batchParams.get(), &BaseParameters::loaded, this, &JuneUIWnd::onUpdateProcessParams);
-		connect(batchParams.get(), &BaseParameters::updateCalculated, this, &JuneUIWnd::onUpdateCalculatedParams);
-
 		_processParamModelEditable->setupModelData(batchParams->getEditablePropertyList(), false);
 		_processParamModelCalculated->setupModelData(batchParams->getReadOnlyPropertyList(), true);
 
@@ -252,6 +249,8 @@ void JuneUIWnd::initProcessParametersUIMode()
 		{
 			CLIENT_SCOPED_LOG << "No configuration file to load from. Setting default values...";
 		}
+		connect(batchParams.get(), &BaseParameters::loaded, this, &JuneUIWnd::onUpdateProcessParams);
+		connect(batchParams.get(), &BaseParameters::updateCalculated, this, &JuneUIWnd::onUpdateCalculatedParams);
 
 	}
 	catch (BaseException& ex)

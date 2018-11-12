@@ -240,7 +240,7 @@ void baseAlgorithmRunner::setupWaveProcessParameters(std::vector<PARAMS_WAVE_INP
 ////////////////////////////////////////////////////////
 ////////////   Region generation
 
-void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList)
 {
 	try
 	{
@@ -263,7 +263,7 @@ void baseAlgorithmRunner::generateSheetRegions(PARAMS_C2C_SHEET_INPUT_PTR input,
 	}
 }
 
-void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList)
 {
 	try
 	{
@@ -323,7 +323,7 @@ void baseAlgorithmRunner::generateStripRegions(PARAMS_C2C_STRIP_INPUT_PTR input,
 	}
 }
 
-void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList)
 {
 	try
 	{
@@ -360,7 +360,7 @@ void baseAlgorithmRunner::generateI2SRegion(PARAMS_I2S_INPUT_PTR input, IMAGE_RE
 
 }
 
-void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList)
 {
 	try
 	{
@@ -395,7 +395,7 @@ void baseAlgorithmRunner::generateC2CRegion(PARAMS_C2C_ROI_INPUT_PTR input, IMAG
 	}
 }
 
-void baseAlgorithmRunner::generateWavesRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const
+void baseAlgorithmRunner::generateWavesRegions(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList)
 {
 	try
 	{
@@ -418,7 +418,7 @@ void baseAlgorithmRunner::generateWavesRegions(PARAMS_C2C_SHEET_INPUT_PTR input,
 	}
 }
 
-void baseAlgorithmRunner::generateWaveRegion(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const
+void baseAlgorithmRunner::generateWaveRegion(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave )
 {
 	try
 	{
@@ -904,9 +904,13 @@ void baseAlgorithmRunner::shutdownWave()
 	}
 }
 
-std::string baseAlgorithmRunner::getFrameFolderName() const
+std::string baseAlgorithmRunner::getFrameFolderName()
 {
-	return fmt::format("frame_#{0}", _frameIndex);
+	if (_targetFrameFolder.empty())
+	{
+		_targetFrameFolder = std::move( fmt::format("frame_#{0}", _frameIndex));
+	}
+	return _targetFrameFolder;
 }
 	
 void baseAlgorithmRunner::getSourceFrameIndexString()

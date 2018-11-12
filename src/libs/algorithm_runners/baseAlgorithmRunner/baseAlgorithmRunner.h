@@ -74,12 +74,12 @@ namespace LandaJune
 			virtual void setupC2CProcessParameters		(PARAMS_C2C_ROI_INPUT_PTR input, SHEET_SIDE side);
 			virtual void setupWaveProcessParameters		(std::vector<PARAMS_WAVE_INPUT_PTR>& inputs, PARAMS_I2S_INPUT_PTR waveTriangleInput );
 
-			virtual void generateSheetRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
-			virtual void generateStripRegions			(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
-			virtual void generateI2SRegion				(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
-			virtual void generateC2CRegion				(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList) const;
-			virtual void generateWavesRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList)  const;
-			virtual void generateWaveRegion				(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave ) const;
+			virtual void generateSheetRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList);
+			virtual void generateStripRegions			(PARAMS_C2C_STRIP_INPUT_PTR input, IMAGE_REGION_LIST& regionList);
+			virtual void generateI2SRegion				(PARAMS_I2S_INPUT_PTR input, IMAGE_REGION_LIST& regionList);
+			virtual void generateC2CRegion				(PARAMS_C2C_ROI_INPUT_PTR input, IMAGE_REGION_LIST& regionList);
+			virtual void generateWavesRegions			(PARAMS_C2C_SHEET_INPUT_PTR input, IMAGE_REGION_LIST& regionList);
+			virtual void generateWaveRegion				(PARAMS_WAVE_INPUT_PTR input, IMAGE_REGION_LIST& regionList, bool bDumpWave );
 						
 			virtual void copyRegions(IMAGE_REGION_LIST& regionList );
 
@@ -110,13 +110,13 @@ namespace LandaJune
 			/////////////   OUTPUT PROCESSING FUNCTIONS
 			
 			// general sheet output processing
-			virtual CORE_ERROR processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput)						= 0;
+			virtual CORE_ERROR processSheetOutput(PARAMS_C2C_SHEET_OUTPUT_PTR sheetOutput){ return RESULT_NOT_IMPLEMENTED;}
 
 			// general strip output processing
-			virtual void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput)						= 0;
+			virtual void processStripOutput(PARAMS_C2C_STRIP_OUTPUT_PTR stripOutput){}
 			
 			// general wave output processing
-			virtual void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  )		= 0;
+			virtual void processWaveOutputs(concurrent_vector<PARAMS_WAVE_OUTPUT_PTR> & waveOutputs, PARAMS_I2S_OUTPUT_PTR waveTriangleOutput  ){}
 			
 
 			//////////////////////////////////////////////////////
@@ -136,7 +136,7 @@ namespace LandaJune
 				}
 			}
 
-			virtual std::string getFrameFolderName() const;
+			virtual std::string getFrameFolderName();
 			virtual void getSourceFrameIndexString();
 			virtual std::string parseSourcePathForFrameIndex(const std::string& strPath) { return {}; }
 
@@ -156,6 +156,7 @@ namespace LandaJune
 			
 			std::string					_sourceFrameIndexStr;
 			std::string					_sourceFramePath;
+			std::string					_targetFrameFolder;
 			std::string					_csvOutFolder;
 			std::string					_loadedConfigName;
 		};
