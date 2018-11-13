@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QMetaObject>
 
+#define DECLARE_STATIC_CORE_HANDLER(x) static void on_##x ( BaseCore *coreObject, std::any& callbackData );
 
 namespace LandaJune {
 	enum class CoreCallbackType;
@@ -91,6 +92,8 @@ namespace LandaJune
 			void runnerDetectionSuccess			( int frameIndex );
 			void runnerDetectionFailure			( int frameIndex );
 
+			// saver signals
+			void fileSaverFailure				( CORE_ERROR err );
 
 		private slots:
 
@@ -109,6 +112,8 @@ namespace LandaJune
 			void _onRunnerDetectionFailure			( int frameIndex );
 			void _onRunnerException					(std::exception_ptr pex);
 
+			// file saver slots
+			void _onFileSaverFailure					( int err );
 	
 
 
@@ -129,7 +134,7 @@ namespace LandaJune
 			void initFramePool() const;
 			void initProviders();
 			void initAlgorithmRunners();
-			void initFileWriter( bool bInit ) const;
+			void initFileWriter( bool bInit );
 
 			void processProviderExceptionData(std::exception_ptr pex);
 			void processRunnerExceptionData(std::exception_ptr pex);
@@ -153,18 +158,20 @@ namespace LandaJune
 
 			// static event parser functions
 
-			static void on_ProviderScannedFilesCount			( BaseCore *coreObject, std::any& callbackData );
-			static void on_ProviderFrameGeneratedOk				( BaseCore *coreObject, std::any& callbackData );
-			static void on_ProviderFrameSkipped					( BaseCore *coreObject, std::any& callbackData );
-			static void on_ProviderFinished						( BaseCore *coreObject, std::any& callbackData );
-			static void on_ProviderFrameImageData				( BaseCore *coreObject, std::any& callbackData );
-			static void on_ProviderException					( BaseCore *coreObject, std::any& callbackData );
+			DECLARE_STATIC_CORE_HANDLER (ProviderScannedFilesCount)
+			DECLARE_STATIC_CORE_HANDLER (ProviderFrameGeneratedOk)
+			DECLARE_STATIC_CORE_HANDLER (ProviderFrameSkipped)
+			DECLARE_STATIC_CORE_HANDLER (ProviderFinished)
+			DECLARE_STATIC_CORE_HANDLER (ProviderFrameImageData)
+			DECLARE_STATIC_CORE_HANDLER (ProviderException)
 
-			static void on_RunnerFrameHandledOk					( BaseCore *coreObject, std::any& callbackData );
-			static void on_RunnerFrameSkipped					( BaseCore *coreObject, std::any& callbackData );
-			static void on_RunnerDetectionSuccess				( BaseCore *coreObject, std::any& callbackData );
-			static void on_RunnerDetectionFailure				( BaseCore *coreObject, std::any& callbackData );
-			static void on_RunnerException						( BaseCore *coreObject, std::any& callbackData );
+			DECLARE_STATIC_CORE_HANDLER (RunnerFrameHandledOk)
+			DECLARE_STATIC_CORE_HANDLER (RunnerFrameSkipped)
+			DECLARE_STATIC_CORE_HANDLER (RunnerDetectionSuccess)
+			DECLARE_STATIC_CORE_HANDLER (RunnerDetectionFailure)
+			DECLARE_STATIC_CORE_HANDLER (RunnerException)
+
+			DECLARE_STATIC_CORE_HANDLER (SaverError)
 
 			static void on_UnknownEvent( BaseCore *coreObject, CoreCallbackType callbackType, std::any& callbackData );
 		};

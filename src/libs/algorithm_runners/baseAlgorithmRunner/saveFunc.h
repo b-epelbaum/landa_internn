@@ -225,11 +225,38 @@ namespace LandaJune
 
 			if (asyncProcess)
 			{
-				task<void> t(dumpLambda);
+				auto dumpTask = create_task(dumpLambda);
+				auto c2 = dumpTask.then([](task<void> targetTask)
+				{
+					try
+			        {
+						// wait in another thread to catch any exceptions
+			           (void)targetTask.wait();
+			        }
+			        catch (const BaseException& e)
+			        {
+			            PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << e.what();
+			        }
+					catch (const std::exception& ex)
+			        {
+			            PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << ex.what();
+			        }
+				});
 			}
 			else
 			{
-				dumpLambda();
+				try
+			    {
+					dumpLambda();
+				}
+				catch (const BaseException& e)
+		        {
+		            PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << e.what();
+		        }
+				catch (const std::exception& ex)
+		        {
+		            PRINT_ERROR << "[" << __FUNCTION__ << "] : exception caught : " << ex.what();
+		        }
 			}
 		}
 

@@ -44,7 +44,7 @@ bool LandaJune::Core::dumpThreadPostJob(shared_char_vector img, std::string path
 	{
 		const auto func = __dumpThread.getThreadFunction();
 		auto paramTuple = std::make_tuple<std::shared_ptr<std::vector<unsigned char>>, std::string>(std::move(img), std::move(path));
-		func(paramTuple);
+		func(paramTuple, __dumpThread.getCoreObject(), __dumpThread.getCoreCallback());
 	}
 	return true;
 }

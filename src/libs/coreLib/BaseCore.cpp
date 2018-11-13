@@ -59,6 +59,8 @@ BaseCore::EVENT_MAP BaseCore::_eventParserMap =
 	, {CoreCallbackType::CALLBACK_RUNNER_DETECTION_OK,					&BaseCore::on_RunnerDetectionSuccess }
 	, {CoreCallbackType::CALLBACK_RUNNER_DETECTION_FAILED,				&BaseCore::on_RunnerDetectionFailure }
 	, {CoreCallbackType::CALLBACK_RUNNER_EXCEPTION,						&BaseCore::on_RunnerException }
+
+	, {CoreCallbackType::CALLBACK_IMAGE_SAVER_ERROR,					&BaseCore::on_SaverError }
 };
 
 void BaseCore::init(bool reportEvents )
@@ -358,12 +360,12 @@ void BaseCore::initAlgorithmRunners()
 	_algorithmRunnerList = IAlgorithmRunner::enumerateAlgorithmRunners();
 }
 
-void BaseCore::initFileWriter(bool bInit) const
+void BaseCore::initFileWriter(bool bInit)
 {
 	if ( bInit )
 	{
 		const auto processParams = std::dynamic_pointer_cast<ProcessParameters>(_processParameters);
-		fileDumpThread().setThreadFunction(frameSaveData);
+		fileDumpThread().setThreadFunction(frameSaveData, this, coreEventCallback );
 		fileDumpThread().setMaxQueueSize(processParams->AsyncSaveQueueMaxSizeGB() * 1024 * 1024 * 1024 );
 		fileDumpThread().start();
 		CORE_SCOPED_LOG << "File writer started";
@@ -456,6 +458,14 @@ void BaseCore::_onRunnerException	(std::exception_ptr pex)
 	processRunnerExceptionData(pex);
 }
 
+
+//////////////////////////////////////////
+//////////////// saver events
+
+void BaseCore::_onFileSaverFailure	( int intErr )
+{
+	emit fileSaverFailure (intErr);
+}
 
 void BaseCore::processProviderExceptionData(std::exception_ptr pex)
 {
@@ -600,3 +610,9 @@ void BaseCore::on_RunnerException( BaseCore *coreObject, std::any& callbackData 
 {
 	QMetaObject::invokeMethod(coreObject, "_onRunnerException", Qt::QueuedConnection, Q_ARG(std::exception_ptr, std::any_cast<std::exception_ptr>(callbackData)));
 }
+
+void BaseCore::on_SaverError( BaseCore *coreObject, std::any& callbackData )
+{
+	auto re = QMetaObject::invokeMethod(coreObject, "_onFileSaverFailure", Qt::QueuedConnection, Q_ARG(int, (int)std::any_cast<CORE_ERROR>(callbackData)));
+}
+

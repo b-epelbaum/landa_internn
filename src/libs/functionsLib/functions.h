@@ -46,7 +46,7 @@ namespace LandaJune
 		CORE_ERROR frameConsume	(BaseParametersPtr, AlgorithmRunnerPtr, Core::ICore *, CoreEventCallback );
 		void frameRunnerCleanup	(AlgorithmRunnerPtr, Core::ICore *, CoreEventCallback );
 
-		CORE_ERROR frameSaveData(SaveDataType& args);
+		void frameSaveData(SaveDataType& args, Core::ICore *, CoreEventCallback );
 	}
 }
 

@@ -7,6 +7,8 @@
 #include <Windows.h>
 #include "applog.h"
 
+#include "common/june_enums.h"
+
 #define BUFFSIZE              (64 * 1024) // The size of an I/O buffer
 #define MAX_PENDING_IO_REQS   4           // The maximum # of I/Os
 #define CK_WRITE 2
@@ -229,7 +231,7 @@ namespace LandaJune
 			}
 		}
 
-		CORE_ERROR frameSaveData(SaveDataType& args) 
+		void frameSaveData(SaveDataType& args, Core::ICore * coreObject, CoreEventCallback callback ) 
 		{
 			const auto sPath = std::get<1>(args);
 			const auto sData = std::get<0>(args);
@@ -237,8 +239,16 @@ namespace LandaJune
 			
 			auto retVal = writeRawDataSeq(reinterpret_cast<const char*>(sData->data()), sData->size(), sPath );
 
-			RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, sData->size());
-			return retVal;
+			if ( retVal == RESULT_OK )
+				RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsOk, (Utility::now_in_microseconds() - t0) * 1.0e-6, sData->size());
+			else
+			{
+				RealTimeStats::rtStats()->increment(RealTimeStats::objectsPerSec_savedBitmapsFailed, (Utility::now_in_microseconds() - t0) * 1.0e-6, sData->size());
+				if ( callback && coreObject )
+				{
+					callback( coreObject, CoreCallbackType::CALLBACK_IMAGE_SAVER_ERROR, std::make_any<CORE_ERROR>(retVal) );
+				}
+			}
 		}
 	}
 }

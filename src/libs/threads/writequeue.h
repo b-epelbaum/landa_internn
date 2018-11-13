@@ -11,12 +11,26 @@
 #include "global.h"
 
 #include "common/june_errors.h"
+#include "common/june_enums.h"
 
+#include <functional>
+#include <future>
+#include <any>
 
 namespace LandaJune
 {
 	namespace Core
 	{
+		class ICore;
+	}
+}
+
+namespace LandaJune
+{
+	namespace Core
+	{
+		using CORECALLBACK_TYPE = std::function<void( Core::ICore *, CoreCallbackType, std::any)>;
+
 		enum class THREADS_EXPORT THREAD_STATE { IDLE = 0, START, BUSY };
 		enum THREAD_PRIORITY { NORMAL = 0, HIGH };
 
@@ -111,7 +125,7 @@ namespace LandaJune
 		class NativeThread
 		{
 		    typedef void (*EXCEPTION_HANDLER)(std::exception &);
-		    typedef CORE_ERROR (*CALLBACKF_HANDLER)(std::tuple<Args...> &);
+		    typedef void (*CALLBACKF_HANDLER)(std::tuple<Args...> &, Core::ICore * coreObject, CORECALLBACK_TYPE callback);
 
 		public:
 			explicit NativeThread(const THREAD_PRIORITY tP = NORMAL) 
@@ -145,9 +159,12 @@ namespace LandaJune
 				return std::ref(_ehandler);
 			}
 
-			void setThreadFunction(CALLBACKF_HANDLER cbfhandler) 
+			void setThreadFunction(CALLBACKF_HANDLER func, Core::ICore * coreObject, CORECALLBACK_TYPE callback ) 
 			{
-				NativeThreadAutoLock l(_cs); _cbfhandler = cbfhandler;
+				NativeThreadAutoLock l(_cs);
+				_cbfhandler = func;
+				_coreObject = coreObject;
+				_coreCallback = callback;
 			}
 
 			void setMaxQueueSize(const uint64_t maxSize) 
@@ -190,6 +207,9 @@ namespace LandaJune
 			    }
 			    _priority = priority;
 			}
+
+			ICore * getCoreObject () const { return _coreObject; }
+			CORECALLBACK_TYPE getCoreCallback () const { return _coreCallback; }
 
 			bool start()
 			{
@@ -258,10 +278,11 @@ namespace LandaJune
 						if (!q->next(params)) { continue; }
 
 						auto cbf = pThis->getThreadFunction();
-						if (cbf) { cbf(params); }
+						if (cbf) { cbf(params, pThis->_coreObject, pThis->_coreCallback); }
 
 					}
-					catch (std::exception & e) {
+					catch (std::exception & e) 
+					{
 						auto ehandler = pThis->getErrorHandler();
 						if (ehandler) { ehandler(e); }
 					}
@@ -274,6 +295,10 @@ namespace LandaJune
 			HANDLE _handle = nullptr;
 			EXCEPTION_HANDLER _ehandler = nullptr;
 		    CALLBACKF_HANDLER _cbfhandler = nullptr;
+			
+			ICore * _coreObject = nullptr;
+			CORECALLBACK_TYPE _coreCallback = nullptr;
+
 			NativeThreadQueue<Args...> *_queue;
 			THREAD_STATE _state = THREAD_STATE::IDLE;
 			THREAD_PRIORITY _priority = NORMAL;
